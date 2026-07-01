@@ -6,8 +6,8 @@ released data-processing, training, and evaluation entrypoints.
 ## Clone
 
 ```bash
-# On Windows, clone under a short path such as C:\sn because LIBERO-Skill
-# task filenames are long. The -c flag enables Git long-path checkout.
+# On Windows, clone under a short, non-user-specific directory because
+# LIBERO-Skill task filenames are long. The -c flag enables long paths.
 git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet
 cd SkillNet
 export SKILLNET_REPO_ROOT="${PWD}"
@@ -155,10 +155,12 @@ datasets are reachable from your machine:
 python scripts/check_public_release.py --hub-smoke
 ```
 
-This network check respects `HF_ENDPOINT` and `HF_TOKEN`. Add
+This network check respects `HF_ENDPOINT` and intentionally does not use
+`HF_TOKEN` by default, so it checks what external users can read publicly. Add
 `--include-libero-derived-datasets` when you expect `jsw19/libero_40_v1` and
-`jsw19/libero_90_v1` to be visible from the current account. Otherwise, rebuild
-them locally and keep the same repo_id layout under `LEROBOT_HOME`.
+`jsw19/libero_90_v1` to be publicly visible. Otherwise, rebuild them locally and
+keep the same repo_id layout under `LEROBOT_HOME`. Use `--hub-authenticated`
+only when checking private or staging assets.
 `docs/libero_data_processing.md` includes metadata verification and Hub
 publishing commands for those derived datasets.
 

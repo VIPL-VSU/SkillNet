@@ -84,10 +84,10 @@ python data_process/robotwin/download_robotwin_sources.py --task-set paper
 If collecting demonstrations from a local RoboTwin installation:
 
 ```bash
-ROBOTWIN_ROOT="$HOME/RoboTwin_eval" GPU_ID=0 \
+ROBOTWIN_ROOT="<path-to-robotwin-checkout>" GPU_ID=0 \
 bash data_process/robotwin/collect_train_data.sh pretrain
 
-ROBOTWIN_ROOT="$HOME/RoboTwin_eval" GPU_ID=0 \
+ROBOTWIN_ROOT="<path-to-robotwin-checkout>" GPU_ID=0 \
 bash data_process/robotwin/collect_train_data.sh transfer
 ```
 
@@ -274,7 +274,7 @@ Evaluate a single fine-tuned transfer checkpoint:
 ```bash
 cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
 
-export ROBOTWIN_ROOT="$HOME/RoboTwin_eval"
+export ROBOTWIN_ROOT="<path-to-robotwin-checkout>"
 export CKPT_DIR=checkpoints/pi05_robotwin_moe_skill_transfer/robotwin_moe_skill_transfer_blocks_ranking_size/999
 export TRANSFER_TASK=blocks_ranking_size
 export TASKS=blocks_ranking_size
@@ -288,7 +288,7 @@ server:
 ```bash
 cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
 START_SERVER=0 \
-ROBOTWIN_ROOT="$HOME/RoboTwin_eval" \
+ROBOTWIN_ROOT="<path-to-robotwin-checkout>" \
 TASK_SET=transfer \
 NUM_TRIALS=20 \
 bash examples/robotwin/run_eval_robotwin_moe_skill.sh
@@ -317,7 +317,7 @@ Evaluate all transfer tasks after the per-task checkpoints are available:
 
 ```bash
 cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
-export ROBOTWIN_ROOT="$HOME/RoboTwin_eval"
+export ROBOTWIN_ROOT="<path-to-robotwin-checkout>"
 
 for task in \
   blocks_ranking_size hanging_mug move_pillbottle_pad open_laptop \

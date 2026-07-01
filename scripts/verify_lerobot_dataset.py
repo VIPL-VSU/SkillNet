@@ -9,7 +9,7 @@ from typing import Any
 
 
 def read_json(path: Path) -> Any:
-    with path.open("r", encoding="utf-8") as handle:
+    with path.open("r", encoding="utf-8-sig") as handle:
         return json.load(handle)
 
 
@@ -111,6 +111,13 @@ def validate_summary(
     for feature in require_features:
         if feature not in features:
             errors.append(f"missing required feature: {feature}")
+
+    if summary.get("parquet_files") == 0:
+        errors.append("parquet_files: expected at least 1, found 0")
+    episodes = summary.get("episodes")
+    episodes_stats = summary.get("episodes_stats")
+    if episodes is not None and episodes_stats is not None and episodes_stats != episodes:
+        errors.append(f"episodes_stats: expected {episodes}, found {episodes_stats}")
 
     if strict_parquet:
         parquet_rows = summary.get("parquet_rows")

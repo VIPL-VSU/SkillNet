@@ -171,10 +171,10 @@ default, existing LeRobot outputs under `HF_LEROBOT_HOME` are preserved; pass
 If you are generating demonstrations with a local RoboTwin installation, use:
 
 ```bash
-ROBOTWIN_ROOT="$HOME/RoboTwin_eval" GPU_ID=0 \
+ROBOTWIN_ROOT="<path-to-robotwin-checkout>" GPU_ID=0 \
 bash data_process/robotwin/collect_train_data.sh pretrain
 
-ROBOTWIN_ROOT="$HOME/RoboTwin_eval" GPU_ID=0 \
+ROBOTWIN_ROOT="<path-to-robotwin-checkout>" GPU_ID=0 \
 bash data_process/robotwin/collect_train_data.sh transfer
 ```
 

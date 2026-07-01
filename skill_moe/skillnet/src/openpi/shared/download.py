@@ -19,7 +19,7 @@ import s3transfer.futures as s3_transfer_futures
 import tqdm_loggable.auto as tqdm
 from types_boto3_s3.service_resource import ObjectSummary
 
-# Environment variable to control cache directory path, ~/.cache/skillnet will be used by default.
+# Environment variable to control cache directory path. The default is a SkillNet cache under the user cache home.
 _SKILLNET_DATA_HOME = "SKILLNET_DATA_HOME"
 _OPENPI_DATA_HOME = "OPENPI_DATA_HOME"
 
@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 
 
 def get_cache_dir() -> pathlib.Path:
-    default_dir = "~/.cache/skillnet"
     cache_dir_env = os.getenv(_SKILLNET_DATA_HOME) or os.getenv(_OPENPI_DATA_HOME)
-    cache_dir = pathlib.Path(cache_dir_env or default_dir).expanduser().resolve()
+    default_dir = pathlib.Path.home() / ".cache" / "skillnet"
+    cache_dir = pathlib.Path(cache_dir_env).expanduser().resolve() if cache_dir_env else default_dir.resolve()
     cache_dir.mkdir(parents=True, exist_ok=True)
     _set_folder_permission(cache_dir)
     return cache_dir

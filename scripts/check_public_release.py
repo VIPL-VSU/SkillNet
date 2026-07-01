@@ -41,6 +41,8 @@ REQUIRED_FILES = [
     "data_process/libero/instruct2plan_40.json",
     "data_process/libero/instruct2plan_90.json",
     "data_process/libero/instruct2plan_obj_90.json",
+    "data_process/libero/dataset_cards/README_libero_40_v1.md",
+    "data_process/libero/dataset_cards/README_libero_90_v1.md",
     "data_process/robotwin/robotwin_plan.json",
     "data_process/robotwin/skill_anno_robotwin.json",
     "skill_moe/skillnet/pyproject.toml",
@@ -96,6 +98,8 @@ SHELL_FILES = [
 SENSITIVE_PATTERNS = [
     re.compile("/share" + r"/project"),
     re.compile("C:" + r"\\Users|C:" + "/Users"),
+    re.compile(r"\b[A-Za-z]:\\"),
+    re.compile(r"~[/\\]"),
     re.compile(r"10\.8\.36\."),
     re.compile(r"ssh\.platform"),
     re.compile(r"job-[0-9a-f-]{16,}"),
@@ -103,6 +107,9 @@ SENSITIVE_PATTERNS = [
     re.compile(r"sk-[A-Za-z0-9]{20,}"),
     re.compile("openpi-" + "overlay"),
     re.compile("openpi/" + "backend"),
+]
+HISTORY_SENSITIVE_PATTERNS = [
+    pattern for pattern in SENSITIVE_PATTERNS if pattern.pattern not in {r"\b[A-Za-z]:\\", r"~[/\\]"}
 ]
 
 SCAN_SUFFIXES = {".md", ".py", ".sh", ".json", ".jsonl", ".toml", ".yml", ".yaml"}
@@ -281,6 +288,17 @@ SCRIPT_EXPECTATIONS = [
             'SKILL_PLAN="${SKILL_PLAN:-${SKILLNET_REPO_ROOT}/data_process/robotwin/robotwin_plan.json}"',
         ],
     ),
+    (
+        "scripts/publish_lerobot_dataset.py",
+        [
+            "upload_large_folder",
+            "--allow-existing-visibility",
+            "--allow-missing-card",
+            "--skip-hub-preflight",
+            "--strict-parquet",
+            "HUGGINGFACE_HUB_TOKEN",
+        ],
+    ),
 ]
 
 MOE_EXPECTATIONS = [
@@ -324,6 +342,8 @@ DOC_EXPECTATIONS = [
         [
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "python scripts/check_public_release.py --hub-smoke",
+            "intentionally does not use",
+            "--hub-authenticated",
             "docs/release_status.md",
             "SKILLNET_REQUIRE_LIBERO=1",
             "LIBERO-Skill evaluation",
@@ -339,6 +359,10 @@ DOC_EXPECTATIONS = [
             "jsw19/libero_90_v1",
             "--include-libero-derived-datasets",
             "HF_TOKEN",
+            "HF_XET_HIGH_PERFORMANCE",
+            "HfApi.upload_large_folder",
+            "data_process/libero/dataset_cards/",
+            "--strict-parquet",
         ],
     ),
     (
@@ -361,6 +385,12 @@ DOC_EXPECTATIONS = [
             "scripts/publish_lerobot_dataset.py",
             "libero40_plan_sliced.json",
             "libero90_plan_sliced.json",
+            "HF_XET_HIGH_PERFORMANCE",
+            "upload_large_folder",
+            "--public",
+            "--private",
+            "--strict-parquet",
+            "README_libero_40_v1.md",
         ],
     ),
     (
@@ -472,6 +502,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--hub-timeout", type=float, default=20.0, help="Per-request timeout for --hub-smoke.")
     parser.add_argument("--hub-retries", type=int, default=3, help="Retry count for transient --hub-smoke failures.")
+    parser.add_argument(
+        "--hub-authenticated",
+        action="store_true",
+        help="Use a Hub token for --hub-smoke. Public release checks are anonymous by default.",
+    )
+    parser.add_argument("--hub-token-env", default="HF_TOKEN", help="Token environment variable for --hub-authenticated.")
     parser.add_argument("--verbose", action="store_true")
     return parser.parse_args()
 
@@ -969,7 +1005,7 @@ def check_history_sensitive_patterns(errors: list[str], *, verbose: bool) -> Non
                 continue
             text = blob_result.stdout.decode("utf-8", errors="ignore")
             for line_number, line in enumerate(text.splitlines(), start=1):
-                for pattern in SENSITIVE_PATTERNS:
+                for pattern in HISTORY_SENSITIVE_PATTERNS:
                     if not pattern.search(line):
                         continue
                     total_matches += 1
@@ -1059,9 +1095,8 @@ def hub_api_url(endpoint: str, repo_type: str, repo_id: str) -> str:
     raise ValueError(f"unsupported Hugging Face repo type: {repo_type}")
 
 
-def fetch_hub_status(url: str, *, timeout: float, retries: int) -> tuple[int | None, str]:
+def fetch_hub_status(url: str, *, timeout: float, retries: int, token: str | None) -> tuple[int | None, str]:
     headers = {"User-Agent": "skillnet-release-check/1.0"}
-    token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_HUB_TOKEN")
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
@@ -1094,6 +1129,7 @@ def check_hub_resources(
     include_robotwin_derived_datasets: bool,
     timeout: float,
     retries: int,
+    token: str | None,
     verbose: bool,
 ) -> None:
     resources = list(PUBLIC_HUB_RESOURCES)
@@ -1107,7 +1143,7 @@ def check_hub_resources(
 
     for repo_type, repo_id in resources:
         url = hub_api_url(endpoint, repo_type, repo_id)
-        status, detail = fetch_hub_status(url, timeout=timeout, retries=retries)
+        status, detail = fetch_hub_status(url, timeout=timeout, retries=retries, token=token)
         label = f"{repo_type} {repo_id}"
         if status == 200:
             ok(f"Hugging Face resource reachable: {label}", verbose=verbose)
@@ -1144,6 +1180,13 @@ def main() -> None:
     if args.install_smoke:
         check_install_smoke(errors, python_spec=args.install_python, verbose=args.verbose)
     if args.hub_smoke:
+        hub_token = None
+        if args.hub_authenticated:
+            hub_token = os.environ.get(args.hub_token_env)
+            if hub_token is None and args.hub_token_env == "HF_TOKEN":
+                hub_token = os.environ.get("HUGGINGFACE_HUB_TOKEN")
+            if not hub_token:
+                fail(f"--hub-authenticated requires token environment variable: {args.hub_token_env}", errors)
         check_hub_resources(
             errors,
             endpoint=args.hf_endpoint,
@@ -1152,6 +1195,7 @@ def main() -> None:
             include_robotwin_derived_datasets=args.include_robotwin_derived_datasets,
             timeout=args.hub_timeout,
             retries=args.hub_retries,
+            token=hub_token,
             verbose=args.verbose,
         )
 

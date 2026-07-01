@@ -83,7 +83,8 @@ Published v1 dataset sanity-check counts:
 ## Dataset Hub Publishing
 
 If you maintain the derived LeRobot datasets locally, verify the metadata before
-training or publishing:
+training or publishing. Use `--strict-parquet` for public release validation so
+the parquet row count is checked against `total_frames`.
 
 ```bash
 python scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_40_v1" \
@@ -91,42 +92,90 @@ python scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_40_v1" \
   --expected-episodes 3862 \
   --expected-frames 273465 \
   --require-feature class \
-  --require-feature all_classes
+  --require-feature all_classes \
+  --strict-parquet \
+  --require-column class \
+  --require-column all_classes
 
 python scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_90_v1" \
   --expected-tasks 73 \
   --expected-episodes 7874 \
   --expected-frames 574571 \
   --require-feature class \
-  --require-feature all_classes
+  --require-feature all_classes \
+  --strict-parquet \
+  --require-column class \
+  --require-column all_classes
 ```
 
-To publish the datasets to Hugging Face Hub, install `huggingface_hub`, set
-`HF_TOKEN` in the shell environment, and run a dry run first:
+To publish the datasets to Hugging Face Hub, install the large-folder upload
+stack, set `HF_TOKEN` in the shell environment, and run a dry run first:
+
+```bash
+python -m pip install "huggingface_hub>=1.0" hf_xet pyarrow
+export HF_XET_HIGH_PERFORMANCE=1
+```
+
+Copy the matching dataset card template into the dataset root before the public
+dry run:
+
+```bash
+cp data_process/libero/dataset_cards/README_libero_40_v1.md \
+  "$LEROBOT_HOME/jsw19/libero_40_v1/README.md"
+
+cp data_process/libero/dataset_cards/README_libero_90_v1.md \
+  "$LEROBOT_HOME/jsw19/libero_90_v1/README.md"
+```
+
+The dry run validates local metadata, checks parquet row counts, prints the
+planned size, verifies the large-folder uploader, checks whether the target Hub
+repo already exists, and never writes to the Hub:
 
 ```bash
 python scripts/publish_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_40_v1" \
   --repo-id jsw19/libero_40_v1 \
+  --public \
   --expected-tasks 40 \
   --expected-episodes 3862 \
   --expected-frames 273465 \
   --require-feature class \
   --require-feature all_classes \
+  --strict-parquet \
+  --require-column class \
+  --require-column all_classes \
   --dry-run
 
 python scripts/publish_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_90_v1" \
   --repo-id jsw19/libero_90_v1 \
+  --public \
   --expected-tasks 73 \
   --expected-episodes 7874 \
   --expected-frames 574571 \
   --require-feature class \
   --require-feature all_classes \
+  --strict-parquet \
+  --require-column class \
+  --require-column all_classes \
   --dry-run
 ```
 
-Remove `--dry-run` to upload. The script reads the token from `HF_TOKEN`; do not
-put tokens into command lines, scripts, or repository files. After publishing,
-run:
+For the public SkillNet release, the target repos should be public. For a
+staging upload, use `--private` and a separate repo id. Do not point a private
+staging run at the public repo id unless you intentionally pass
+`--allow-existing-visibility`.
+
+The publisher refuses a public dry run or real public upload without
+`README.md` at the dataset root unless `--allow-missing-card` is passed for an
+internal staging run. The script reads the token from `HF_TOKEN` or
+`HUGGINGFACE_HUB_TOKEN`; do not put tokens into command lines, scripts, docs, or
+repository files.
+
+After dry-run validation, start the real upload in `tmux` or an equivalent
+long-running session by removing only `--dry-run`. The uploader uses
+`HfApi.upload_large_folder`, which is resumable and better suited to the 33G and
+65G derived LIBERO datasets than a single ordinary folder upload.
+
+After publishing, run:
 
 ```bash
 python scripts/check_public_release.py --hub-smoke --include-libero-derived-datasets

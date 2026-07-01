@@ -1,6 +1,7 @@
 import dataclasses
 import functools
 import logging
+import pathlib
 import platform
 from typing import Any
 
@@ -227,7 +228,7 @@ def main(config: _config.TrainConfig):
             f"Batch size {config.batch_size} must be divisible by the number of devices {jax.device_count()}."
         )
 
-    jax.config.update("jax_compilation_cache_dir", str(epath.Path("~/.cache/jax").expanduser()))
+    jax.config.update("jax_compilation_cache_dir", str(pathlib.Path.home() / ".cache" / "jax"))
 
     rng = jax.random.key(config.seed)
     train_rng, init_rng = jax.random.split(rng)
@@ -317,7 +318,7 @@ def test_main(config: _config.TrainConfig):
             f"Batch size {config.batch_size} must be divisible by the number of devices {jax.device_count()}."
         )
 
-    jax.config.update("jax_compilation_cache_dir", str(epath.Path("~/.cache/jax").expanduser()))
+    jax.config.update("jax_compilation_cache_dir", str(pathlib.Path.home() / ".cache" / "jax"))
 
     rng = jax.random.key(config.seed)
     train_rng, init_rng = jax.random.split(rng)

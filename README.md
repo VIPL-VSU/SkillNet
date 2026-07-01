@@ -9,7 +9,6 @@ transfer.
 
 - `skill_moe/skillnet/`: SkillNet source tree for training and evaluation.
 - `skill_moe/skillnet/examples/libero/`: LIBERO and LIBERO-Skill evaluation entrypoints.
-- `skill_moe/skillnet/examples/robocasa/`: RoboCasa data and evaluation scripts.
 - `skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/`: LIBERO-Skill task definitions.
 - `skill_moe/skillnet/third_party/libero/libero/libero/init_files/libero_skill_obj/`: LIBERO-Skill initial-state files.
 - `data_process/skill_hierarchy/`: motion-code annotation, clustering, and tokenization utilities.
@@ -42,8 +41,6 @@ gate for direct LIBERO training.
 - LIBERO-40 in-domain Skill-MoE training and evaluation.
 - LIBERO-90 Skill-MoE training and LIBERO-Skill zero-shot evaluation.
 - RoboTwin-2.0 few-shot transfer protocol, data preparation, training launchers, and simulator-side evaluation adapter.
-- RoboCasa Skill-MoE code paths are included, but the main public reproduction
-  guide currently centers on LIBERO.
 
 | Track | Config | Dataset | Checkpoint |
 | --- | --- | --- | --- |
@@ -65,8 +62,8 @@ Clone SkillNet and keep the repository root as your documentation and data
 processing root:
 
 ```bash
-# On Windows, clone under a short path such as C:\sn because LIBERO-Skill
-# task filenames are long. The -c flag enables Git long-path checkout.
+# On Windows, clone under a short, non-user-specific directory because
+# LIBERO-Skill task filenames are long. The -c flag enables long paths.
 git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet
 cd SkillNet
 ```
@@ -95,6 +92,7 @@ To verify the public Hugging Face checkpoint and source-dataset links, run:
 python scripts/check_public_release.py --hub-smoke
 ```
 
+`--hub-smoke` checks public Hub visibility without using local Hub tokens.
 Before announcing direct LIBERO training from Hub datasets, also run the
 dataset-visibility check documented in `docs/release_status.md`.
 

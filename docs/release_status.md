@@ -45,20 +45,36 @@ python scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_40_v1" \
   --expected-episodes 3862 \
   --expected-frames 273465 \
   --require-feature class \
-  --require-feature all_classes
+  --require-feature all_classes \
+  --strict-parquet \
+  --require-column class \
+  --require-column all_classes
 
 python scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_90_v1" \
   --expected-tasks 73 \
   --expected-episodes 7874 \
   --expected-frames 574571 \
   --require-feature class \
-  --require-feature all_classes
+  --require-feature all_classes \
+  --strict-parquet \
+  --require-column class \
+  --require-column all_classes
 ```
 
-Use `scripts/publish_lerobot_dataset.py` with `--dry-run` first, then remove
-`--dry-run` only after confirming the target Hub repo id and visibility. The
-script reads credentials from `HF_TOKEN`; do not put tokens in command lines,
-scripts, docs, or git history.
+Use `scripts/publish_lerobot_dataset.py` with `--public --dry-run` first for
+the release repos, or `--private --dry-run` for a separate staging repo. The
+publisher checks the target repo visibility, refuses accidental
+public/private mismatches unless `--allow-existing-visibility` is passed, and
+uses `HfApi.upload_large_folder` for the real large-directory transfer. Add a
+dataset card `README.md` at the dataset root before a public upload. The script
+reads credentials from `HF_TOKEN`; do not put tokens in command lines, scripts,
+docs, or git history.
+
+For large LIBERO dataset uploads, install `huggingface_hub` with `hf_xet` and
+set `HF_XET_HIGH_PERFORMANCE=1` in the upload shell.
+Dataset-card templates are provided under `data_process/libero/dataset_cards/`;
+copy the matching template to `README.md` at the dataset root before the public
+dry run.
 
 ## Verification Checklist
 
@@ -76,5 +92,5 @@ On Linux, also run:
 python scripts/check_public_release.py --install-smoke --skip-help
 ```
 
-For Windows users, clone under a short path such as `C:\sn` and keep
+For Windows users, clone under a short, non-user-specific directory and keep
 `core.longpaths=true`, because bundled LIBERO-Skill filenames are long.
