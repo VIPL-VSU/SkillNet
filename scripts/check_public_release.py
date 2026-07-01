@@ -404,6 +404,17 @@ DOC_EXPECTATIONS = [
         ],
     ),
     (
+        "skill_moe/README.md",
+        [
+            "SkillNet runtime root",
+            "public LIBERO, LIBERO-Skill, RoboTwin",
+            "Skill hierarchy tokenization",
+            "LIBERO in-domain training",
+            "RoboTwin few-shot training",
+            "LIBERO-Skill OOD eval",
+        ],
+    ),
+    (
         "docs/quick_start.md",
         [
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
@@ -421,6 +432,8 @@ DOC_EXPECTATIONS = [
             "intentionally does not use",
             "--hub-authenticated",
             "docs/release_status.md",
+            "https://github.com/Lifelong-Robot-Learning/LIBERO",
+            "https://github.com/RoboTwin-Platform/RoboTwin",
             'export LIBERO40_RLDS_DIR="${LIBERO40_RLDS_DIR:-$SKILLNET_LIBERO_DATA_ROOT/libero40_rlds}"',
             "--expected-episodes 3862",
             "--expected-episodes 7874",
@@ -539,6 +552,7 @@ DOC_EXPECTATIONS = [
             "FAIL_FAST=0",
             "data/libero/server_logs/",
             "benchmark.get_benchmark_dict()",
+            "https://github.com/Lifelong-Robot-Learning/LIBERO",
             "RLDS source frames alone do not contain",
             "class` and `all_classes",
             "skills` and `skill_mask",
@@ -555,6 +569,8 @@ DOC_EXPECTATIONS = [
             "## Training",
             "## Evaluation",
             "RoboTwin-2.0",
+            "https://github.com/RoboTwin-Platform/RoboTwin",
+            "https://robotwin-platform.github.io/doc/index.html",
             "SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS",
             "Fine-tune all 15 transfer tasks",
             "create all matching per-task LeRobot datasets",
@@ -878,6 +894,10 @@ def check_documentation_contracts(errors: list[str], *, verbose: bool) -> None:
         for snippet in snippets:
             if snippet not in text:
                 fail(f"{rel_path}: missing expected documentation snippet: {snippet}", errors)
+    skill_moe_readme = (REPO_ROOT / "skill_moe/README.md").read_text(encoding="utf-8")
+    for excluded in ("RoboCasa", "robocasa", "GR00T"):
+        if excluded in skill_moe_readme:
+            fail(f"skill_moe/README.md should not advertise non-release helper surface: {excluded}", errors)
     if len(errors) == error_count:
         ok("public documentation covers the five release workflows", verbose=verbose)
 

@@ -57,6 +57,11 @@ installer: install LIBERO, MuJoCo, Robosuite, BDDL, and any machine-specific
 rendering dependencies in the same environment. Set `SKILLNET_SKIP_CORE_INSTALL=1`
 if the core packages are already installed.
 
+Use the public LIBERO project as the simulator source of truth:
+
+- Repository: <https://github.com/Lifelong-Robot-Learning/LIBERO>
+- Documentation: <https://lifelong-robot-learning.github.io/LIBERO/html/index.html>
+
 When an external LIBERO package is importable but does not register
 `libero_skill_obj`, the setup script attempts:
 

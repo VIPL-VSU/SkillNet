@@ -56,6 +56,13 @@ machine. LIBERO and RoboTwin evaluation also require their simulator assets and
 system dependencies; install those in the same environment that runs the client
 or environment adapter.
 
+External simulator entrypoints:
+
+- LIBERO official repository: <https://github.com/Lifelong-Robot-Learning/LIBERO>
+- LIBERO documentation: <https://lifelong-robot-learning.github.io/LIBERO/html/index.html>
+- RoboTwin-2.0 official repository: <https://github.com/RoboTwin-Platform/RoboTwin>
+- RoboTwin-2.0 documentation: <https://robotwin-platform.github.io/doc/index.html>
+
 The lightweight package smoke checks in this repository do not install GPU or
 simulator stacks. For training, install a JAX CUDA wheel compatible with your
 driver and CUDA runtime, then rerun the config import smoke check below. For

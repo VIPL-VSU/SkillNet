@@ -326,6 +326,11 @@ Use the official RoboTwin-2.0 codebase or a fork that preserves this API. The
 SkillNet repository does not vendor the simulator, assets, or SAPIEN/MuJoCo
 runtime dependencies.
 
+Public RoboTwin-2.0 entrypoints:
+
+- Repository: <https://github.com/RoboTwin-Platform/RoboTwin>
+- Documentation: <https://robotwin-platform.github.io/doc/index.html>
+
 Evaluate a single fine-tuned transfer checkpoint:
 
 ```bash
