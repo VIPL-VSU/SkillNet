@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import os
 import re
@@ -35,6 +36,7 @@ REQUIRED_FILES = [
     "docs/robotwin_few_shot.md",
     "scripts/verify_lerobot_dataset.py",
     "scripts/publish_lerobot_dataset.py",
+    "data_process/skill_hierarchy/README.md",
     "data_process/skill_hierarchy/tokenization_strategy.json",
     "data_process/skill_hierarchy/motion_code_clusters.json",
     "data_process/skill_hierarchy/motion_code_annotation_examples.jsonl",
@@ -120,6 +122,23 @@ HISTORY_SENSITIVE_PATTERNS = [
 ]
 
 SCAN_SUFFIXES = {".md", ".py", ".sh", ".json", ".jsonl", ".toml", ".yml", ".yaml"}
+
+TOKENIZATION_STRATEGY_SHA256 = "13d025527a240738e20be3a5e2a208157d623250667db6fc8949830a1ffd8081"
+MOTION_CODE_CENTERS = {
+    "200200": "cluster_0",
+    "200100": "cluster_1",
+    "100200": "cluster_2",
+    "200010": "cluster_3",
+    "100100": "cluster_4",
+    "201010": "cluster_5",
+    "200001": "cluster_6",
+    "201201": "cluster_7",
+    "000001": "cluster_8",
+    "220001": "cluster_9",
+    "100001": "cluster_10",
+    "200201": "cluster_11",
+}
+MOTION_CODE_WEIGHTS = [3.056, 1.539, 1.35, 2.844, 1.039, 2.632]
 
 LIBERO_SKILL_TASKS = [
     (
@@ -361,6 +380,8 @@ DOC_EXPECTATIONS = [
         "docs/quick_start.md",
         [
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
+            "Command blocks in this guide use Bash syntax",
+            "On Windows, use WSL or Git Bash",
             "python scripts/check_public_release.py --hub-smoke",
             "intentionally does not use",
             "--hub-authenticated",
@@ -371,6 +392,7 @@ DOC_EXPECTATIONS = [
             "LIBERO-Skill evaluation",
             "RoboTwin few-shot evaluation",
             "ALLOW_PI05_TRANSFER_INIT=1",
+            "--motion-code 200100",
         ],
     ),
     (
@@ -396,7 +418,21 @@ DOC_EXPECTATIONS = [
             "motion_code",
             "Allowed values",
             "Manual annotation protocol",
+            "motion_code_clusters.json",
+            "weighted distance",
+            TOKENIZATION_STRATEGY_SHA256,
             "tokenization_strategy.json",
+        ],
+    ),
+    (
+        "data_process/skill_hierarchy/README.md",
+        [
+            "Skill Hierarchy Tokenization",
+            "motion_code_clusters.json",
+            "motion_code_annotation_examples.jsonl",
+            "OpenAI-compatible endpoint",
+            TOKENIZATION_STRATEGY_SHA256,
+            "example graph is intentionally small",
         ],
     ),
     (
@@ -576,6 +612,7 @@ def check_json_files(errors: list[str], *, verbose: bool) -> None:
         "skill_moe/skillnet/examples/libero/annotations/instruct2plan_40.json",
         "skill_moe/skillnet/examples/libero/annotations/instruct2plan_obj_90.json",
         "skill_moe/skillnet/examples/libero/annotations/libero_skill_obj_annotations.json",
+        "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json",
         "data_process/robotwin/robotwin_plan.json",
         "data_process/robotwin/skill_anno_robotwin.json",
     ]
@@ -720,6 +757,59 @@ def check_documentation_contracts(errors: list[str], *, verbose: bool) -> None:
                 fail(f"{rel_path}: missing expected documentation snippet: {snippet}", errors)
     if len(errors) == error_count:
         ok("public documentation covers the five release workflows", verbose=verbose)
+
+
+def check_skill_hierarchy_contract(errors: list[str], *, verbose: bool) -> None:
+    error_count = len(errors)
+    strategy_path = REPO_ROOT / "data_process/skill_hierarchy/tokenization_strategy.json"
+    strategy_digest = hashlib.sha256(strategy_path.read_bytes()).hexdigest()
+    if strategy_digest != TOKENIZATION_STRATEGY_SHA256:
+        fail(
+            "Skill hierarchy tokenization_strategy.json checksum changed: "
+            f"expected {TOKENIZATION_STRATEGY_SHA256}, found {strategy_digest}",
+            errors,
+        )
+
+    strategy = load_json("data_process/skill_hierarchy/tokenization_strategy.json")
+    if not isinstance(strategy, dict):
+        fail("Skill hierarchy tokenization strategy must be a JSON object", errors)
+        return
+    expected_sizes = {"category_map": 13, "verbnet_map": 127, "verb_map": 267}
+    for key, expected_size in expected_sizes.items():
+        mapping = strategy.get(key)
+        if not isinstance(mapping, dict):
+            fail(f"Skill hierarchy strategy missing object map: {key}", errors)
+        elif len(mapping) != expected_size:
+            fail(f"Skill hierarchy {key} expected {expected_size} entries, found {len(mapping)}", errors)
+
+    clusters = load_json("data_process/skill_hierarchy/motion_code_clusters.json")
+    if not isinstance(clusters, dict):
+        fail("Skill hierarchy motion_code_clusters.json must be a JSON object", errors)
+        return
+    if clusters.get("weights") != MOTION_CODE_WEIGHTS:
+        fail("Skill hierarchy motion-code weights do not match the released contract", errors)
+    centers = clusters.get("centers")
+    if not isinstance(centers, list):
+        fail("Skill hierarchy motion-code centers must be a list", errors)
+    else:
+        center_map = {
+            str(item.get("motion_code")): str(item.get("cluster"))
+            for item in centers
+            if isinstance(item, dict) and "motion_code" in item and "cluster" in item
+        }
+        if center_map != MOTION_CODE_CENTERS:
+            fail("Skill hierarchy motion-code centers do not match the released contract", errors)
+
+    examples_path = REPO_ROOT / "data_process/skill_hierarchy/motion_code_annotation_examples.jsonl"
+    rows = [json.loads(line) for line in examples_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    for index, row in enumerate(rows, start=1):
+        if not isinstance(row.get("motion_code"), str):
+            fail(f"Skill hierarchy annotation example row {index} is missing motion_code", errors)
+        if not (row.get("subtask") or row.get("phrase") or row.get("plan_step")):
+            fail(f"Skill hierarchy annotation example row {index} is missing subtask/phrase", errors)
+
+    if len(errors) == error_count:
+        ok("Skill hierarchy checksum, motion-code centers, and examples match the release contract", verbose=verbose)
 
 
 def check_libero_skill_contract(errors: list[str], *, verbose: bool) -> None:
@@ -977,10 +1067,17 @@ def check_robotwin_contract(errors: list[str], *, verbose: bool) -> None:
 
 def check_python_compile(errors: list[str], *, verbose: bool) -> None:
     python_files = tracked_files(".py", PYTHON_FILES)
-    cmd = [sys.executable, "-m", "py_compile", *python_files]
-    result = subprocess.run(cmd, cwd=REPO_ROOT, text=True, capture_output=True)
-    if result.returncode != 0:
-        fail(f"python compile failed:\n{result.stderr.strip()}", errors)
+    failures = []
+    for rel_path in python_files:
+        path = REPO_ROOT / rel_path
+        try:
+            compile(path.read_bytes(), rel_path, "exec")
+        except SyntaxError as exc:
+            failures.append(f"{rel_path}:{exc.lineno}: {exc.msg}")
+        except Exception as exc:
+            failures.append(f"{rel_path}: {exc}")
+    if failures:
+        fail("python syntax check failed:\n" + "\n".join(failures), errors)
     else:
         ok(f"Python syntax ok for {len(python_files)} tracked files", verbose=verbose)
 
@@ -1082,7 +1179,7 @@ def check_history_sensitive_patterns(errors: list[str], *, verbose: bool) -> Non
 def check_install_smoke(errors: list[str], *, python_spec: str, verbose: bool) -> None:
     uv = shutil.which("uv")
     if uv is None:
-        fail("--install-smoke requires uv on PATH", errors)
+        fail("--install-smoke requires uv on PATH. Install prerequisites with: python -m pip install -U uv", errors)
         return
 
     with tempfile.TemporaryDirectory(prefix="skillnet-install-smoke-") as temp_dir:
@@ -1224,6 +1321,7 @@ def main() -> None:
     check_jsonl_files(errors, verbose=args.verbose)
     check_documentation_contracts(errors, verbose=args.verbose)
     check_config_and_script_contracts(errors, verbose=args.verbose)
+    check_skill_hierarchy_contract(errors, verbose=args.verbose)
     check_libero_annotation_contract(errors, verbose=args.verbose)
     check_libero_skill_contract(errors, verbose=args.verbose)
     check_robotwin_contract(errors, verbose=args.verbose)

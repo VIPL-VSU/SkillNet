@@ -10,7 +10,7 @@ fresh checkout.
 | Area | Status | Evidence |
 | --- | --- | --- |
 | Clean source history | Ready | `python scripts/check_public_release.py --history-smoke --skip-help` passes on the release branch. |
-| Quick start and package smoke | Ready | `python scripts/check_public_release.py` and the lightweight `--install-smoke` pass in a fresh Python 3.10 environment; simulator/runtime dependency installs are checked separately on Linux. |
+| Quick start and package smoke | Ready | `python scripts/check_public_release.py` passes in a fresh checkout; the lightweight `--install-smoke` passes after the documented Python 3.10 and `uv` prerequisites are installed. Simulator/runtime dependency installs are checked separately on Linux. |
 | Skill hierarchy | Ready | Tokenization strategy, motion-code centers, annotation examples, and tokenizer CLI are included. |
 | LIBERO checkpoints | Ready | `jsw19/SkillNet-LIBERO-40` and `jsw19/SkillNet-LIBERO-90` are reachable with `--hub-smoke`. |
 | LIBERO-Skill benchmark files | Ready | The 9-task manifest plus bddl/init/annotation contract are checked by `check_public_release.py`. |
@@ -92,6 +92,7 @@ python scripts/check_public_release.py --hub-smoke --skip-help --verbose
 On Linux, also run:
 
 ```bash
+python -m pip install -U uv
 python scripts/check_public_release.py --install-smoke --skip-help
 python skill_moe/skillnet/examples/libero/install_libero_skill_assets.py --help
 SKILLNET_REQUIRE_LIBERO=1 bash skill_moe/skillnet/install_libero.sh

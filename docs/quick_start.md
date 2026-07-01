@@ -5,6 +5,11 @@ released data-processing, training, and evaluation entrypoints.
 
 ## Clone
 
+Command blocks in this guide use Bash syntax (`export`, `source`, `bash`).
+On Windows, use WSL or Git Bash for the workflow commands below. PowerShell can
+run the clone command, but its environment-variable and activation syntax is
+different and LIBERO/RoboTwin simulator evaluation is Linux-oriented.
+
 ```bash
 # On Windows, clone under a short, non-user-specific directory because
 # LIBERO-Skill task filenames are long. The -c flag enables long paths.
@@ -182,7 +187,7 @@ Run the hierarchy tokenizer from the repository root:
 cd "${SKILLNET_REPO_ROOT}"
 python data_process/skill_hierarchy/skill_hierarchy_tokenizer.py \
   --phrase "open drawer" \
-  --motion-code 200200
+  --motion-code 200100
 ```
 
 Generate RoboTwin paper-split metadata:
