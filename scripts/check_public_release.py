@@ -117,6 +117,26 @@ SHELL_FILES = [
 REMOTE_SHARE_PATTERN = re.compile("/share" + r"/project")
 WINDOWS_ABSOLUTE_PATH_PATTERN = re.compile(r"\b[A-Za-z]:\\")
 
+
+def literal_word_pattern(codes: tuple[int, ...]) -> re.Pattern[str]:
+    return re.compile(r"\b" + re.escape("".join(chr(code) for code in codes)) + r"\b", re.IGNORECASE)
+
+
+# Site-specific private words are assembled without spelling them out so this
+# public checker can scan itself and the git history.
+SITE_PRIVATE_WORD_PATTERNS = [
+    literal_word_pattern(codes)
+    for codes in (
+        (120, 115, 119),
+        (120, 105, 101, 115, 101),
+        (99, 117, 105, 104, 117),
+        (106, 105, 110, 103, 110, 101, 110, 103),
+        (99, 97, 111, 109, 105, 110, 103, 121, 117),
+        (110, 101, 105, 109, 111, 110, 103, 111, 108),
+        (104, 101, 108, 105, 110, 103, 101, 101, 114),
+    )
+]
+
 SENSITIVE_PATTERNS = [
     REMOTE_SHARE_PATTERN,
     re.compile("C:" + r"\\Users|C:" + "/Users"),
@@ -124,7 +144,7 @@ SENSITIVE_PATTERNS = [
     re.compile(r"~[/\\]"),
     re.compile(r"\$HOME[/\\]"),
     re.compile(r"/home/[A-Za-z0-9_.-]+"),
-    re.compile(r"/root/"),
+    re.compile("/" + "root/"),
     re.compile(r"/mnt/[A-Za-z0-9_.-]+"),
     re.compile(r"10\.8\.36\."),
     re.compile(r"ssh\.platform"),
@@ -139,6 +159,7 @@ SENSITIVE_PATTERNS = [
     re.compile(r"AIza[0-9A-Za-z_-]{20,}"),
     re.compile(r"xox[baprs]-[0-9A-Za-z-]{20,}"),
     re.compile(r"wandb_[A-Za-z0-9]{20,}"),
+    *SITE_PRIVATE_WORD_PATTERNS,
     re.compile("openpi" + r"[-_/ ]+" + "overlay", re.IGNORECASE),
     re.compile("openpi" + r"[-_/ ]+" + "backend", re.IGNORECASE),
 ]
@@ -703,6 +724,44 @@ DOC_FORBIDDEN_SNIPPETS = [
     ),
 ]
 
+PUBLIC_DOC_FILES = [
+    "NOTICE.md",
+    "README.md",
+    "skill_moe/README.md",
+    "docs/quick_start.md",
+    "docs/release_status.md",
+    "docs/skill_hierarchy.md",
+    "docs/training_and_evaluation.md",
+    "docs/libero_data_processing.md",
+    "docs/robotwin_few_shot.md",
+    "data_process/skill_hierarchy/README.md",
+    "data_process/libero/README.md",
+    "data_process/robotwin/README.md",
+]
+
+PUBLIC_DOC_FORBIDDEN_PATTERNS = [
+    (re.compile(r"\bbackend\b", re.IGNORECASE), "backend"),
+    (re.compile(r"\boverlay\b", re.IGNORECASE), "overlay"),
+]
+
+OPENPI_PUBLIC_DOC_ALLOWED_FRAGMENTS = [
+    "packages/openpi-client",
+    "openpi-client",
+    "gs://openpi-assets",
+    "gcloud storage cp -r gs://openpi-assets",
+    "import openpi.training.config_moe_skill",
+    "pi0.5/openpi components",
+    "openpi is licensed",
+    "skillnet/src/openpi",
+    "src/openpi/",
+]
+
+NON_RELEASE_PATH_PATTERNS = [
+    re.compile(r"^skill_moe/skillnet/examples/robocasa/"),
+    re.compile(r"^skill_moe/skillnet/src/openpi/training/misc/roboarena_config\.py$"),
+    re.compile(r"^skill_moe/skillnet/packages/openpi-client/src/openpi_client/websocket_client_policy_robocasa\.py$"),
+]
+
 PUBLIC_HUB_RESOURCES = [
     ("model", "jsw19/SkillNet-LIBERO-40"),
     ("model", "jsw19/SkillNet-LIBERO-90"),
@@ -1001,12 +1060,53 @@ def check_documentation_contracts(errors: list[str], *, verbose: bool) -> None:
         for snippet in snippets:
             if snippet in text:
                 fail(f"{rel_path}: public documentation contains legacy/internal snippet: {snippet}", errors)
+
+    allowed_openpi_fragments = [fragment.lower() for fragment in OPENPI_PUBLIC_DOC_ALLOWED_FRAGMENTS]
+    for rel_path in PUBLIC_DOC_FILES:
+        text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+        for line_number, line in enumerate(text.splitlines(), start=1):
+            for pattern, label in PUBLIC_DOC_FORBIDDEN_PATTERNS:
+                if pattern.search(line):
+                    fail(
+                        f"{rel_path}:{line_number}: public docs should not use '{label}' terminology",
+                        errors,
+                    )
+            lower_line = line.lower()
+            if "openpi" in lower_line and not any(fragment in lower_line for fragment in allowed_openpi_fragments):
+                fail(
+                    f"{rel_path}:{line_number}: public docs should describe workflows as SkillNet, "
+                    f"not openpi: {line.strip()}",
+                    errors,
+                )
+
     skill_moe_readme = (REPO_ROOT / "skill_moe/README.md").read_text(encoding="utf-8")
     for excluded in ("RoboCasa", "robocasa", "GR00T"):
         if excluded in skill_moe_readme:
             fail(f"skill_moe/README.md should not advertise non-release helper surface: {excluded}", errors)
     if len(errors) == error_count:
         ok("public documentation covers the five release workflows", verbose=verbose)
+
+
+def check_release_surface_paths(errors: list[str], *, verbose: bool) -> None:
+    result = subprocess.run(["git", "ls-files"], cwd=REPO_ROOT, text=True, capture_output=True)
+    if result.returncode != 0:
+        fail(f"could not list tracked files: {result.stderr.strip()}", errors)
+        return
+
+    matches: list[str] = []
+    for rel_path in result.stdout.splitlines():
+        rel_path = rel_path.strip()
+        if not rel_path:
+            continue
+        for pattern in NON_RELEASE_PATH_PATTERNS:
+            if pattern.search(rel_path):
+                matches.append(rel_path)
+                break
+
+    if matches:
+        fail("non-release entrypoints are tracked:\n" + "\n".join(matches), errors)
+    else:
+        ok("tracked release surface excludes non-release entrypoints", verbose=verbose)
 
 
 def check_skill_hierarchy_contract(errors: list[str], *, verbose: bool) -> None:
@@ -1536,8 +1636,6 @@ def check_sensitive_patterns(errors: list[str], *, verbose: bool) -> None:
     for path in REPO_ROOT.rglob("*"):
         if ".git" in path.parts or not path.is_file() or path.suffix not in SCAN_SUFFIXES:
             continue
-        if path == Path(__file__).resolve():
-            continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         for line_number, line in enumerate(text.splitlines(), start=1):
             for pattern in SENSITIVE_PATTERNS:
@@ -1574,8 +1672,6 @@ def check_history_sensitive_patterns(errors: list[str], *, verbose: bool) -> Non
         for rel_path in tree_result.stdout.splitlines():
             if not rel_path or Path(rel_path).suffix not in SCAN_SUFFIXES:
                 continue
-            if rel_path == "scripts/check_public_release.py":
-                continue
             blob_result = subprocess.run(
                 ["git", "show", f"{commit}:{rel_path}"],
                 cwd=REPO_ROOT,
@@ -1585,6 +1681,8 @@ def check_history_sensitive_patterns(errors: list[str], *, verbose: bool) -> Non
                 continue
             text = blob_result.stdout.decode("utf-8", errors="ignore")
             for line_number, line in enumerate(text.splitlines(), start=1):
+                if rel_path == "scripts/check_public_release.py" and "re.compile" in line:
+                    continue
                 for pattern in HISTORY_SENSITIVE_PATTERNS:
                     if not pattern.search(line):
                         continue
@@ -1746,6 +1844,7 @@ def main() -> None:
     check_json_files(errors, verbose=args.verbose)
     check_jsonl_files(errors, verbose=args.verbose)
     check_documentation_contracts(errors, verbose=args.verbose)
+    check_release_surface_paths(errors, verbose=args.verbose)
     check_config_and_script_contracts(errors, verbose=args.verbose)
     check_skill_hierarchy_contract(errors, verbose=args.verbose)
     check_libero_annotation_contract(errors, verbose=args.verbose)

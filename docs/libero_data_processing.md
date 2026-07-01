@@ -170,8 +170,8 @@ internal staging run. The script reads the token from `HF_TOKEN` or
 `HUGGINGFACE_HUB_TOKEN`; do not put tokens into command lines, scripts, docs, or
 repository files.
 
-After dry-run validation, start the real upload in `tmux` or an equivalent
-long-running session by removing only `--dry-run`. The uploader uses
+After dry-run validation, start the real upload in a long-running shell or
+session manager by removing only `--dry-run`. The uploader uses
 `HfApi.upload_large_folder`, which is resumable and better suited to the 33G and
 65G derived LIBERO datasets than a single ordinary folder upload.
 
@@ -404,12 +404,8 @@ python data_process/libero/convert_libero_90_to_lerobot.py \
   --include-objects
 ```
 
-For long runs, use tmux:
-
-```bash
-tmux new-session -d -s libero-data-process
-tmux attach -t libero-data-process
-```
+Run conversion from a long-running shell or session manager if your source
+download and parquet conversion will outlive an interactive terminal.
 
 ## Current Reproduction Status
 
