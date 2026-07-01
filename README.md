@@ -32,8 +32,10 @@ checkout.
 This is a source-code release scaffold with a lightweight editable Python
 package. The runnable SkillNet source root is `skill_moe/skillnet`. The
 implementation keeps the `src/openpi` package namespace expected by the pi0.5
-checkpoint/runtime format, but public commands and configuration are documented
-as SkillNet workflows. See `docs/release_status.md` for the current
+checkpoint/runtime format, but the public project name, commands, environment
+variables, checkpoints, and documentation are organized as SkillNet workflows.
+Treat `src/openpi` and `openpi_client` as compatibility import paths rather
+than a separate product surface. See `docs/release_status.md` for the current
 release-readiness checklist, including the derived LeRobot dataset visibility
 gate for direct LIBERO training.
 

@@ -2,14 +2,15 @@
 
 This directory contains the runnable SkillNet Skill-MoE source used for the
 public release. The user-facing project structure is SkillNet; a few Python
-package paths keep their original namespace because the pi0.5 checkpoint/runtime
-format imports those modules directly.
+package paths keep compatibility namespaces because the pi0.5
+checkpoint/runtime format imports those modules directly. Public instructions
+should refer to this directory as the SkillNet runtime root.
 
 ## What Is Included
 
-- `skillnet/src/openpi/models/*moe*.py`: core Skill-MoE model and config variants.
-- `skillnet/src/openpi/training/config_moe_skill.py`: LIBERO, RoboCasa, RoboTwin, and Skill-MoE training configs.
-- `skillnet/src/openpi/training/data_loader_skill.py` and `skillnet/src/openpi/transforms_skill.py`: skill/object annotation support.
+- `skillnet/src/openpi/models/*moe*.py`: compatibility import path for the core Skill-MoE model and config variants.
+- `skillnet/src/openpi/training/config_moe_skill.py`: compatibility import path for LIBERO, RoboCasa, RoboTwin, and Skill-MoE training configs.
+- `skillnet/src/openpi/training/data_loader_skill.py` and `skillnet/src/openpi/transforms_skill.py`: compatibility import paths for skill/object annotation support.
 - `skillnet/scripts/train_moe_skill.py`: Skill-MoE training launcher.
 - `skillnet/scripts/serve_policy_moe_skill.py`: Skill-MoE policy server.
 - `skillnet/examples/libero/`: LIBERO and LIBERO-Skill evaluation scripts.

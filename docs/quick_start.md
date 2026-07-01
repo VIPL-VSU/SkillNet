@@ -26,7 +26,9 @@ cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
 
 The Python package namespace under `src/openpi` is kept for compatibility with
 the pi0.5 model and checkpoint format. User-facing commands, environment
-variables, docs, and checkpoints use the SkillNet name.
+variables, docs, checkpoints, and release checks use the SkillNet name. Treat
+`src/openpi` and `openpi_client` as compatibility import paths required by the
+pi0.5 runtime, not as separate public workflows.
 
 ## Prerequisites
 

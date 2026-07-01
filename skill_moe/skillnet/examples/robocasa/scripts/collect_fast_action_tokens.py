@@ -12,7 +12,7 @@ import numpy as np
 import tyro
 import tqdm_loggable.auto as tqdm
 
-# JAX/OpenPI 관련
+# JAX/SkillNet compatibility imports
 import openpi.training.config as _config
 import openpi.training.data_loader as _data_loader
 import openpi.transforms as _transforms

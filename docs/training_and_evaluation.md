@@ -27,9 +27,10 @@ uv pip install -e packages/openpi-client
 export PYTHONPATH="${PWD}/src:${PWD}/packages/openpi-client/src:${PWD}/third_party/libero:${PYTHONPATH:-}"
 ```
 
-The distribution name is `skillnet`, while the Python import namespaces remain
-`openpi` and `openpi_client` for pi0.5 checkpoint/runtime and client
-compatibility.
+The distribution name and public workflow name are `skillnet`. The Python
+import namespaces remain `openpi` and `openpi_client` only for pi0.5
+checkpoint/runtime and client compatibility, so release commands should still
+be documented and launched as SkillNet workflows.
 
 For GPU training, install the JAX wheel that matches your CUDA setup in this
 same environment.

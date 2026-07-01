@@ -93,6 +93,9 @@ python data_process/skill_hierarchy/skill_hierarchy_tokenizer.py \
 ```
 
 The output JSONL adds `motion_cluster`, `verbnet_class`, `verb`, and `tokens`.
+The released strategy is a frozen vocabulary: if a phrase uses a verb absent
+from `verb_map`, the tokenizer raises an error instead of inventing a new id.
+Extend or rebuild the strategy before tokenizing new corpora with new verbs.
 
 ## Optional LLM Annotation
 

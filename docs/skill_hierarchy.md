@@ -136,6 +136,11 @@ ids. The default motion-code centers cover the 12 clusters used by the public
 motion-code assignment; the extra category id is kept for compatibility with
 the released strategy file.
 
+The released strategy is a frozen vocabulary. If a phrase uses a surface verb
+that is absent from `verb_map`, the tokenizer raises an error instead of
+inventing a new id. Extend or rebuild the strategy before tokenizing new
+corpora with verbs outside the released vocabulary.
+
 ## Commands
 
 Tokenize a phrase with a known motion code:

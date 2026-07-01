@@ -10,7 +10,7 @@ import sentencepiece
 import tyro
 import tqdm_loggable.auto as tqdm
 
-# JAX/OpenPI 관련
+# JAX/SkillNet compatibility imports
 import openpi.training.config as _config
 import openpi.training.data_loader as _data_loader
 import openpi.transforms as _transforms
@@ -448,4 +448,4 @@ def main(args: Args):
 
 if __name__ == "__main__":
     args = tyro.cli(Args)
-    main(args) 
+    main(args)

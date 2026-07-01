@@ -422,6 +422,9 @@ DOC_EXPECTATIONS = [
             "weighted distance",
             TOKENIZATION_STRATEGY_SHA256,
             "tokenization_strategy.json",
+            "frozen vocabulary",
+            "verb_map",
+            "raises an error",
         ],
     ),
     (
@@ -433,6 +436,9 @@ DOC_EXPECTATIONS = [
             "OpenAI-compatible endpoint",
             TOKENIZATION_STRATEGY_SHA256,
             "example graph is intentionally small",
+            "frozen vocabulary",
+            "verb_map",
+            "raises an error",
         ],
     ),
     (
