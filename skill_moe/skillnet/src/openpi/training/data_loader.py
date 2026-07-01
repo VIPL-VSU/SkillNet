@@ -13,7 +13,6 @@ import torch
 
 import openpi.models.model as _model
 import openpi.training.config as _config
-from openpi.training.droid_rlds_dataset import DroidRldsDataset
 import openpi.transforms as _transforms
 
 T_co = TypeVar("T_co", covariant=True)
@@ -264,14 +263,10 @@ def create_rlds_dataset(
     *,
     shuffle: bool = False,
 ) -> Dataset:
-    # At the moment, we only support DROID for RLDS datasets.
-    return DroidRldsDataset(
-        data_dir=data_config.rlds_data_dir,
-        batch_size=batch_size,
-        shuffle=shuffle,
-        action_chunk_size=action_horizon,
-        action_space=data_config.action_space,
-        filter_dict_path=data_config.filter_dict_path,
+    del data_config, action_horizon, batch_size, shuffle
+    raise NotImplementedError(
+        "RLDS data loading is not part of the public SkillNet release. "
+        "Use the documented LeRobot datasets for LIBERO and RoboTwin."
     )
 
 
@@ -472,7 +467,7 @@ def create_rlds_data_loader(
 ) -> DataLoader[tuple[_model.Observation, _model.Actions]]:
     """Create an RLDS data loader for training.
 
-    Note: This data loader requires some extra dependencies -- see examples/droid/README_train.md
+    The public SkillNet release supports the documented LeRobot data path.
 
     Args:
         data_config: The data configuration.
@@ -606,14 +601,11 @@ def _worker_init_fn(worker_id: int) -> None:
 
 
 class RLDSDataLoader:
-    """Shallow wrapper around the DROID data loader to make it compatible with openpi.
-
-    All batching already happens in the DROID dataset, so we don't need to do anything here.
-    """
+    """Shallow wrapper for externally supplied pre-batched iterable datasets."""
 
     def __init__(
         self,
-        dataset: DroidRldsDataset,
+        dataset: IterableDataset,
         *,
         sharding: jax.sharding.Sharding | None = None,
         num_batches: int | None = None,

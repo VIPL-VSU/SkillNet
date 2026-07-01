@@ -77,7 +77,6 @@ def create_rlds_dataloader(
     if max_frames is not None and max_frames < len(dataset):
         num_batches = max_frames // batch_size
     else:
-        # NOTE: this length is currently hard-coded for DROID.
         num_batches = len(dataset) // batch_size
     data_loader = _data_loader.RLDSDataLoader(
         dataset,

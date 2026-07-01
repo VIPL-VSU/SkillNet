@@ -16,14 +16,10 @@ import tyro
 import openpi.models.model as _model
 import openpi.models.pi0_config_moe_skill as pi0_config
 import openpi.models.tokenizer as _tokenizer
-import openpi.policies.aloha_policy as aloha_policy
-import openpi.policies.droid_policy as droid_policy
 import openpi.policies.libero_policy as libero_policy
-import openpi.policies.robocasa_policy as robocasa_policy
 import openpi.policies.robotwin_policy as robotwin_policy
 import openpi.shared.download as _download
 import openpi.shared.normalize as _normalize
-import openpi.training.droid_rlds_dataset as droid_rlds_dataset
 import openpi.training.optimizer as _optimizer
 import openpi.training.weight_loaders as weight_loaders
 import openpi.transforms as _transforms
@@ -103,11 +99,9 @@ class DataConfig:
     # If true, will use the LeRobot dataset task to define the prompt.
     prompt_from_task: bool = False
 
-    # Only used for RLDS data loader (ie currently only used for DROID).
+    # Only used for optional RLDS data loaders. The public SkillNet configs use LeRobot datasets.
     rlds_data_dir: str | None = None
-    # Action space for DROID dataset.
-    action_space: droid_rlds_dataset.DroidActionSpace | None = None
-    # Path to the data filter file for DROID dataset
+    action_space: Any | None = None
     filter_dict_path: str | None = None
 
 
@@ -286,59 +280,6 @@ class LeRobotRobotwinSkillDataConfig(DataConfigFactory):
         )
 
 @dataclasses.dataclass(frozen=True)
-class LeRobotAlohaDataConfig(DataConfigFactory):
-    # If true, will convert joint dimensions to deltas with respect to the current state before passing to the model.
-    # Gripper dimensions will remain in absolute values.
-    use_delta_joint_actions: bool = True
-    # If provided, will be injected into the input data if the "prompt" key is not present.
-    default_prompt: str | None = None
-    # If true, this will convert the joint and gripper values from the standard Aloha space to
-    # the space used by the pi internal runtime which was used to train the base model. People who
-    # use standard Aloha data should set this to true.
-    adapt_to_pi: bool = True
-
-    # Repack transforms.
-    repack_transforms: tyro.conf.Suppress[_transforms.Group] = dataclasses.field(
-        default=_transforms.Group(
-            inputs=[
-                _transforms.RepackTransform(
-                    {
-                        "images": {"cam_high": "observation.images.top"},
-                        "state": "observation.state",
-                        "actions": "action",
-                    }
-                )
-            ]
-        )
-    )
-    # Action keys that will be used to read the action sequence from the dataset.
-    action_sequence_keys: Sequence[str] = ("action",)
-
-    @override
-    def create(self, assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
-        data_transforms = _transforms.Group(
-            inputs=[aloha_policy.AlohaInputs(adapt_to_pi=self.adapt_to_pi)],
-            outputs=[aloha_policy.AlohaOutputs(adapt_to_pi=self.adapt_to_pi)],
-        )
-        if self.use_delta_joint_actions:
-            delta_action_mask = _transforms.make_bool_mask(6, -1, 6, -1)
-            data_transforms = data_transforms.push(
-                inputs=[_transforms.DeltaActions(delta_action_mask)],
-                outputs=[_transforms.AbsoluteActions(delta_action_mask)],
-            )
-
-        model_transforms = ModelTransformFactory(default_prompt=self.default_prompt)(model_config)
-
-        return dataclasses.replace(
-            self.create_base_config(assets_dirs, model_config),
-            repack_transforms=self.repack_transforms,
-            data_transforms=data_transforms,
-            model_transforms=model_transforms,
-            action_sequence_keys=self.action_sequence_keys,
-        )
-
-
-@dataclasses.dataclass(frozen=True)
 class LeRobotLiberoDataConfig(DataConfigFactory):
     """
     This config is used to configure transforms that are applied at various parts of the data pipeline.
@@ -412,65 +353,6 @@ class LeRobotLiberoDataConfig(DataConfigFactory):
             repack_transforms=repack_transform,
             data_transforms=data_transforms,
             model_transforms=model_transforms,
-        )
-
-@dataclasses.dataclass(frozen=True)
-class LeRobotRobocasaSkillDataConfig(DataConfigFactory):
-    """
-    This config is used to configure transforms that are applied at various parts of the data pipeline.
-    For your own dataset, you can copy this class and modify the transforms to match your dataset based on the
-    comments below.
-    """
-
-    offline_sampling: bool = False
-    dpo_training: bool = False
-
-    @override
-    def create(self, assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
-        # The repack transform is *only* applied to the data coming from the dataset,
-        # and *not* during inference. We can use it to make inputs from the dataset look
-        # as close as possible to those coming from the inference environment (e.g. match the keys).
-        # Below, we match the keys in the dataset (which we defined in the data conversion script) to
-        # the keys we use in our inference pipeline (defined in the inference script for libero).
-        # For your own dataset, first figure out what keys your environment passes to the policy server
-        # and then modify the mappings below so your dataset's keys get matched to those target keys.
-        # The repack transform simply remaps key names here.
-
-        # new_key : old_key
-        repack_transform = _transforms.Group(
-            inputs=[
-                _transforms.RepackTransform(
-                    {
-                        "video.left_view": "observation.images.left_view",
-                        "video.right_view": "observation.images.right_view",
-                        "video.wrist_view": "observation.images.wrist_view",
-                        "state": "observation.state",
-                        "action": "action",
-                        "annotation.human.action.task_description": "prompt",
-                        "skills": "skills"
-                    }
-                )
-            ]
-        )
-
-        data_transforms = _transforms.Group(
-            inputs=[
-                robocasa_policy.RobocasaInputs(action_dim=model_config.action_dim, model_type=model_config.model_type)
-            ],
-            outputs=[robocasa_policy.RobocasaOutputs()],
-        )
-
-        model_transforms = ModelTransformFactory()(model_config)
-
-        return dataclasses.replace(
-            self.create_base_config(assets_dirs, model_config),
-            repack_transforms=repack_transform,
-            data_transforms=data_transforms,
-            model_transforms=model_transforms,
-            # NOTE : pi0-fast uses quantile norm (official paper) -> similar to min-max
-            use_quantile_norm=model_config.model_type == ModelType.PI0_FAST,
-            # NOTE : Lerobot Robocasa dataset has "action" key, not actions!
-            action_sequence_keys=("action",),
         )
 
 @dataclasses.dataclass(frozen=True)
@@ -549,105 +431,6 @@ class LeRobotLiberoSkillDataConfig(DataConfigFactory):
             data_transforms=data_transforms,
             model_transforms=model_transforms,
         )
-
-@dataclasses.dataclass(frozen=True)
-class RLDSDroidDataConfig(DataConfigFactory):
-    """
-    Config for training on DROID, using RLDS data format (for efficient training on larger datasets).
-    """
-
-    rlds_data_dir: str | None = None
-    action_space: droid_rlds_dataset.DroidActionSpace | None = None
-
-    # Filtering options. Can pass a path to a dictionary that maps episodes to timestep ranges
-    # to tuples denoting ranges of time steps to keep (start, end). Episodes are uniquely identified with
-    # f"{recording_folderpath}--{file_path}", both of which are present in the RLDS episode metadata.
-    # Path to the filter dictionary file.
-    filter_dict_path: str | None = "gs://openpi-assets/droid/droid_sample_ranges_v1_0_1.json"
-
-    @override
-    def create(self, assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
-        repack_transform = _transforms.Group(
-            inputs=[
-                _transforms.RepackTransform(
-                    {
-                        "observation/exterior_image_1_left": "observation/image",
-                        "observation/wrist_image_left": "observation/wrist_image",
-                        "observation/joint_position": "observation/joint_position",
-                        "observation/gripper_position": "observation/gripper_position",
-                        "actions": "actions",
-                        "prompt": "prompt",
-                    }
-                )
-            ]
-        )
-
-        data_transforms = _transforms.Group(
-            inputs=[droid_policy.DroidInputs(model_type=model_config.model_type)],
-            outputs=[droid_policy.DroidOutputs()],
-        )
-
-        if self.action_space == droid_rlds_dataset.DroidActionSpace.JOINT_POSITION:
-            # Data loader returns absolute joint position actions -- convert to delta actions for training.
-            delta_action_mask = _transforms.make_bool_mask(7, -1)
-            data_transforms = data_transforms.push(
-                inputs=[_transforms.DeltaActions(delta_action_mask)],
-                outputs=[_transforms.AbsoluteActions(delta_action_mask)],
-            )
-
-        model_transforms = ModelTransformFactory()(model_config)
-
-        assert self.rlds_data_dir is not None, "Need to set rlds data dir for RLDS data loader."
-
-        return dataclasses.replace(
-            self.create_base_config(assets_dirs, model_config),
-            repack_transforms=repack_transform,
-            data_transforms=data_transforms,
-            model_transforms=model_transforms,
-            rlds_data_dir=self.rlds_data_dir,
-            action_space=self.action_space,
-            filter_dict_path=self.filter_dict_path,
-        )
-
-
-@dataclasses.dataclass(frozen=True)
-class LeRobotDROIDDataConfig(DataConfigFactory):
-    """
-    Example data config for custom DROID dataset in LeRobot format.
-    To convert your custom DROID dataset (<10s of hours) to LeRobot format, see examples/droid/convert_droid_data_to_lerobot.py
-    """
-
-    @override
-    def create(self, assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
-        repack_transform = _transforms.Group(
-            inputs=[
-                _transforms.RepackTransform(
-                    {
-                        "observation/exterior_image_1_left": "exterior_image_1_left",
-                        "observation/exterior_image_2_left": "exterior_image_2_left",
-                        "observation/wrist_image_left": "wrist_image_left",
-                        "observation/joint_position": "joint_position",
-                        "observation/gripper_position": "gripper_position",
-                        "actions": "actions",
-                        "prompt": "prompt",
-                    }
-                )
-            ]
-        )
-        # We assume joint *velocity* actions, so we should *not* apply an additional delta transform.
-        data_transforms = _transforms.Group(
-            inputs=[droid_policy.DroidInputs(model_type=model_config.model_type)],
-            outputs=[droid_policy.DroidOutputs()],
-        )
-        model_transforms = ModelTransformFactory()(model_config)
-
-        return dataclasses.replace(
-            self.create_base_config(assets_dirs, model_config),
-            repack_transforms=repack_transform,
-            data_transforms=data_transforms,
-            model_transforms=model_transforms,
-        )
-
 
 @dataclasses.dataclass(frozen=True)
 class TrainConfig:

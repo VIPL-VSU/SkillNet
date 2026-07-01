@@ -453,6 +453,22 @@ MOE_EXPECTATIONS = [
     ),
 ]
 
+CONFIG_FORBIDDEN_SNIPPETS = [
+    (
+        "skill_moe/skillnet/src/openpi/training/config_moe_skill.py",
+        [
+            "LeRobotAlohaDataConfig",
+            "LeRobotRobocasaSkillDataConfig",
+            "RLDSDroidDataConfig",
+            "LeRobotDROIDDataConfig",
+            "openpi.policies.aloha_policy",
+            "openpi.policies.droid_policy",
+            "openpi.policies.robocasa_policy",
+            "droid_rlds_dataset.DroidActionSpace",
+        ],
+    ),
+]
+
 DOC_EXPECTATIONS = [
     (
         "README.md",
@@ -759,6 +775,9 @@ OPENPI_PUBLIC_DOC_ALLOWED_FRAGMENTS = [
 NON_RELEASE_PATH_PATTERNS = [
     re.compile(r"^skill_moe/skillnet/examples/robocasa/"),
     re.compile(r"^skill_moe/skillnet/src/openpi/training/misc/roboarena_config\.py$"),
+    re.compile(r"^skill_moe/skillnet/src/openpi/training/droid_rlds_dataset\.py$"),
+    re.compile(r"^skill_moe/skillnet/src/openpi/policies/droid_policy\.py$"),
+    re.compile(r"^skill_moe/skillnet/src/openpi/policies/robocasa_policy\.py$"),
     re.compile(r"^skill_moe/skillnet/packages/openpi-client/src/openpi_client/websocket_client_policy_robocasa\.py$"),
 ]
 
@@ -1043,6 +1062,12 @@ def check_config_and_script_contracts(errors: list[str], *, verbose: bool) -> No
         for snippet in snippets:
             if compact_text(snippet) not in compact_model:
                 fail(f"{rel_path}: missing expected MoE snippet: {snippet}", errors)
+
+    for rel_path, snippets in CONFIG_FORBIDDEN_SNIPPETS:
+        text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+        for snippet in snippets:
+            if snippet in text:
+                fail(f"{rel_path}: public config surface contains non-release snippet: {snippet}", errors)
 
     if len(errors) == error_count:
         ok("public config/script/model contracts match documented release settings", verbose=verbose)
