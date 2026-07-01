@@ -793,6 +793,7 @@ PUBLIC_DOC_FORBIDDEN_PATTERNS = [
 
 RELEASE_STATUS_FORBIDDEN_PATTERNS = [
     (re.compile(r"commit\s+`?[0-9a-f]{7,40}`?", re.IGNORECASE), "pinned commit hash"),
+    (re.compile(r"\b\d+\s+commit(?:\(s\)|s)?\s+scanned\b", re.IGNORECASE), "pinned history scan count"),
 ]
 
 OPENPI_PUBLIC_DOC_ALLOWED_FRAGMENTS = [

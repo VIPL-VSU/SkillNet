@@ -31,7 +31,7 @@ Passed gates:
 
 ```bash
 python scripts/check_public_release.py --verbose
-python scripts/check_public_release.py --history-smoke --skip-help --verbose  # full local branch: 28 commits scanned; shallow clone: 1 commit scanned
+python scripts/check_public_release.py --history-smoke --skip-help --verbose  # scan depth follows the checkout history
 python scripts/check_public_release.py --hub-smoke --skip-help --verbose --hub-retries 3 --hub-timeout 30
 python scripts/check_public_release.py --require-bash --skip-help --verbose
 python scripts/check_public_release.py --install-smoke --install-python /path/to/python --skip-help --verbose
