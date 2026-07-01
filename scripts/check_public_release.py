@@ -549,9 +549,12 @@ DOC_EXPECTATIONS = [
             "Fresh clone gate",
             "short-path fresh clone",
             "git config core.longpaths true",
+            "Record the exact git SHA",
+            "self-referential documentation",
             "## Pending External Assets",
             "jsw19/libero_40_v1",
             "jsw19/libero_90_v1",
+            "RoboTwin derived dataset ids",
             "Final organization Hub namespace",
             "Current published assets remain under `jsw19/*`",
             "SKILLNET_RELEASE_HF_NAMESPACE",
@@ -758,6 +761,10 @@ PUBLIC_DOC_FILES = [
 PUBLIC_DOC_FORBIDDEN_PATTERNS = [
     (re.compile(r"\bbackend\b", re.IGNORECASE), "backend"),
     (re.compile(r"\boverlay\b", re.IGNORECASE), "overlay"),
+]
+
+RELEASE_STATUS_FORBIDDEN_PATTERNS = [
+    (re.compile(r"commit\s+`?[0-9a-f]{7,40}`?", re.IGNORECASE), "pinned commit hash"),
 ]
 
 OPENPI_PUBLIC_DOC_ALLOWED_FRAGMENTS = [
@@ -1085,6 +1092,11 @@ def check_documentation_contracts(errors: list[str], *, verbose: bool) -> None:
         for snippet in snippets:
             if snippet in text:
                 fail(f"{rel_path}: public documentation contains legacy/internal snippet: {snippet}", errors)
+
+    release_status_text = (REPO_ROOT / "docs/release_status.md").read_text(encoding="utf-8")
+    for pattern, label in RELEASE_STATUS_FORBIDDEN_PATTERNS:
+        if pattern.search(release_status_text):
+            fail(f"docs/release_status.md should not pin a {label}; record exact SHAs in tags or CI logs", errors)
 
     allowed_openpi_fragments = [fragment.lower() for fragment in OPENPI_PUBLIC_DOC_ALLOWED_FRAGMENTS]
     for rel_path in PUBLIC_DOC_FILES:

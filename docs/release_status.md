@@ -20,9 +20,11 @@ fresh checkout.
 
 ## Last Verified Snapshot
 
-As of 2026-07-01, commit `dc7923db69ff15dfab6add5b3d8e58924abe56ea`
-was verified from a short-path HTTPS shallow clone of
-`skillnet-public-release`.
+As of 2026-07-01, the release branch was verified from a short-path HTTPS
+shallow clone of `skillnet-public-release`. Record the exact git SHA in the
+release tag or CI artifact when cutting a public release; this status page lists
+the reproducible gates rather than pinning a self-referential documentation
+commit.
 
 Passed gates:
 
