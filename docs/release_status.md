@@ -80,6 +80,20 @@ Dataset-card templates are provided under `data_process/libero/dataset_cards/`;
 copy the matching template to `README.md` at the dataset root before the public
 dry run.
 
+If the derived LIBERO datasets are already uploaded but remain private, switch
+their visibility with an authenticated token that has write access, then rerun
+the anonymous `--include-libero-derived-datasets` gate:
+
+```bash
+python - <<'PY'
+from huggingface_hub import update_repo_settings
+
+for repo_id in ["jsw19/libero_40_v1", "jsw19/libero_90_v1"]:
+    update_repo_settings(repo_id=repo_id, repo_type="dataset", private=False)
+PY
+python scripts/check_public_release.py --hub-smoke --include-libero-derived-datasets
+```
+
 ## Verification Checklist
 
 Run these before tagging or announcing a release:

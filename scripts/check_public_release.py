@@ -416,6 +416,8 @@ DOC_EXPECTATIONS = [
             "data_process/libero/dataset_cards/",
             "--strict-parquet",
             "--install-python /path/to/python3.10",
+            "update_repo_settings",
+            "private=False",
         ],
     ),
     (
