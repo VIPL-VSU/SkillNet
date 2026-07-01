@@ -18,6 +18,27 @@ fresh checkout.
 | LIBERO-Skill benchmark files | Ready | The 9-task manifest plus bddl/init/annotation contract are checked by `check_public_release.py`. |
 | RoboTwin few-shot source release | Ready | Data helpers, metadata, train launchers, evaluation adapter, and reported protocol are included. |
 
+## Last Verified Snapshot
+
+As of 2026-07-01, commit `dc7923db69ff15dfab6add5b3d8e58924abe56ea`
+was verified from a short-path HTTPS shallow clone of
+`skillnet-public-release`.
+
+Passed gates:
+
+```bash
+python scripts/check_public_release.py --verbose
+python scripts/check_public_release.py --history-smoke --skip-help --verbose
+python scripts/check_public_release.py --hub-smoke --skip-help --verbose --hub-retries 3 --hub-timeout 30
+python scripts/check_public_release.py --require-bash --skip-help --verbose
+python scripts/check_public_release.py --install-smoke --install-python /path/to/python --skip-help --verbose
+```
+
+The anonymous derived-dataset gate still fails for
+`jsw19/libero_40_v1` and `jsw19/libero_90_v1`, so direct LIBERO training from
+those Hub dataset ids remains pending until their visibility is changed or the
+datasets are mirrored under another public namespace.
+
 ## Pending External Assets
 
 | Asset | Status | Why It Matters |
