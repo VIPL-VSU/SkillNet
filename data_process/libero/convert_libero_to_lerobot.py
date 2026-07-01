@@ -21,6 +21,11 @@ from tqdm import tqdm
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA_ROOT = Path(os.environ.get("SKILLNET_LIBERO_DATA_ROOT", "data/libero")).expanduser()
+RELEASE_HF_NAMESPACE = os.environ.get("SKILLNET_RELEASE_HF_NAMESPACE", "jsw19")
+
+
+def release_repo_id(name: str) -> str:
+    return f"{RELEASE_HF_NAMESPACE}/{name}"
 
 VERB_TO_CLASS = {
     "pick": 0,
@@ -33,7 +38,7 @@ VERB_TO_CLASS = {
 
 PRESETS = {
     "libero40": {
-        "repo_id": "jsw19/libero_40_v1",
+        "repo_id": os.environ.get("SKILLNET_LIBERO40_REPO_ID", release_repo_id("libero_40_v1")),
         "raw_dataset_names": (
             "libero_10_no_noops",
             "libero_goal_no_noops",
@@ -48,7 +53,7 @@ PRESETS = {
         "sequence_state_action": False,
     },
     "libero90": {
-        "repo_id": "jsw19/libero_90_v1",
+        "repo_id": os.environ.get("SKILLNET_LIBERO90_REPO_ID", release_repo_id("libero_90_v1")),
         "raw_dataset_names": ("libero_90_openvla_processed",),
         "data_dir": Path(os.environ.get("LIBERO90_RLDS_DIR", DEFAULT_DATA_ROOT / "libero90_rlds")).expanduser(),
         "plan_root": Path(os.environ.get("LIBERO90_PLAN_ROOT", DEFAULT_DATA_ROOT / "libero90_slices")).expanduser(),

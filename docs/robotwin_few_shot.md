@@ -202,9 +202,15 @@ RoboTwin configs set `skill_num=14` to reserve id `0` for padding.
 Default dataset ids can be overridden with environment variables:
 
 ```bash
+export SKILLNET_RELEASE_HF_NAMESPACE=jsw19
 export SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID=jsw19/robotwin_pretrain_v1
 export SKILLNET_ROBOTWIN_TRANSFER_REPO_ID=jsw19/robotwin_transfer_v1
 ```
+
+`SKILLNET_RELEASE_HF_NAMESPACE` controls the default namespace used by the
+converter, training configs, and per-task launcher. The more specific
+`SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID` and
+`SKILLNET_ROBOTWIN_TRANSFER_REPO_ID` variables override it when set.
 
 For per-task transfer datasets, the transfer launcher also supports:
 

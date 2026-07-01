@@ -51,12 +51,16 @@ the derived LeRobot dataset visibility gate for direct LIBERO training.
 | RoboTwin per-task few-shot transfer | `pi05_robotwin_moe_skill_transfer` | `jsw19/robotwin_<task>_v1` | Generate one per-task dataset locally | Train locally from the RoboTwin pretraining checkpoint |
 
 The dataset names are the canonical LeRobot `repo_id` values used by the
-released configs. LIBERO checkpoint weights are published; RoboTwin checkpoint
-weights are not part of this release and should be trained from the included
-configs. Direct LIBERO training requires either public access to the derived
-LeRobot datasets above or a local rebuild from the public RLDS sources plus the
-included compact slice-index metadata under `data_process/libero/slice_indices/`.
-The plain `--hub-smoke` check verifies checkpoints and source datasets; add
+released configs. The default release namespace is controlled by
+`SKILLNET_RELEASE_HF_NAMESPACE` and currently points at the published assets
+listed above; mirror the assets under another Hub namespace and set that
+variable to switch the training configs and public converters together. LIBERO
+checkpoint weights are published; RoboTwin checkpoint weights are not part of
+this release and should be trained from the included configs. Direct LIBERO
+training requires either public access to the derived LeRobot datasets above or
+a local rebuild from the public RLDS sources plus the included compact
+slice-index metadata under `data_process/libero/slice_indices/`. The plain
+`--hub-smoke` check verifies checkpoints and source datasets; add
 `--include-libero-derived-datasets` only when those derived LIBERO datasets
 should be publicly visible.
 
@@ -131,11 +135,12 @@ public RLDS sources plus the included compact slice-index metadata.
 LIBERO-40 in-domain training and evaluation launch commands are documented in
 `docs/training_and_evaluation.md`.
 
-## 4. LIBERO-Skill Training and Zero-Shot Evaluation
+## 4. LIBERO-90 Training for LIBERO-Skill Zero-Shot Evaluation
 
 LIBERO-90 training and LIBERO-Skill zero-shot evaluation are documented in
-`docs/training_and_evaluation.md`. The released LIBERO-Skill benchmark files are
-included under the `bddl_files/libero_skill_obj` and
+`docs/training_and_evaluation.md`. The zero-shot benchmark does not use
+LIBERO-Skill task trajectories for training. The released LIBERO-Skill
+benchmark files are included under the `bddl_files/libero_skill_obj` and
 `init_files/libero_skill_obj` directories inside
 `skill_moe/skillnet/third_party/libero/libero/libero/`. The reported public
 benchmark task order is recorded in

@@ -242,7 +242,7 @@ ROBOTWIN_TRANSFER_TASKS = [
 
 CONFIG_EXPECTATIONS = {
     "pi05_libero_moe_skill_4_40": [
-        'repo_id="jsw19/libero_40_v1"',
+        "repo_id=LIBERO40_REPO_ID",
         'action_expert_variant="gemma_300m_moe_4"',
         "batch_size=128",
         "peak_lr=5.0e-5",
@@ -251,7 +251,7 @@ CONFIG_EXPECTATIONS = {
         "num_train_steps=30_000",
     ],
     "pi05_libero_moe_skill_4_90": [
-        'repo_id="jsw19/libero_90_v1"',
+        "repo_id=LIBERO90_REPO_ID",
         'action_expert_variant="gemma_300m_moe_4"',
         "batch_size=32",
         "peak_lr=2.5e-5",
@@ -294,7 +294,9 @@ SCRIPT_EXPECTATIONS = [
         "skill_moe/skillnet/scripts/run_train_libero40_moe_skill.sh",
         [
             'CONFIG_NAME="${CONFIG_NAME:-pi05_libero_moe_skill_4_40}"',
-            'NORM_STATS_PATH="${NORM_STATS_PATH:-assets/${CONFIG_NAME}/jsw19/libero_40_v1/norm_stats.json}"',
+            'SKILLNET_RELEASE_HF_NAMESPACE="${SKILLNET_RELEASE_HF_NAMESPACE:-jsw19}"',
+            'LIBERO_REPO_ID="${SKILLNET_LIBERO40_REPO_ID:-${SKILLNET_RELEASE_HF_NAMESPACE}/libero_40_v1}"',
+            'NORM_STATS_PATH="${NORM_STATS_PATH:-assets/${CONFIG_NAME}/${LIBERO_REPO_ID}/norm_stats.json}"',
             'elif [[ -n "${VIRTUAL_ENV:-}" ]]',
         ],
     ),
@@ -302,7 +304,9 @@ SCRIPT_EXPECTATIONS = [
         "skill_moe/skillnet/scripts/run_train_libero90_moe_skill.sh",
         [
             'CONFIG_NAME="${CONFIG_NAME:-pi05_libero_moe_skill_4_90}"',
-            'NORM_STATS_PATH="${NORM_STATS_PATH:-assets/${CONFIG_NAME}/jsw19/libero_90_v1/norm_stats.json}"',
+            'SKILLNET_RELEASE_HF_NAMESPACE="${SKILLNET_RELEASE_HF_NAMESPACE:-jsw19}"',
+            'LIBERO_REPO_ID="${SKILLNET_LIBERO90_REPO_ID:-${SKILLNET_RELEASE_HF_NAMESPACE}/libero_90_v1}"',
+            'NORM_STATS_PATH="${NORM_STATS_PATH:-assets/${CONFIG_NAME}/${LIBERO_REPO_ID}/norm_stats.json}"',
             'elif [[ -n "${VIRTUAL_ENV:-}" ]]',
         ],
     ),
@@ -323,7 +327,8 @@ SCRIPT_EXPECTATIONS = [
         "skill_moe/skillnet/scripts/run_train_robotwin_pretrain_moe_skill.sh",
         [
             'CONFIG_NAME="${CONFIG_NAME:-pi05_robotwin_moe_skill_pretrain}"',
-            'ROBOTWIN_REPO_ID="${SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID:-jsw19/robotwin_pretrain_v1}"',
+            'SKILLNET_RELEASE_HF_NAMESPACE="${SKILLNET_RELEASE_HF_NAMESPACE:-jsw19}"',
+            'ROBOTWIN_REPO_ID="${SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID:-${SKILLNET_RELEASE_HF_NAMESPACE}/robotwin_pretrain_v1}"',
             'elif [[ -n "${VIRTUAL_ENV:-}" ]]',
         ],
     ),
@@ -331,7 +336,8 @@ SCRIPT_EXPECTATIONS = [
         "skill_moe/skillnet/scripts/run_train_robotwin_transfer_moe_skill.sh",
         [
             'CONFIG_NAME="${CONFIG_NAME:-pi05_robotwin_moe_skill_transfer}"',
-            'export SKILLNET_ROBOTWIN_TRANSFER_REPO_ID="jsw19/robotwin_${TRANSFER_TASK}_v1"',
+            'SKILLNET_RELEASE_HF_NAMESPACE="${SKILLNET_RELEASE_HF_NAMESPACE:-jsw19}"',
+            'export SKILLNET_ROBOTWIN_TRANSFER_REPO_ID="${SKILLNET_RELEASE_HF_NAMESPACE}/robotwin_${TRANSFER_TASK}_v1"',
             "Error: SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS is unset.",
             "ALLOW_PI05_TRANSFER_INIT",
         ],
@@ -358,11 +364,29 @@ SCRIPT_EXPECTATIONS = [
             'TASK_SET="${TASK_SET:-transfer}"',
             'ACTION_HORIZON="${ACTION_HORIZON:-10}"',
             'SKILL_PLAN="${SKILL_PLAN:-${SKILLNET_REPO_ROOT}/data_process/robotwin/robotwin_plan.json}"',
+            'SKILLNET_RELEASE_HF_NAMESPACE="${SKILLNET_RELEASE_HF_NAMESPACE:-jsw19}"',
+            'export SKILLNET_ROBOTWIN_TRANSFER_REPO_ID="${SKILLNET_RELEASE_HF_NAMESPACE}/robotwin_${TRANSFER_TASK}_v1"',
             'SERVER_LOG_PATH="${SERVER_LOG_PATH:-data/robotwin/server_logs/${CONFIG_NAME}_${PORT}.log}"',
             "ROBOTWIN_ROOT does not exist",
             "SKILL_PLAN does not exist",
             "CKPT_DIR does not exist",
             "Policy server exited before becoming ready",
+        ],
+    ),
+    (
+        "data_process/libero/convert_libero_to_lerobot.py",
+        [
+            'RELEASE_HF_NAMESPACE = os.environ.get("SKILLNET_RELEASE_HF_NAMESPACE", "jsw19")',
+            'os.environ.get("SKILLNET_LIBERO40_REPO_ID", release_repo_id("libero_40_v1"))',
+            'os.environ.get("SKILLNET_LIBERO90_REPO_ID", release_repo_id("libero_90_v1"))',
+        ],
+    ),
+    (
+        "data_process/robotwin/convert_robotwin_to_lerobot.py",
+        [
+            'RELEASE_HF_NAMESPACE = os.environ.get("SKILLNET_RELEASE_HF_NAMESPACE", "jsw19")',
+            'return release_repo_id(f"robotwin_{tasks[0]}_v1")',
+            '"pretrain": release_repo_id("robotwin_pretrain_v1")',
         ],
     ),
     (
@@ -415,14 +439,19 @@ DOC_EXPECTATIONS = [
             "## 1. Quick Start",
             "## 2. Skill Hierarchy",
             "## 3. In-Domain Training and Evaluation",
-            "## 4. LIBERO-Skill Training and Zero-Shot Evaluation",
+            "## 4. LIBERO-90 Training for LIBERO-Skill Zero-Shot Evaluation",
+            "does not use",
+            "LIBERO-Skill task trajectories for training",
             "## 5. Few-Shot Transfer",
             "docs/release_status.md",
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "git config core.longpaths true",
             "RoboTwin checkpoint",
-            "weights are not part of this release",
-            "configs. Direct LIBERO training",
+            "checkpoint weights are not part of",
+            "included configs",
+            "Direct LIBERO",
+            "training requires either public access",
+            "SKILLNET_RELEASE_HF_NAMESPACE",
             "--include-libero-derived-datasets",
             "Generate one per-task dataset locally",
             "public_task_manifest.json",
@@ -449,6 +478,8 @@ DOC_EXPECTATIONS = [
             ".venv/Scripts/activate",
             "Optional Google Cloud SDK",
             "Download released SkillNet checkpoints from the runnable SkillNet source root",
+            "SKILLNET_RELEASE_HF_NAMESPACE",
+            "SKILLNET_LIBERO40_REPO_ID",
             "no-deps install smoke",
             "python scripts/check_public_release.py --hub-smoke",
             "--install-python /path/to/python3.10",
@@ -484,6 +515,9 @@ DOC_EXPECTATIONS = [
             "## Pending External Assets",
             "jsw19/libero_40_v1",
             "jsw19/libero_90_v1",
+            "Final organization Hub namespace",
+            "Current published assets remain under `jsw19/*`",
+            "SKILLNET_RELEASE_HF_NAMESPACE",
             "--include-libero-derived-datasets",
             "--expected-episodes 3862",
             "--expected-episodes 7874",
@@ -556,6 +590,8 @@ DOC_EXPECTATIONS = [
             "--strict-parquet",
             "README_libero_40_v1.md",
             "scripts/set_hf_dataset_visibility.py",
+            "SKILLNET_RELEASE_HF_NAMESPACE",
+            "SKILLNET_LIBERO40_REPO_ID",
         ],
     ),
     (
@@ -565,6 +601,8 @@ DOC_EXPECTATIONS = [
             "git -C ../.. config core.longpaths true",
             "## LIBERO-40 Training",
             "## LIBERO-90 Training",
+            "training stage used before LIBERO-Skill zero-shot evaluation",
+            "LIBERO-Skill benchmark task trajectories are used",
             "## LIBERO-40 Evaluation",
             "## LIBERO-Skill Evaluation",
             "TASK_SUITE=libero_skill_obj",
@@ -581,6 +619,8 @@ DOC_EXPECTATIONS = [
             "benchmark.get_benchmark_dict()",
             "https://github.com/Lifelong-Robot-Learning/LIBERO",
             "RLDS source frames alone do not contain",
+            "SKILLNET_RELEASE_HF_NAMESPACE",
+            "SKILLNET_LIBERO40_REPO_ID",
             "class` and `all_classes",
             "skills` and `skill_mask",
             "--expected-episodes 3862",
@@ -599,6 +639,7 @@ DOC_EXPECTATIONS = [
             "https://github.com/RoboTwin-Platform/RoboTwin",
             "https://robotwin-platform.github.io/doc/index.html",
             "SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS",
+            "SKILLNET_RELEASE_HF_NAMESPACE",
             "Fine-tune all 15 transfer tasks",
             "create all matching per-task LeRobot datasets",
             'jsw19/robotwin_${task}_v1',
@@ -628,6 +669,7 @@ DOC_EXPECTATIONS = [
         [
             "RoboTwin Few-Shot Data",
             "local LeRobot `repo_id` names",
+            "SKILLNET_RELEASE_HF_NAMESPACE",
             "JSON-encoded string",
             "ROBOTWIN_ROOT",
             "collect_data.sh",
@@ -650,6 +692,14 @@ DOC_FORBIDDEN_SNIPPETS = [
     (
         "docs/robotwin_few_shot.md",
         ["Migration Status", "Completed in this step", "cluster-specific conda", "tmux orchestration"],
+    ),
+    (
+        "skill_moe/skillnet/third_party/libero/scripts/README.md",
+        ["internal task-construction process"],
+    ),
+    (
+        "skill_moe/skillnet/third_party/libero/scripts/create_libero_skill.py",
+        ["internal task-construction process"],
     ),
 ]
 
@@ -884,8 +934,11 @@ def check_config_and_script_contracts(errors: list[str], *, verbose: bool) -> No
 
     global_expectations = [
         'PI05_BASE_PARAMS=os.environ.get("SKILLNET_PI05_BASE_PARAMS","gs://openpi-assets/checkpoints/pi05_base/params")',
-        'ROBOTWIN_PRETRAIN_REPO_ID=os.environ.get("SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID","jsw19/robotwin_pretrain_v1")',
-        'ROBOTWIN_TRANSFER_REPO_ID=os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_REPO_ID","jsw19/robotwin_transfer_v1")',
+        'RELEASE_HF_NAMESPACE=os.environ.get("SKILLNET_RELEASE_HF_NAMESPACE","jsw19")',
+        'LIBERO40_REPO_ID=os.environ.get("SKILLNET_LIBERO40_REPO_ID",release_repo_id("libero_40_v1"))',
+        'LIBERO90_REPO_ID=os.environ.get("SKILLNET_LIBERO90_REPO_ID",release_repo_id("libero_90_v1"))',
+        'ROBOTWIN_PRETRAIN_REPO_ID=os.environ.get("SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID",release_repo_id("robotwin_pretrain_v1"))',
+        'ROBOTWIN_TRANSFER_REPO_ID=os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_REPO_ID",release_repo_id("robotwin_transfer_v1"))',
         'ROBOTWIN_TRANSFER_INIT_PARAMS=os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS",PI05_BASE_PARAMS)',
     ]
     for snippet in global_expectations:

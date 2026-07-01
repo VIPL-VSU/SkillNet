@@ -117,11 +117,14 @@ python data_process/robotwin/convert_robotwin_to_lerobot.py \
   --output-repo-id jsw19/robotwin_blocks_ranking_size_v1
 ```
 
-The `jsw19/robotwin_*_v1` values are local LeRobot `repo_id` names. Set
-`LEROBOT_HOME` or `HF_LEROBOT_HOME` before conversion if you want a specific
-dataset cache location, and keep the same cache when running SkillNet training.
-The derived RoboTwin LeRobot datasets are generated locally in this release
-rather than treated as public Hub download dependencies.
+The `jsw19/robotwin_*_v1` values are local LeRobot `repo_id` names generated
+from `SKILLNET_RELEASE_HF_NAMESPACE=jsw19` by default. Set
+`SKILLNET_RELEASE_HF_NAMESPACE` before conversion to use another namespace, or
+pass `--output-repo-id` for an exact repo id. Set `LEROBOT_HOME` or
+`HF_LEROBOT_HOME` before conversion if you want a specific dataset cache
+location, and keep the same cache when running SkillNet training. The derived
+RoboTwin LeRobot datasets are generated locally in this release rather than
+treated as public Hub download dependencies.
 
 The converter accepts either downloaded zip files or already extracted
 demonstration folders. It defaults to `--source-format auto`, which first looks

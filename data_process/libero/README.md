@@ -14,6 +14,9 @@ your Hugging Face account, LeRobot can load them directly. If they are private
 or unavailable in your environment, rebuild compatible local datasets from RLDS
 sources with the included compact slice-index metadata, and keep the same
 repo_id layout under `LEROBOT_HOME`.
+Set `SKILLNET_RELEASE_HF_NAMESPACE` to mirror these defaults under another Hub
+namespace, or use `SKILLNET_LIBERO40_REPO_ID` and `SKILLNET_LIBERO90_REPO_ID`
+for exact per-dataset repo ids.
 
 Published v1 sanity-check counts are 40 tasks / 3,862 episodes for
 `libero_40_v1` and 73 tasks / 7,874 episodes for `libero_90_v1`.

@@ -6,6 +6,7 @@ import argparse
 import dataclasses
 import io
 import json
+import os
 import shutil
 import zipfile
 from collections.abc import Iterable
@@ -15,6 +16,7 @@ from build_robotwin_skill_metadata import TASK_SETS
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+RELEASE_HF_NAMESPACE = os.environ.get("SKILLNET_RELEASE_HF_NAMESPACE", "jsw19")
 RAW_CAMERA_MAP = {
     "head_color": "head_camera",
     "hand_right_color": "right_camera",
@@ -26,6 +28,10 @@ def require_numpy():
     import numpy as np
 
     return np
+
+
+def release_repo_id(name: str) -> str:
+    return f"{RELEASE_HF_NAMESPACE}/{name}"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -85,12 +91,12 @@ def parse_args() -> argparse.Namespace:
 
 def default_repo_id(task_set: str, tasks: list[str] | None) -> str:
     if tasks and len(tasks) == 1:
-        return f"jsw19/robotwin_{tasks[0]}_v1"
+        return release_repo_id(f"robotwin_{tasks[0]}_v1")
     return {
-        "pretrain": "jsw19/robotwin_pretrain_v1",
-        "transfer": "jsw19/robotwin_transfer_v1",
-        "paper": "jsw19/robotwin_paper_v1",
-        "all": "jsw19/robotwin_all_v1",
+        "pretrain": release_repo_id("robotwin_pretrain_v1"),
+        "transfer": release_repo_id("robotwin_transfer_v1"),
+        "paper": release_repo_id("robotwin_paper_v1"),
+        "all": release_repo_id("robotwin_all_v1"),
     }[task_set]
 
 

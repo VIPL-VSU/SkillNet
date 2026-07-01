@@ -148,6 +148,20 @@ hf download jsw19/SkillNet-LIBERO-90 \
   --local-dir checkpoints/pi05_libero_moe_skill_4_90/moe_balance_4_32_90_20000/19999
 ```
 
+The default Hub namespace for released datasets and locally generated LeRobot
+repo ids is:
+
+```bash
+export SKILLNET_RELEASE_HF_NAMESPACE=jsw19
+```
+
+If you mirror the datasets or checkpoints under an organization namespace, set
+`SKILLNET_RELEASE_HF_NAMESPACE` to that namespace before running conversion,
+training, or evaluation. Dataset-specific variables such as
+`SKILLNET_LIBERO40_REPO_ID`, `SKILLNET_LIBERO90_REPO_ID`,
+`SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID`, and
+`SKILLNET_ROBOTWIN_TRANSFER_REPO_ID` override the namespace-derived defaults.
+
 If Hugging Face is slow:
 
 ```bash

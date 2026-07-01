@@ -1,9 +1,9 @@
 # LIBERO Script Notes
 
 `create_libero_skill.py` is kept as an archival/provenance script from the
-internal LIBERO-Skill task-construction process. It is not required for the
-public release workflow and is not the source of truth for reported
-LIBERO-Skill evaluation.
+LIBERO-Skill benchmark construction process. It is not required for the public
+release workflow and is not the source of truth for reported LIBERO-Skill
+evaluation.
 
 For public evaluation, use the checked-in bddl/init assets, the
 `libero_skill_obj` registration in

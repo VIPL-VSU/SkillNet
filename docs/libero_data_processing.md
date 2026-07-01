@@ -46,6 +46,10 @@ If those derived dataset repos are visible to your Hugging Face account, LeRobot
 can load them directly. If they are private or unavailable in your environment,
 rebuild them with the conversion commands below and keep the same repo_id layout
 under `LEROBOT_HOME`.
+The public converters and training configs derive these defaults from
+`SKILLNET_RELEASE_HF_NAMESPACE=jsw19`; set that variable to an organization
+namespace after mirroring the assets, or set `SKILLNET_LIBERO40_REPO_ID` and
+`SKILLNET_LIBERO90_REPO_ID` for per-dataset overrides.
 
 Release contract:
 

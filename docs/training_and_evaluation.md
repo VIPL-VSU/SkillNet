@@ -94,6 +94,10 @@ build them locally from the public RLDS sources and the included compact
 slice-index metadata under `../../data_process/libero/slice_indices/`, then set
 `LEROBOT_HOME` so LeRobot can find the same `repo_id` layout. From this source
 root, `../../docs/libero_data_processing.md` documents the conversion workflow.
+The default release namespace can be changed with
+`SKILLNET_RELEASE_HF_NAMESPACE`; dataset-specific overrides
+`SKILLNET_LIBERO40_REPO_ID` and `SKILLNET_LIBERO90_REPO_ID` take precedence when
+using mirrored or renamed LeRobot repos.
 
 Exact training reproduction needs accessible copies of those derived LeRobot
 datasets, or a local rebuild using the included `libero40_slice_index.json` and
@@ -213,6 +217,9 @@ released checkpoint download path shown above keeps the original experiment
 directory name used for the published weights.
 
 ## LIBERO-90 Training
+
+This is the training stage used before LIBERO-Skill zero-shot evaluation. No
+LIBERO-Skill benchmark task trajectories are used for this training run.
 
 Run:
 

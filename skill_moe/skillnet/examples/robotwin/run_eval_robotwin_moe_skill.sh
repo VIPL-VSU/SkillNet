@@ -24,6 +24,7 @@ SERVER_LOG_PATH="${SERVER_LOG_PATH:-data/robotwin/server_logs/${CONFIG_NAME}_${P
 ACTION_HORIZON="${ACTION_HORIZON:-10}"
 RESULT_DIR="${RESULT_DIR:-data/robotwin/eval_results}"
 SKILL_PLAN="${SKILL_PLAN:-${SKILLNET_REPO_ROOT}/data_process/robotwin/robotwin_plan.json}"
+SKILLNET_RELEASE_HF_NAMESPACE="${SKILLNET_RELEASE_HF_NAMESPACE:-jsw19}"
 
 if [[ -z "${ROBOTWIN_ROOT}" ]]; then
   echo "ROBOTWIN_ROOT must point to a local RoboTwin-2.0 checkout." >&2
@@ -39,7 +40,7 @@ if [[ ! -f "${SKILL_PLAN}" ]]; then
 fi
 
 if [[ -n "${TRANSFER_TASK}" && -z "${SKILLNET_ROBOTWIN_TRANSFER_REPO_ID:-}" ]]; then
-  export SKILLNET_ROBOTWIN_TRANSFER_REPO_ID="jsw19/robotwin_${TRANSFER_TASK}_v1"
+  export SKILLNET_ROBOTWIN_TRANSFER_REPO_ID="${SKILLNET_RELEASE_HF_NAMESPACE}/robotwin_${TRANSFER_TASK}_v1"
 fi
 
 if [[ -n "${PYTHON_BIN:-}" ]]; then

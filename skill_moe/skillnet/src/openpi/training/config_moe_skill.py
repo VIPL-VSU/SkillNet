@@ -33,8 +33,17 @@ ModelType: TypeAlias = _model.ModelType
 Filter: TypeAlias = nnx.filterlib.Filter
 
 PI05_BASE_PARAMS = os.environ.get("SKILLNET_PI05_BASE_PARAMS", "gs://openpi-assets/checkpoints/pi05_base/params")
-ROBOTWIN_PRETRAIN_REPO_ID = os.environ.get("SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID", "jsw19/robotwin_pretrain_v1")
-ROBOTWIN_TRANSFER_REPO_ID = os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_REPO_ID", "jsw19/robotwin_transfer_v1")
+RELEASE_HF_NAMESPACE = os.environ.get("SKILLNET_RELEASE_HF_NAMESPACE", "jsw19")
+
+
+def release_repo_id(name: str) -> str:
+    return f"{RELEASE_HF_NAMESPACE}/{name}"
+
+
+LIBERO40_REPO_ID = os.environ.get("SKILLNET_LIBERO40_REPO_ID", release_repo_id("libero_40_v1"))
+LIBERO90_REPO_ID = os.environ.get("SKILLNET_LIBERO90_REPO_ID", release_repo_id("libero_90_v1"))
+ROBOTWIN_PRETRAIN_REPO_ID = os.environ.get("SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID", release_repo_id("robotwin_pretrain_v1"))
+ROBOTWIN_TRANSFER_REPO_ID = os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_REPO_ID", release_repo_id("robotwin_transfer_v1"))
 ROBOTWIN_TRANSFER_INIT_PARAMS = os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS", PI05_BASE_PARAMS)
 
 
@@ -748,7 +757,7 @@ _CONFIGS = [
         name="pi05_libero_moe_skill_4_40",
         model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False, paligemma_variant="gemma_2b", action_expert_variant="gemma_300m_moe_4"),
         data=LeRobotLiberoSkillDataConfig(
-            repo_id="jsw19/libero_40_v1",
+            repo_id=LIBERO40_REPO_ID,
             base_config=DataConfig(prompt_from_task=True),
             extra_delta_transform=False,
         ),
@@ -768,7 +777,7 @@ _CONFIGS = [
         name="pi05_libero_moe_skill_4_90",
         model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False, paligemma_variant="gemma_2b", action_expert_variant="gemma_300m_moe_4"),
         data=LeRobotLiberoSkillDataConfig(
-            repo_id="jsw19/libero_90_v1",
+            repo_id=LIBERO90_REPO_ID,
             base_config=DataConfig(prompt_from_task=True),
             extra_delta_transform=False,
         ),
