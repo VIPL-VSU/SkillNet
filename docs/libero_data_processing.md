@@ -129,7 +129,7 @@ put tokens into command lines, scripts, or repository files. After publishing,
 run:
 
 ```bash
-python scripts/check_public_release.py --hub-smoke --include-derived-datasets
+python scripts/check_public_release.py --hub-smoke --include-libero-derived-datasets
 ```
 
 The strict Hub check should pass for `jsw19/libero_40_v1` and

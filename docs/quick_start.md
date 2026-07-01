@@ -138,6 +138,8 @@ python scripts/check_public_release.py
 This verifies key files, JSON/JSONL artifacts, selected CLI help commands,
 Python syntax for public data/eval helpers, and common private-path or token
 patterns. It does not import simulator packages or load model checkpoints.
+See `docs/release_status.md` for the current release-readiness checklist and
+external asset gates.
 
 To additionally test editable package metadata in a temporary Python 3.10
 environment without downloading heavyweight runtime dependencies:
@@ -154,11 +156,11 @@ python scripts/check_public_release.py --hub-smoke
 ```
 
 This network check respects `HF_ENDPOINT` and `HF_TOKEN`. Add
-`--include-derived-datasets` only when you expect the derived LeRobot output
-repo ids such as `jsw19/libero_40_v1` and `jsw19/libero_90_v1` to be visible
-from the current account. Otherwise, rebuild them locally and keep the same
-repo_id layout under `LEROBOT_HOME`. `docs/libero_data_processing.md` includes
-metadata verification and Hub publishing commands for those derived datasets.
+`--include-libero-derived-datasets` when you expect `jsw19/libero_40_v1` and
+`jsw19/libero_90_v1` to be visible from the current account. Otherwise, rebuild
+them locally and keep the same repo_id layout under `LEROBOT_HOME`.
+`docs/libero_data_processing.md` includes metadata verification and Hub
+publishing commands for those derived datasets.
 
 ## Smoke Checks
 

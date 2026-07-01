@@ -28,6 +28,7 @@ REQUIRED_FILES = [
     "NOTICE.md",
     "README.md",
     "docs/quick_start.md",
+    "docs/release_status.md",
     "docs/skill_hierarchy.md",
     "docs/training_and_evaluation.md",
     "docs/libero_data_processing.md",
@@ -311,6 +312,7 @@ DOC_EXPECTATIONS = [
             "## 3. In-Domain Training and Evaluation",
             "## 4. LIBERO-Skill Training and Zero-Shot Evaluation",
             "## 5. Few-Shot Transfer",
+            "docs/release_status.md",
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "RoboTwin checkpoint",
             "weights are not part of this release",
@@ -322,9 +324,21 @@ DOC_EXPECTATIONS = [
         [
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "python scripts/check_public_release.py --hub-smoke",
+            "docs/release_status.md",
             "SKILLNET_REQUIRE_LIBERO=1",
             "LIBERO-Skill evaluation",
             "RoboTwin few-shot evaluation",
+        ],
+    ),
+    (
+        "docs/release_status.md",
+        [
+            "## Ready",
+            "## Pending External Assets",
+            "jsw19/libero_40_v1",
+            "jsw19/libero_90_v1",
+            "--include-libero-derived-datasets",
+            "HF_TOKEN",
         ],
     ),
     (
@@ -386,16 +400,21 @@ PUBLIC_HUB_RESOURCES = [
     ("dataset", "TianxingChen/RoboTwin2.0"),
 ]
 
-# Common derived LeRobot repo ids used in the public docs and default scripts.
-DERIVED_LEROBOT_HUB_RESOURCES = [
+LIBERO_DERIVED_LEROBOT_HUB_RESOURCES = [
     ("dataset", "jsw19/libero_40_v1"),
     ("dataset", "jsw19/libero_90_v1"),
+]
+
+ROBOTWIN_DERIVED_LEROBOT_HUB_RESOURCES = [
     ("dataset", "jsw19/robotwin_pretrain_v1"),
     ("dataset", "jsw19/robotwin_transfer_v1"),
     ("dataset", "jsw19/robotwin_blocks_ranking_size_v1"),
     ("dataset", "jsw19/robotwin_paper_v1"),
     ("dataset", "jsw19/robotwin_all_v1"),
 ]
+
+# Common derived LeRobot repo ids used in the public docs and default scripts.
+DERIVED_LEROBOT_HUB_RESOURCES = LIBERO_DERIVED_LEROBOT_HUB_RESOURCES + ROBOTWIN_DERIVED_LEROBOT_HUB_RESOURCES
 
 
 def tracked_files(suffix: str, fallback: list[str]) -> list[str]:
@@ -435,6 +454,16 @@ def parse_args() -> argparse.Namespace:
         "--include-derived-datasets",
         action="store_true",
         help="With --hub-smoke, also check common derived LeRobot dataset repo ids used as local output names.",
+    )
+    parser.add_argument(
+        "--include-libero-derived-datasets",
+        action="store_true",
+        help="With --hub-smoke, also check derived LIBERO LeRobot dataset repo ids.",
+    )
+    parser.add_argument(
+        "--include-robotwin-derived-datasets",
+        action="store_true",
+        help="With --hub-smoke, also check common derived RoboTwin LeRobot dataset repo ids.",
     )
     parser.add_argument(
         "--hf-endpoint",
@@ -1061,6 +1090,8 @@ def check_hub_resources(
     *,
     endpoint: str,
     include_derived_datasets: bool,
+    include_libero_derived_datasets: bool,
+    include_robotwin_derived_datasets: bool,
     timeout: float,
     retries: int,
     verbose: bool,
@@ -1068,6 +1099,11 @@ def check_hub_resources(
     resources = list(PUBLIC_HUB_RESOURCES)
     if include_derived_datasets:
         resources.extend(DERIVED_LEROBOT_HUB_RESOURCES)
+    else:
+        if include_libero_derived_datasets:
+            resources.extend(LIBERO_DERIVED_LEROBOT_HUB_RESOURCES)
+        if include_robotwin_derived_datasets:
+            resources.extend(ROBOTWIN_DERIVED_LEROBOT_HUB_RESOURCES)
 
     for repo_type, repo_id in resources:
         url = hub_api_url(endpoint, repo_type, repo_id)
@@ -1112,6 +1148,8 @@ def main() -> None:
             errors,
             endpoint=args.hf_endpoint,
             include_derived_datasets=args.include_derived_datasets,
+            include_libero_derived_datasets=args.include_libero_derived_datasets,
+            include_robotwin_derived_datasets=args.include_robotwin_derived_datasets,
             timeout=args.hub_timeout,
             retries=args.hub_retries,
             verbose=args.verbose,

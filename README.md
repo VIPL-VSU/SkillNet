@@ -16,6 +16,7 @@ transfer.
 - `data_process/libero/`: LIBERO-40 and LIBERO-90 source-download and LeRobot conversion scripts.
 - `data_process/robotwin/`: RoboTwin-2.0 few-shot task download, conversion, metadata, and collection helpers.
 - `docs/quick_start.md`: installation, environment setup, checkpoint download, and smoke checks.
+- `docs/release_status.md`: current release-readiness checklist and known external asset gates.
 - `docs/skill_hierarchy.md`: SkillNet hierarchy construction and tokenization notes.
 - `docs/libero_data_processing.md`: complete notes for reproducing the LIBERO LeRobot datasets used by the SkillNet training configs.
 - `docs/training_and_evaluation.md`: public launch instructions for LIBERO-40/90 Skill-MoE training and LIBERO-Skill evaluation.
@@ -32,7 +33,9 @@ This is a source-code release scaffold with a lightweight editable Python
 package. The runnable SkillNet source root is `skill_moe/skillnet`. The
 implementation keeps the `src/openpi` package namespace expected by the pi0.5
 checkpoint/runtime format, but public commands and configuration are documented
-as SkillNet workflows.
+as SkillNet workflows. See `docs/release_status.md` for the current
+release-readiness checklist, including the derived LeRobot dataset visibility
+gate for direct LIBERO training.
 
 ## Experiments Covered
 
@@ -91,6 +94,9 @@ To verify the public Hugging Face checkpoint and source-dataset links, run:
 ```bash
 python scripts/check_public_release.py --hub-smoke
 ```
+
+Before announcing direct LIBERO training from Hub datasets, also run the
+dataset-visibility check documented in `docs/release_status.md`.
 
 ## 2. Skill Hierarchy
 
