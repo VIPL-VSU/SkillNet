@@ -4,18 +4,10 @@ This note documents how the released SkillNet LIBERO training datasets are
 derived from the public RLDS sources and the compact slice-index metadata
 included in this repository.
 
-## What Was Verified
+## Public Entrypoints
 
-Earlier research script names are listed here only to make old experiment notes
-easier to map to this release. The maintained public entrypoints in
-`data_process/libero/` build the same data format.
-
-```text
-generate_data_40.py  # historical research script name
-generate_data_90.py  # historical research script name
-```
-
-Relevant files:
+The maintained public entrypoints in `data_process/libero/` build the released
+LIBERO LeRobot data format:
 
 ```text
 convert_libero_40_to_lerobot.py
@@ -28,8 +20,7 @@ instruct2plan_obj_90.json
 
 The released LIBERO-40 wrapper converts the four LIBERO-40 TFDS builders into
 `jsw19/libero_40_v1`. The released LIBERO-90 wrapper converts the LIBERO-90
-TFDS builder into `jsw19/libero_90_v1`; older research scripts used the output
-name `jsw19/libero_90_obj`.
+TFDS builder into `jsw19/libero_90_v1`.
 
 The scripts also include experimental helpers for keypoint extraction and skill
 slicing. Those helpers depend on environment-specific assets and model/API

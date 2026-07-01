@@ -220,7 +220,7 @@ def load_joint_arrays(h5_path: Path) -> tuple[np.ndarray, np.ndarray]:
         action_left_gripper = 1.0 - as_column(f["action"]["left_effector"]["position"][:]).astype(np.float32)
         action_right_gripper = 1.0 - as_column(f["action"]["right_effector"]["position"][:]).astype(np.float32)
         actions = np.concatenate(
-            [action_right, action_right_gripper, action_left, action_left_gripper],
+            [action_left, action_left_gripper, action_right, action_right_gripper],
             axis=-1,
         )
 
@@ -233,7 +233,7 @@ def load_joint_arrays(h5_path: Path) -> tuple[np.ndarray, np.ndarray]:
             as_column(f["state"]["right_effector"]["position"][:]).astype(np.float32) - 35.0
         ) / (120.0 - 35.0)
         states = np.concatenate(
-            [state_right, state_right_gripper, state_left, state_left_gripper],
+            [state_left, state_left_gripper, state_right, state_right_gripper],
             axis=-1,
         )
     if states.shape[-1] != 16 or actions.shape[-1] != 16:

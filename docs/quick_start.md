@@ -27,11 +27,11 @@ The runnable SkillNet source root is:
 cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
 ```
 
-The Python package namespace under `src/openpi` is kept for compatibility with
-the pi0.5 model and checkpoint format. User-facing commands, environment
-variables, docs, checkpoints, and release checks use the SkillNet name. Treat
-`src/openpi` and `openpi_client` as compatibility import paths required by the
-pi0.5 runtime, not as separate public workflows.
+The SkillNet runtime keeps a few pi0.5-compatible import paths internally so
+the released checkpoints and websocket policy clients load without conversion.
+Treat those package paths as implementation details; user-facing commands,
+environment variables, docs, checkpoints, and release checks use the SkillNet
+name.
 
 ## Prerequisites
 
@@ -98,7 +98,7 @@ Example CUDA installation command, to be adapted to your machine:
 uv pip install "jax[cuda12]"
 ```
 
-For the SkillNet LIBERO-Skill overlay and preflight:
+For SkillNet LIBERO-Skill registration and preflight:
 
 ```bash
 # Reuses the currently active venv by default. Set SKILLNET_VENV_PATH to create
@@ -372,7 +372,7 @@ RoboTwin few-shot evaluation against a local RoboTwin-2.0 checkout:
 
 ```bash
 cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
-ROBOTWIN_ROOT="$HOME/RoboTwin_eval" \
+ROBOTWIN_ROOT="<path-to-robotwin-checkout>" \
 CKPT_DIR=checkpoints/pi05_robotwin_moe_skill_transfer/robotwin_moe_skill_transfer_blocks_ranking_size/999 \
 TRANSFER_TASK=blocks_ranking_size \
 TASKS=blocks_ranking_size \

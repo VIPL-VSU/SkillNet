@@ -122,16 +122,28 @@ SENSITIVE_PATTERNS = [
     re.compile("C:" + r"\\Users|C:" + "/Users"),
     WINDOWS_ABSOLUTE_PATH_PATTERN,
     re.compile(r"~[/\\]"),
+    re.compile(r"\$HOME[/\\]"),
+    re.compile(r"/home/[A-Za-z0-9_.-]+"),
+    re.compile(r"/root/"),
+    re.compile(r"/mnt/[A-Za-z0-9_.-]+"),
     re.compile(r"10\.8\.36\."),
     re.compile(r"ssh\.platform"),
     re.compile(r"job-[0-9a-f-]{16,}"),
     re.compile(r"hf_[A-Za-z0-9]{20,}"),
     re.compile(r"sk-[A-Za-z0-9]{20,}"),
-    re.compile("openpi-" + "overlay"),
-    re.compile("openpi/" + "backend"),
+    re.compile(r"sk-proj-[A-Za-z0-9_-]{20,}"),
+    re.compile(r"sk-ant-[A-Za-z0-9_-]{20,}"),
+    re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
+    re.compile(r"ghp_[A-Za-z0-9]{20,}"),
+    re.compile(r"AKIA[0-9A-Z]{16}"),
+    re.compile(r"AIza[0-9A-Za-z_-]{20,}"),
+    re.compile(r"xox[baprs]-[0-9A-Za-z-]{20,}"),
+    re.compile(r"wandb_[A-Za-z0-9]{20,}"),
+    re.compile("openpi" + r"[-_/ ]+" + "overlay", re.IGNORECASE),
+    re.compile("openpi" + r"[-_/ ]+" + "backend", re.IGNORECASE),
 ]
 HISTORY_SENSITIVE_PATTERNS = [
-    pattern for pattern in SENSITIVE_PATTERNS if pattern.pattern not in {r"\b[A-Za-z]:\\", r"~[/\\]"}
+    pattern for pattern in SENSITIVE_PATTERNS if pattern.pattern not in {r"\b[A-Za-z]:\\", r"~[/\\]", r"\$HOME[/\\]"}
 ]
 
 SCAN_SUFFIXES = {".md", ".py", ".sh", ".json", ".jsonl", ".toml", ".yml", ".yaml"}
@@ -603,6 +615,12 @@ DOC_EXPECTATIONS = [
             "envs/__init__.py",
             "CONFIGS_PATH",
             "test_render.Sapien_TEST",
+            "--skip-render-test",
+            "--max-seed-attempts",
+            "START_SERVER",
+            "SERVER_WAIT_SECONDS",
+            "left-arm-first",
+            "## Release Contents",
         ],
     ),
     (
@@ -615,7 +633,23 @@ DOC_EXPECTATIONS = [
             "collect_data.sh",
             "envs.CONFIGS_PATH",
             "test_render.Sapien_TEST",
+            "left-arm-first",
         ],
+    ),
+]
+
+DOC_FORBIDDEN_SNIPPETS = [
+    (
+        "docs/libero_data_processing.md",
+        ["generate_data_40.py", "generate_data_90.py", "libero_90_obj", "historical research"],
+    ),
+    (
+        "data_process/libero/README.md",
+        ["generate_data_40.py", "generate_data_90.py", "libero_90_obj", "historical research"],
+    ),
+    (
+        "docs/robotwin_few_shot.md",
+        ["Migration Status", "Completed in this step", "cluster-specific conda", "tmux orchestration"],
     ),
 ]
 
@@ -909,6 +943,11 @@ def check_documentation_contracts(errors: list[str], *, verbose: bool) -> None:
         for snippet in snippets:
             if snippet not in text:
                 fail(f"{rel_path}: missing expected documentation snippet: {snippet}", errors)
+    for rel_path, snippets in DOC_FORBIDDEN_SNIPPETS:
+        text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+        for snippet in snippets:
+            if snippet in text:
+                fail(f"{rel_path}: public documentation contains legacy/internal snippet: {snippet}", errors)
     skill_moe_readme = (REPO_ROOT / "skill_moe/README.md").read_text(encoding="utf-8")
     for excluded in ("RoboCasa", "robocasa", "GR00T"):
         if excluded in skill_moe_readme:
@@ -1363,9 +1402,27 @@ def check_robotwin_contract(errors: list[str], *, verbose: bool) -> None:
         fail(f"RoboTwin full plan expected longest flat skill sequence length 6, found {longest_skill_sequence}", errors)
 
     robotwin_pipeline_snippets = [
-        ("data_process/robotwin/convert_robotwin_to_lerobot.py", ['"task": {"dtype": "string"', '"skills": {"dtype": "string"', '"task": task_desc', '"skills": skill_string']),
+        (
+            "data_process/robotwin/convert_robotwin_to_lerobot.py",
+            [
+                '"task": {"dtype": "string"',
+                '"skills": {"dtype": "string"',
+                '"task": task_desc',
+                '"skills": skill_string',
+                "[action_left, action_left_gripper, action_right, action_right_gripper]",
+                "[state_left, state_left_gripper, state_right, state_right_gripper]",
+            ],
+        ),
         ("skill_moe/skillnet/src/openpi/training/data_loader_skill.py", ["SkillPromptFromLeRobotTask", "if data_config.prompt_from_task:"]),
         ("skill_moe/skillnet/src/openpi/policies/robotwin_policy.py", ['inputs["skills"] = padded', 'skill_ids[:num_skills] + 1']),
+        (
+            "skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py",
+            [
+                "def robotwin_joint_vector",
+                '("left_arm", "left_gripper", "right_arm", "right_gripper")',
+                "np.random.default_rng(seed_start)",
+            ],
+        ),
     ]
     for rel_path, snippets in robotwin_pipeline_snippets:
         text = compact_text((REPO_ROOT / rel_path).read_text(encoding="utf-8"))

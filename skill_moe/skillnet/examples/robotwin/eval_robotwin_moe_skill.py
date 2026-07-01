@@ -178,13 +178,35 @@ def make_env(task_name: str):
     return env_class()
 
 
+def robotwin_joint_vector(joint_action: dict[str, Any]) -> Any:
+    import numpy as np
+
+    component_keys = ("left_arm", "left_gripper", "right_arm", "right_gripper")
+    if all(key in joint_action for key in component_keys):
+        parts = [
+            np.asarray(joint_action["left_arm"], dtype=np.float32).reshape(-1),
+            np.asarray(joint_action["left_gripper"], dtype=np.float32).reshape(-1)[:1],
+            np.asarray(joint_action["right_arm"], dtype=np.float32).reshape(-1),
+            np.asarray(joint_action["right_gripper"], dtype=np.float32).reshape(-1)[:1],
+        ]
+        vector = np.concatenate(parts, axis=-1)
+    elif "vector" in joint_action:
+        vector = np.asarray(joint_action["vector"], dtype=np.float32).reshape(-1)
+    else:
+        raise KeyError("RoboTwin observation is missing joint_action vector or component fields.")
+
+    if vector.shape[-1] != 16:
+        raise ValueError(f"Expected a 16-D RoboTwin joint vector, got shape {vector.shape}.")
+    return vector
+
+
 def observation_to_skillnet(observation: dict[str, Any], *, instruction: str, skills: list[int]) -> dict[str, Any]:
     obs = observation["observation"]
     return {
         "head_color": obs["head_camera"]["rgb"],
         "hand_left_color": obs["left_camera"]["rgb"],
         "hand_right_color": obs["right_camera"]["rgb"],
-        "state": observation["joint_action"]["vector"],
+        "state": robotwin_joint_vector(observation["joint_action"]),
         "prompt": instruction,
         "skills": skills,
     }
@@ -319,6 +341,8 @@ def evaluate_task(
     expert_seed_filter: bool,
     result_dir: Path,
 ) -> dict[str, Any]:
+    import numpy as np
+
     if task_name not in plan:
         raise KeyError(f"Task {task_name!r} is missing from the skill plan.")
     task_plan = plan[task_name]
@@ -402,7 +426,6 @@ def main() -> None:
         Sapien_TEST()
 
     from openpi_client import websocket_client_policy
-    import numpy as np
 
     plan = load_skill_plan(args.skill_plan)
     tasks = resolve_tasks(args.task_set, args.tasks, plan)

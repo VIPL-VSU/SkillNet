@@ -31,15 +31,15 @@ export PYTHONPATH="${PWD}/src:${PWD}/packages/openpi-client/src:${PWD}/third_par
 For a native Windows venv, use `.venv/Scripts/activate` instead of
 `.venv/bin/activate`. LIBERO simulator evaluation remains Linux/WSL-oriented.
 
-The distribution name and public workflow name are `skillnet`. The Python
-import namespaces remain `openpi` and `openpi_client` only for pi0.5
-checkpoint/runtime and client compatibility, so release commands should still
-be documented and launched as SkillNet workflows.
+The distribution name and public workflow name are `skillnet`. A few internal
+package names are retained only for pi0.5 checkpoint/runtime and policy-client
+compatibility, so release commands should still be documented and launched as
+SkillNet workflows.
 
 For GPU training, install the JAX wheel that matches your CUDA setup in this
 same environment.
 
-Prepare the SkillNet LIBERO-Skill overlay in the environment that runs the
+Prepare SkillNet LIBERO-Skill registration in the environment that runs the
 client:
 
 ```bash

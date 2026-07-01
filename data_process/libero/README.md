@@ -18,15 +18,12 @@ repo_id layout under `LEROBOT_HOME`.
 Published v1 sanity-check counts are 40 tasks / 3,862 episodes for
 `libero_40_v1` and 73 tasks / 7,874 episodes for `libero_90_v1`.
 
-Earlier research script names were `generate_data_40.py` and
-`generate_data_90.py`; those files are not shipped as public entrypoints. This
-folder contains maintained public wrappers for the same data format:
+This folder contains maintained public wrappers for the released data format:
 `convert_libero_40_to_lerobot.py`, `convert_libero_90_to_lerobot.py`, and
 `convert_libero_to_lerobot.py`.
 
-The LIBERO-40 wrapper outputs `jsw19/libero_40_v1`. Older LIBERO-90 research
-scripts used the output name `jsw19/libero_90_obj`; the training configs expect
-`jsw19/libero_90_v1`, so the released script uses `jsw19/libero_90_v1`.
+The LIBERO-40 wrapper outputs `jsw19/libero_40_v1`; the LIBERO-90 wrapper
+outputs `jsw19/libero_90_v1`.
 
 ## Inputs
 

@@ -167,6 +167,9 @@ camera/<frame>/hand_right_color.jpg
 camera/<frame>/hand_left_color.jpg
 ```
 
+Both raw episodes and this older `aligned_joints.h5` compatibility path are
+normalized to the same left-arm-first state/action order above.
+
 Use `--dry-run` to inspect available episodes without writing a dataset. Use
 `--source-format raw` or `--source-format aligned` to force one layout. By
 default, existing LeRobot outputs under `HF_LEROBOT_HOME` are preserved; pass

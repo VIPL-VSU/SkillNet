@@ -114,8 +114,10 @@ The converter reads the public RoboTwin raw layout under
 `instructions/episode*.json`, but the released converter uses the canonical
 task description from `robotwin_plan.json` so the language prompt and skill ids
 stay aligned. Older `aligned_joints.h5` extracted episodes are supported via
-`--source-format aligned`. Use `--dry-run` before a full conversion to check
-that the expected episodes are visible.
+`--source-format aligned`. Both raw RoboTwin episodes and this compatibility
+path are normalized to the same left-arm-first 16-D state/action order described
+below. Use `--dry-run` before a full conversion to check that the expected
+episodes are visible.
 
 For paper-style per-task fine-tuning, a single held-out task can be converted
 separately:
@@ -367,8 +369,21 @@ The launcher accepts these common overrides:
 | `TASKS` | unset | Space-separated task list, overrides `TASK_SET` |
 | `TASK_SET` | `transfer` | `pretrain`, `transfer`, `paper`, or `all` |
 | `NUM_TRIALS` | `20` | Trials per task |
+| `SEED` | `0` | First simulator seed considered for each task |
+| `HOST` | `127.0.0.1` | SkillNet policy-server host |
+| `PORT` | `8098` | SkillNet policy-server port |
+| `SERVER_GPU` | `0` | GPU id used when the wrapper starts a policy server |
+| `START_SERVER` | `1` | Set to `0` to reuse an already running policy server |
+| `SERVER_WAIT_SECONDS` | `60` | Maximum wait time for the server port to become reachable |
+| `SERVER_LOG_PATH` | `data/robotwin/server_logs/<config>_<port>.log` | Policy-server log file |
 | `ACTION_HORIZON` | `10` | Actions executed per policy-server call |
 | `RESULT_DIR` | `data/robotwin/eval_results` | Output directory |
+
+Additional Python evaluator flags can be passed after the launcher command, for
+example `--skip-render-test` after validating rendering separately,
+`--max-seed-attempts` to control expert-seed filtering, `--no-expert-seed-filter`
+for debugging, or `--instruction-type task` to force the canonical plan
+description prompt.
 
 For per-task transfer checkpoints, set `TRANSFER_TASK`. If
 `SKILLNET_ROBOTWIN_TRANSFER_REPO_ID` is not already set, the launcher maps it to
@@ -398,11 +413,9 @@ Each run writes `episodes.jsonl` and `summary.json` under `RESULT_DIR`.
 Aggregate the paper-style average by averaging the `success_rate` values across
 the 15 transfer-task `summary.json` files.
 
-The public adapter replaces the research runner's cluster-specific
-conda activation, tmux orchestration, checkpoint paths, and hard-coded skill
-annotation path. It keeps the evaluation semantics: expert seed filtering,
-RoboTwin environment rollout, instruction selection, skill-plan injection, and
-success-rate reporting.
+The public adapter keeps the evaluation semantics used by the paper protocol:
+expert seed filtering, RoboTwin environment rollout, instruction selection,
+skill-plan injection, and success-rate reporting.
 
 ## Reported Results
 
@@ -420,9 +433,7 @@ The paper reports success rate (%) on 15 RoboTwin transfer tasks:
 Per-task values are in Appendix D.1 of the paper. The main takeaway is that
 SkillNet improves over pi0.5 by 5.9 points in this RoboTwin few-shot setting.
 
-## Migration Status
-
-Completed in this step:
+## Release Contents
 
 - Public data download helper.
 - Public data-collection wrapper.
