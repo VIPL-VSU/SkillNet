@@ -1,5 +1,7 @@
 # SkillNet
 
+[![SkillNet release checks](https://github.com/VIPL-VSU/SkillNet/actions/workflows/release-check.yml/badge.svg?branch=skillnet-public-release)](https://github.com/VIPL-VSU/SkillNet/actions/workflows/release-check.yml?query=branch%3Askillnet-public-release)
+
 This repository contains the open-source release scaffold for SkillNet. The
 current drop focuses on the SkillNet code used for LIBERO in-domain training,
 LIBERO-Skill compositional out-of-domain evaluation, and RoboTwin few-shot

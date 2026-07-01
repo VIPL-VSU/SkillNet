@@ -497,6 +497,7 @@ DOC_EXPECTATIONS = [
         "README.md",
         [
             "## 1. Quick Start",
+            "actions/workflows/release-check.yml/badge.svg?branch=skillnet-public-release",
             "## 2. Skill Hierarchy",
             "## 3. In-Domain Training and Evaluation",
             "## 4. LIBERO-90 Training for LIBERO-Skill Zero-Shot Evaluation",
