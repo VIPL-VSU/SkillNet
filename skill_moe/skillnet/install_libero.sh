@@ -52,6 +52,23 @@ EOF
 
 if python -c "import libero" >/dev/null 2>&1; then
   echo "LIBERO import check passed."
+  if python - <<'PY'
+from libero.libero import benchmark
+
+benchmarks = benchmark.get_benchmark_dict()
+if "libero_skill" not in benchmarks and "libero_skill_obj" not in benchmarks:
+    raise SystemExit(1)
+PY
+  then
+    echo "LIBERO-Skill benchmark registration check passed."
+  else
+    echo "Warning: LIBERO is importable, but neither 'libero_skill' nor 'libero_skill_obj' is registered." >&2
+    echo "Ensure examples/libero/skillnet_env.sh is sourced so the bundled third_party/libero tree is on PYTHONPATH." >&2
+    echo "If you use an external LIBERO install, copy or register the bundled libero_skill_obj bddl/init/map files before evaluation." >&2
+    if [[ "${SKILLNET_REQUIRE_LIBERO:-0}" == "1" ]]; then
+      exit 2
+    fi
+  fi
 else
   echo "Warning: Python cannot import the full 'libero' simulator package yet." >&2
   echo "This release bundles LIBERO-Skill task/init files, not the complete simulator dependency stack." >&2

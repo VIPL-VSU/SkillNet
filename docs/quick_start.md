@@ -6,10 +6,8 @@ released data-processing, training, and evaluation entrypoints.
 ## Clone
 
 ```bash
-# Windows only, before cloning: LIBERO-Skill task filenames are long.
-git config --global core.longpaths true
-
-git clone https://github.com/VIPL-VSU/SkillNet.git
+# The -c flag is important on Windows because LIBERO-Skill task filenames are long.
+git -c core.longpaths=true clone https://github.com/VIPL-VSU/SkillNet.git
 cd SkillNet
 export SKILLNET_REPO_ROOT="${PWD}"
 ```
@@ -45,6 +43,13 @@ machine. LIBERO and RoboTwin evaluation also require their simulator assets and
 system dependencies; install those in the same environment that runs the client
 or environment adapter.
 
+The lightweight package smoke checks in this repository do not install GPU or
+simulator stacks. For training, install a JAX CUDA wheel compatible with your
+driver and CUDA runtime, then rerun the config import smoke check below. For
+LIBERO evaluation, use a Linux or WSL environment with MuJoCo, Robosuite, BDDL,
+and LIBERO importable. For RoboTwin evaluation, use a local RoboTwin-2.0
+checkout and install the simulator dependencies required by that checkout.
+
 ## Environment
 
 SkillNet currently ships the Skill-MoE model/config/data/evaluation additions,
@@ -63,6 +68,12 @@ export PYTHONPATH="${PWD}/src:${PWD}/packages/openpi-client/src:${PWD}/third_par
 For GPU training, install the JAX wheel that matches your CUDA setup in this
 same environment.
 
+Example CUDA installation command, to be adapted to your machine:
+
+```bash
+uv pip install "jax[cuda12]"
+```
+
 For LIBERO evaluation dependencies:
 
 ```bash
@@ -78,7 +89,10 @@ requirements when present and writes `examples/libero/skillnet_env.sh` for the
 repo-local source paths. If your simulator setup needs additional
 LIBERO/MuJoCo/Robosuite packages, install them in the same environment. The
 script prints a warning if Python still cannot import the full `libero`
-simulator package after setup.
+simulator package after setup. When LIBERO is importable, the script also checks
+that `libero_skill` or `libero_skill_obj` is registered; set
+`SKILLNET_REQUIRE_LIBERO=1` to make missing LIBERO/LIBERO-Skill registration a
+hard setup error.
 
 If MuJoCo EGL fails on your machine, retry with:
 

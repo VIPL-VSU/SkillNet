@@ -8,7 +8,7 @@ configs and the LIBERO-Skill OOD evaluation entrypoint.
 Clone SkillNet and use `skill_moe/skillnet` as the runnable source root:
 
 ```bash
-git clone https://github.com/VIPL-VSU/SkillNet.git
+git -c core.longpaths=true clone https://github.com/VIPL-VSU/SkillNet.git
 cd SkillNet/skill_moe/skillnet
 ```
 
@@ -50,7 +50,10 @@ writes `examples/libero/skillnet_env.sh` for the repo-local source paths. Set
 `SKILLNET_SKIP_CORE_INSTALL=1` if the core packages are already installed.
 Install any simulator-specific LIBERO/MuJoCo/Robosuite dependencies that your
 machine still needs in the same environment. The script prints a warning if the
-full `libero` simulator package is not importable yet.
+full `libero` simulator package is not importable yet. When LIBERO is
+importable, it also verifies that `libero_skill` or `libero_skill_obj` is
+registered. To fail early instead of warning, run setup with
+`SKILLNET_REQUIRE_LIBERO=1`.
 
 If MuJoCo EGL fails on your machine, retry with:
 
@@ -71,6 +74,11 @@ build them locally from the public RLDS sources and the skill-slice metadata,
 then set `LEROBOT_HOME` so LeRobot can find the same `repo_id` layout. From this
 source root, `../../docs/libero_data_processing.md` documents the conversion
 workflow.
+
+Exact training reproduction needs accessible copies of those derived LeRobot
+datasets, or the `libero40_plan_sliced.json` and `libero90_plan_sliced.json`
+metadata needed by the public converter. RLDS source frames alone do not contain
+SkillNet's frame-level skill boundaries.
 
 Before training, each config needs normalization statistics under
 `assets/<config_name>/<repo_id>/norm_stats.json`. The public launch scripts below
@@ -204,6 +212,14 @@ for suite in libero_spatial libero_object libero_goal libero_10; do
 done
 ```
 
+Expected outputs:
+
+- The evaluator writes rollout videos under `VIDEO_OUT_PATH`.
+- The console logs one success/failure outcome per rollout and reports task or
+  suite-level success rates at the end of evaluation.
+- For paper-style reporting, average success rates over the four standard
+  LIBERO suites after running the same `NUM_TRIALS` for every task.
+
 ## LIBERO-Skill Evaluation
 
 LIBERO-Skill task definitions and initial states are included under:
@@ -218,6 +234,11 @@ The public benchmark contains 9 tasks: the first task from `libero_10` followed
 by 8 skill-composition tasks.
 Most LIBERO installs register the benchmark class under the key `libero_skill`;
 the evaluation script accepts both `libero_skill` and `libero_skill_obj`.
+After setup, `install_libero.sh` checks that at least one of those keys is
+visible from `benchmark.get_benchmark_dict()`. If the check warns, source
+`examples/libero/skillnet_env.sh` or register/copy the bundled
+`libero_skill_obj` bddl/init/map files into the LIBERO installation used for
+evaluation.
 
 Evaluate a LIBERO-90 Skill-MoE checkpoint:
 
@@ -271,6 +292,13 @@ The 9 registered LIBERO-Skill tasks are:
 7. `KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave`
 8. `KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove`
 9. `KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave`
+
+Expected outputs:
+
+- Rollout videos are written to `VIDEO_OUT_PATH`.
+- Per-task success rates are printed by the LIBERO evaluator.
+- The reported LIBERO-Skill number should be computed as the mean success rate
+  over the 9 tasks above with the same `NUM_TRIALS` for every task.
 
 ## Release Scope
 

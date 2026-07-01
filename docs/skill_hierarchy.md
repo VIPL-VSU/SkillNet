@@ -55,6 +55,34 @@ The 6-digit code describes:
 | 5 | Object fixed-axis rotation |
 | 6 | Tool usage |
 
+Allowed values:
+
+| Digit | Values |
+| --- | --- |
+| 1 | `0` no contact, `1` short contact, `2` long contact |
+| 2 | `0` non-permanent, `1` plastic deformation, `2` rigid separation/cutting/fracture |
+| 3 | `0` no arm fixed-axis rotation, `1` arm fixed-axis rotation |
+| 4 | `0` static object, `1` 1D constrained translation, `2` unconstrained 3D motion |
+| 5 | `0` no object fixed-axis rotation, `1` object fixed-axis rotation |
+| 6 | `0` no tool, `1` tool used |
+
+Manual annotation protocol:
+
+1. Split a task instruction into short manipulation subtasks before assigning
+   motion codes. Each subtask should contain one dominant verb phrase such as
+   `pick up the bowl`, `open the drawer`, or `turn off the stove`.
+2. Assign the 6-digit motion code from the physical effect of that subtask, not
+   from object names alone. For example, `pick up the bowl` is long contact with
+   unconstrained 3D object motion, while `open the drawer` is long contact with
+   1D constrained translation.
+3. Validate that every digit is in the allowed value set and keep the raw
+   subtask text next to the code. `motion_code_annotation_examples.jsonl`
+   provides small calibration examples for this schema.
+4. If using the optional LLM endpoint, treat the model output as a proposal.
+   The released tokenizer validates the digit format, but human or scripted
+   review should still check the physical interpretation before using the code
+   for training data.
+
 The released centers and weights are embedded in
 `skill_hierarchy_tokenizer.py` and recorded in
 `data_process/skill_hierarchy/motion_code_clusters.json`. A subtask's motion

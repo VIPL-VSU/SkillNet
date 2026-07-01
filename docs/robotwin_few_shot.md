@@ -226,6 +226,34 @@ from a RoboTwin pretraining checkpoint.
 The transfer launcher prints a warning when this variable is unset; set
 `REQUIRE_ROBOTWIN_PRETRAIN_INIT=1` to make that warning an error.
 
+Fine-tune all 15 transfer tasks with one checkpoint per task:
+
+```bash
+cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
+export SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS=checkpoints/pi05_robotwin_moe_skill_pretrain/robotwin_moe_skill_pretrain/19999/params
+export REQUIRE_ROBOTWIN_PRETRAIN_INIT=1
+
+for task in \
+  blocks_ranking_size hanging_mug move_pillbottle_pad open_laptop \
+  place_a2b_left place_bread_basket place_bread_skillet \
+  place_cans_plasticbox place_fan press_stapler scan_object \
+  shake_bottle stack_blocks_three stack_bowls_two stamp_seal; do
+  TRANSFER_TASK="${task}" \
+  EXP_NAME="robotwin_moe_skill_transfer_${task}" \
+  bash scripts/run_train_robotwin_transfer_moe_skill.sh
+done
+```
+
+Checkpoint release status:
+
+| Phase | Status |
+| --- | --- |
+| RoboTwin pretraining | Train locally with `pi05_robotwin_moe_skill_pretrain` |
+| RoboTwin transfer | Train locally per task from the RoboTwin pretraining checkpoint |
+
+The public repository includes configs and launchers for the paper protocol,
+but RoboTwin checkpoint weights are not published in this release.
+
 ## Evaluation
 
 The cleaned evaluator lives under:
@@ -284,6 +312,29 @@ For per-task transfer checkpoints, set `TRANSFER_TASK`. If
 `SKILLNET_ROBOTWIN_TRANSFER_REPO_ID` is not already set, the launcher maps it to
 `jsw19/robotwin_${TRANSFER_TASK}_v1` so the checkpoint loads the same
 normalization-stat asset id used during fine-tuning.
+
+Evaluate all transfer tasks after the per-task checkpoints are available:
+
+```bash
+cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
+export ROBOTWIN_ROOT="$HOME/RoboTwin_eval"
+
+for task in \
+  blocks_ranking_size hanging_mug move_pillbottle_pad open_laptop \
+  place_a2b_left place_bread_basket place_bread_skillet \
+  place_cans_plasticbox place_fan press_stapler scan_object \
+  shake_bottle stack_blocks_three stack_bowls_two stamp_seal; do
+  TRANSFER_TASK="${task}" \
+  TASKS="${task}" \
+  CKPT_DIR="checkpoints/pi05_robotwin_moe_skill_transfer/robotwin_moe_skill_transfer_${task}/999" \
+  RESULT_DIR="data/robotwin/eval_results/${task}" \
+  bash examples/robotwin/run_eval_robotwin_moe_skill.sh
+done
+```
+
+Each run writes `episodes.jsonl` and `summary.json` under `RESULT_DIR`.
+Aggregate the paper-style average by averaging the `success_rate` values across
+the 15 transfer-task `summary.json` files.
 
 The public adapter replaces the research runner's cluster-specific
 conda activation, tmux orchestration, checkpoint paths, and hard-coded skill

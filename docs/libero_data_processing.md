@@ -55,6 +55,20 @@ can load them directly. If they are private or unavailable in your environment,
 rebuild them with the conversion commands below and keep the same repo_id layout
 under `LEROBOT_HOME`.
 
+Release contract:
+
+- The public repository includes source downloaders, deterministic converters,
+  instruction-to-plan maps, and schema checks.
+- Exact SkillNet training reproduction requires either accessible derived
+  LeRobot datasets with the repo ids above, or the precomputed skill-slice
+  metadata files listed below.
+- The RLDS source datasets alone are not enough to reconstruct the v1 training
+  frames exactly, because frame-level skill boundaries are separate metadata.
+- If neither the derived LeRobot datasets nor equivalent skill-slice metadata
+  are available in your environment, you can still inspect configs, run release
+  smoke checks, and evaluate the published checkpoints after simulator setup,
+  but you cannot exactly reproduce the LIBERO training datasets from RLDS alone.
+
 The conversion commands below are for rebuilding compatible datasets from RLDS
 sources. Exact frame-level reconstruction additionally requires the
 precomputed skill-slice metadata described in the next section.
@@ -110,6 +124,13 @@ The converter expects these precomputed files:
 $LIBERO40_PLAN_ROOT/libero40_plan_sliced.json
 $LIBERO90_PLAN_ROOT/libero90_plan_sliced.json
 ```
+
+Each file is a JSON mapping from task/instruction keys to episode-level
+skill-slice records. The converter reads the records to assign `class`,
+`all_classes`, and optional `objects` to every frame before writing the LeRobot
+dataset. A compatible export must preserve the same task keys as
+`instruct2plan_40.json` or `instruct2plan_90.json` and provide monotonically
+ordered skill segments for every episode.
 
 In some source trees, these files are stored directly under:
 

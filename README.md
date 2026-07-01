@@ -46,12 +46,15 @@ as SkillNet workflows.
 | --- | --- | --- | --- |
 | LIBERO-40 | `pi05_libero_moe_skill_4_40` | `jsw19/libero_40_v1` | [`jsw19/SkillNet-LIBERO-40`](https://huggingface.co/jsw19/SkillNet-LIBERO-40) |
 | LIBERO-90 to LIBERO-Skill | `pi05_libero_moe_skill_4_90` | `jsw19/libero_90_v1` | [`jsw19/SkillNet-LIBERO-90`](https://huggingface.co/jsw19/SkillNet-LIBERO-90) |
+| RoboTwin pretraining | `pi05_robotwin_moe_skill_pretrain` | `jsw19/robotwin_pretrain_v1` | Train locally |
+| RoboTwin per-task few-shot transfer | `pi05_robotwin_moe_skill_transfer` | `jsw19/robotwin_<task>_v1` | Train locally from the RoboTwin pretraining checkpoint |
 
 The dataset names are the canonical LeRobot `repo_id` values used by the
-released configs. If those derived datasets are not accessible from your
-Hugging Face account, rebuild them locally with the converters under
-`data_process/libero/` and point `LEROBOT_HOME` at the directory containing the
-same `repo_id` layout.
+released configs. LIBERO checkpoint weights are published; RoboTwin checkpoint
+weights are not part of this release and should be trained from the included
+configs. If derived datasets are not accessible from your Hugging Face account,
+rebuild them locally with the converters under `data_process/` and point
+`LEROBOT_HOME` at the directory containing the same `repo_id` layout.
 
 ## 1. Quick Start
 
@@ -59,10 +62,8 @@ Clone SkillNet and keep the repository root as your documentation and data
 processing root:
 
 ```bash
-# Windows only, before cloning: LIBERO-Skill task filenames are long.
-git config --global core.longpaths true
-
-git clone https://github.com/VIPL-VSU/SkillNet.git
+# The -c flag is important on Windows because LIBERO-Skill task filenames are long.
+git -c core.longpaths=true clone https://github.com/VIPL-VSU/SkillNet.git
 cd SkillNet
 ```
 

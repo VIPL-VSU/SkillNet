@@ -233,6 +233,15 @@ SCRIPT_EXPECTATIONS = [
         ],
     ),
     (
+        "skill_moe/skillnet/install_libero.sh",
+        [
+            'if python -c "import libero"',
+            "benchmark.get_benchmark_dict()",
+            "libero_skill_obj",
+            "SKILLNET_REQUIRE_LIBERO",
+        ],
+    ),
+    (
         "skill_moe/skillnet/scripts/run_train_robotwin_pretrain_moe_skill.sh",
         [
             'CONFIG_NAME="${CONFIG_NAME:-pi05_robotwin_moe_skill_pretrain}"',
@@ -283,6 +292,79 @@ MOE_EXPECTATIONS = [
             'action_expert_variant: _gemma.Variant = "gemma_300m_moe_4"',
             "skill_num: int = 6",
             "skill_embed_dim: int = 64",
+        ],
+    ),
+]
+
+DOC_EXPECTATIONS = [
+    (
+        "README.md",
+        [
+            "## 1. Quick Start",
+            "## 2. Skill Hierarchy",
+            "## 3. In-Domain Training and Evaluation",
+            "## 4. LIBERO-Skill Training and Zero-Shot Evaluation",
+            "## 5. Few-Shot Transfer",
+            "git -c core.longpaths=true clone https://github.com/VIPL-VSU/SkillNet.git",
+            "RoboTwin checkpoint",
+            "weights are not part of this release",
+            "configs. If derived datasets",
+        ],
+    ),
+    (
+        "docs/quick_start.md",
+        [
+            "git -c core.longpaths=true clone https://github.com/VIPL-VSU/SkillNet.git",
+            "python scripts/check_public_release.py --hub-smoke",
+            "SKILLNET_REQUIRE_LIBERO=1",
+            "LIBERO-Skill evaluation",
+            "RoboTwin few-shot evaluation",
+        ],
+    ),
+    (
+        "docs/skill_hierarchy.md",
+        [
+            "## Motion Code",
+            "## Tokenization Strategy",
+            "motion_code",
+            "Allowed values",
+            "Manual annotation protocol",
+            "tokenization_strategy.json",
+        ],
+    ),
+    (
+        "docs/libero_data_processing.md",
+        [
+            "Release contract:",
+            "RLDS source datasets alone are not enough",
+            "libero40_plan_sliced.json",
+            "libero90_plan_sliced.json",
+        ],
+    ),
+    (
+        "docs/training_and_evaluation.md",
+        [
+            "## LIBERO-40 Training",
+            "## LIBERO-90 Training",
+            "## LIBERO-40 Evaluation",
+            "## LIBERO-Skill Evaluation",
+            "base rollout limit is 800 simulator steps",
+            "benchmark.get_benchmark_dict()",
+            "RLDS source frames alone do not contain",
+            "Expected outputs:",
+        ],
+    ),
+    (
+        "docs/robotwin_few_shot.md",
+        [
+            "## Data Preparation",
+            "## Training",
+            "## Evaluation",
+            "RoboTwin-2.0",
+            "SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS",
+            "Fine-tune all 15 transfer tasks",
+            "RoboTwin checkpoint weights are not published",
+            "success_rate",
         ],
     ),
 ]
@@ -518,6 +600,17 @@ def check_config_and_script_contracts(errors: list[str], *, verbose: bool) -> No
 
     if len(errors) == error_count:
         ok("public config/script/model contracts match documented release settings", verbose=verbose)
+
+
+def check_documentation_contracts(errors: list[str], *, verbose: bool) -> None:
+    error_count = len(errors)
+    for rel_path, snippets in DOC_EXPECTATIONS:
+        text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+        for snippet in snippets:
+            if snippet not in text:
+                fail(f"{rel_path}: missing expected documentation snippet: {snippet}", errors)
+    if len(errors) == error_count:
+        ok("public documentation covers the five release workflows", verbose=verbose)
 
 
 def check_libero_skill_contract(errors: list[str], *, verbose: bool) -> None:
@@ -991,6 +1084,7 @@ def main() -> None:
     check_required_files(errors, verbose=args.verbose)
     check_json_files(errors, verbose=args.verbose)
     check_jsonl_files(errors, verbose=args.verbose)
+    check_documentation_contracts(errors, verbose=args.verbose)
     check_config_and_script_contracts(errors, verbose=args.verbose)
     check_libero_annotation_contract(errors, verbose=args.verbose)
     check_libero_skill_contract(errors, verbose=args.verbose)
