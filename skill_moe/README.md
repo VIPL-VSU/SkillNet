@@ -40,7 +40,11 @@ Then install any dataset-specific dependencies. For LIBERO evaluation, run
 `bash install_libero.sh`, then source `examples/libero/skillnet_env.sh`.
 The installer reuses the currently active venv by default; set
 `SKILLNET_VENV_PATH=examples/libero/.venv` if you want a separate LIBERO
-environment. Generated activation/env files are not present in a fresh clone.
+environment. It also attempts to register the bundled LIBERO-Skill benchmark in
+an external LIBERO install by calling
+`examples/libero/install_libero_skill_assets.py --install`; use that helper with
+`--dry-run` to inspect changes first. Generated activation/env files are not
+present in a fresh clone.
 RoboCasa helpers additionally require a local RoboCasa/GR00T installation.
 
 ## Path Configuration

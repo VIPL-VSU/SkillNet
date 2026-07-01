@@ -75,7 +75,7 @@ Example CUDA installation command, to be adapted to your machine:
 uv pip install "jax[cuda12]"
 ```
 
-For LIBERO evaluation dependencies:
+For the SkillNet LIBERO-Skill overlay and preflight:
 
 ```bash
 # Reuses the currently active venv by default. Set SKILLNET_VENV_PATH to create
@@ -86,14 +86,24 @@ source examples/libero/skillnet_env.sh
 
 `install_libero.sh` installs the editable `skillnet` and `openpi-client`
 packages unless `SKILLNET_SKIP_CORE_INSTALL=1` is set. It also installs bundled
-requirements when present and writes `examples/libero/skillnet_env.sh` for the
-repo-local source paths. If your simulator setup needs additional
-LIBERO/MuJoCo/Robosuite packages, install them in the same environment. The
-script prints a warning if Python still cannot import the full `libero`
-simulator package after setup. When LIBERO is importable, the script also checks
-that `libero_skill` or `libero_skill_obj` is registered; set
-`SKILLNET_REQUIRE_LIBERO=1` to make missing LIBERO/LIBERO-Skill registration a
-hard setup error.
+requirements when present, writes `examples/libero/skillnet_env.sh` for the
+repo-local source paths, and checks LIBERO-Skill benchmark registration.
+It is not a full simulator installer: install LIBERO, MuJoCo, Robosuite, BDDL,
+and any machine-specific rendering dependencies in the same environment.
+
+When an external LIBERO package is importable but does not yet know about
+SkillNet's `libero_skill_obj` benchmark, the script runs:
+
+```bash
+python examples/libero/install_libero_skill_assets.py --install
+```
+
+That helper copies the bundled bddl/init files and patches benchmark
+registration with `.skillnet.bak` backups where text files are changed. Use
+`--dry-run` first to inspect planned changes, or set
+`SKILLNET_SKIP_LIBERO_SKILL_ASSET_INSTALL=1` to skip the automatic attempt.
+Set `SKILLNET_REQUIRE_LIBERO=1` to make missing LIBERO/LIBERO-Skill
+registration a hard setup error.
 
 If MuJoCo EGL fails on your machine, retry with:
 
@@ -268,8 +278,8 @@ bash scripts/run_train_robotwin_transfer_moe_skill.sh
 
 For paper-style few-shot transfer, keep
 `SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS` pointed at a RoboTwin pretraining
-checkpoint. If it is unset, the transfer config falls back to the pi0.5 base
-checkpoint and the launcher prints a warning.
+checkpoint. The transfer launcher exits if it is unset. For a debugging-only
+pi0.5-base initialization run, set `ALLOW_PI05_TRANSFER_INIT=1` explicitly.
 
 RoboTwin few-shot evaluation against a local RoboTwin-2.0 checkout:
 

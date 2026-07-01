@@ -62,10 +62,31 @@ PY
   then
     echo "LIBERO-Skill benchmark registration check passed."
   else
-    echo "Warning: LIBERO is importable, but neither 'libero_skill' nor 'libero_skill_obj' is registered." >&2
-    echo "Ensure examples/libero/skillnet_env.sh is sourced so the bundled third_party/libero tree is on PYTHONPATH." >&2
-    echo "If you use an external LIBERO install, copy or register the bundled libero_skill_obj bddl/init/map files before evaluation." >&2
-    if [[ "${SKILLNET_REQUIRE_LIBERO:-0}" == "1" ]]; then
+    LIBERO_SKILL_REGISTERED=0
+    echo "LIBERO is importable, but neither 'libero_skill' nor 'libero_skill_obj' is registered." >&2
+    if [[ "${SKILLNET_SKIP_LIBERO_SKILL_ASSET_INSTALL:-0}" != "1" ]]; then
+      echo "Attempting to install bundled LIBERO-Skill assets into the active LIBERO package." >&2
+      python examples/libero/install_libero_skill_assets.py --install || true
+    fi
+
+    if python - <<'PY'
+from libero.libero import benchmark
+
+benchmarks = benchmark.get_benchmark_dict()
+if "libero_skill" not in benchmarks and "libero_skill_obj" not in benchmarks:
+    raise SystemExit(1)
+PY
+    then
+      echo "LIBERO-Skill benchmark registration check passed after installing bundled assets."
+      LIBERO_SKILL_REGISTERED=1
+    else
+      echo "Warning: LIBERO-Skill is still not registered." >&2
+      echo "Ensure examples/libero/skillnet_env.sh is sourced so the bundled third_party/libero tree is on PYTHONPATH." >&2
+      echo "For an external LIBERO install, run: python examples/libero/install_libero_skill_assets.py --install" >&2
+      echo "Set SKILLNET_SKIP_LIBERO_SKILL_ASSET_INSTALL=1 to skip the automatic attempt." >&2
+    fi
+
+    if [[ "${SKILLNET_REQUIRE_LIBERO:-0}" == "1" && "${LIBERO_SKILL_REGISTERED}" != "1" ]]; then
       exit 2
     fi
   fi

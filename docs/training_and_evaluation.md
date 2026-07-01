@@ -34,7 +34,7 @@ compatibility.
 For GPU training, install the JAX wheel that matches your CUDA setup in this
 same environment.
 
-Install the LIBERO evaluation dependencies in the environment that runs the
+Prepare the SkillNet LIBERO-Skill overlay in the environment that runs the
 client:
 
 ```bash
@@ -45,15 +45,25 @@ source examples/libero/skillnet_env.sh
 ```
 
 `install_libero.sh` installs the editable `skillnet` and `openpi-client`
-packages, installs bundled LIBERO requirement files when they are available, and
-writes `examples/libero/skillnet_env.sh` for the repo-local source paths. Set
-`SKILLNET_SKIP_CORE_INSTALL=1` if the core packages are already installed.
-Install any simulator-specific LIBERO/MuJoCo/Robosuite dependencies that your
-machine still needs in the same environment. The script prints a warning if the
-full `libero` simulator package is not importable yet. When LIBERO is
-importable, it also verifies that `libero_skill` or `libero_skill_obj` is
-registered. To fail early instead of warning, run setup with
-`SKILLNET_REQUIRE_LIBERO=1`.
+packages, installs bundled LIBERO requirement files when they are available,
+writes `examples/libero/skillnet_env.sh` for the repo-local source paths, and
+checks LIBERO-Skill benchmark registration. It is not a full simulator
+installer: install LIBERO, MuJoCo, Robosuite, BDDL, and any machine-specific
+rendering dependencies in the same environment. Set `SKILLNET_SKIP_CORE_INSTALL=1`
+if the core packages are already installed.
+
+When an external LIBERO package is importable but does not register
+`libero_skill_obj`, the setup script attempts:
+
+```bash
+python examples/libero/install_libero_skill_assets.py --install
+```
+
+The helper copies SkillNet's bundled bddl/init files into the active LIBERO
+package and patches benchmark registration with `.skillnet.bak` backups where
+text files are changed. Use `--dry-run` first to inspect planned changes, or set
+`SKILLNET_SKIP_LIBERO_SKILL_ASSET_INSTALL=1` to skip the automatic attempt.
+To fail early instead of warning, run setup with `SKILLNET_REQUIRE_LIBERO=1`.
 
 If MuJoCo EGL fails on your machine, retry with:
 
@@ -195,7 +205,8 @@ directory name used for the published weights.
 ## LIBERO-40 Evaluation
 
 `examples/libero/run_eval_libero_skill_moe.sh` defaults to the
-LIBERO-90-to-LIBERO-Skill zero-shot setting. For LIBERO-40 evaluation, override
+LIBERO-90-to-LIBERO-Skill zero-shot setting with `TASK_SUITE=libero_skill_obj`.
+For LIBERO-40 evaluation, override
 `CONFIG_NAME`, `TASK_SUITE`, and `SKILL_ANNOTATION_PATH` as shown below.
 
 Evaluate the LIBERO-40 checkpoint over the four standard LIBERO suites:
@@ -232,13 +243,12 @@ third_party/libero/libero/libero/init_files/libero_skill_obj
 The LIBERO-Skill tasks live under the `libero_skill_obj` bddl/init-state folder.
 The public benchmark contains 9 tasks: the first task from `libero_10` followed
 by 8 skill-composition tasks.
-Most LIBERO installs register the benchmark class under the key `libero_skill`;
-the evaluation script accepts both `libero_skill` and `libero_skill_obj`.
-After setup, `install_libero.sh` checks that at least one of those keys is
-visible from `benchmark.get_benchmark_dict()`. If the check warns, source
-`examples/libero/skillnet_env.sh` or register/copy the bundled
-`libero_skill_obj` bddl/init/map files into the LIBERO installation used for
-evaluation.
+The evaluation wrapper defaults to `libero_skill_obj` to avoid colliding with
+unrelated external benchmark names. The evaluator still accepts `libero_skill`
+when the installed LIBERO registers that key, but it validates that the
+registered suite exactly matches SkillNet's public 9-task manifest before
+rollout. After setup, `install_libero.sh` checks that at least one of those keys
+is visible from `benchmark.get_benchmark_dict()`.
 
 Evaluate a LIBERO-90 Skill-MoE checkpoint:
 
@@ -280,6 +290,10 @@ Override it with `SKILL_ANNOTATION_PATH` or the eval script argument
 `examples/libero/main_skill_obj_test_moe_skill.py` defaults to zero-shot mode.
 For LIBERO-Skill, the base rollout limit is 800 simulator steps; zero-shot mode
 doubles it to 1600.
+The wrapper writes policy-server logs under `data/libero/server_logs/`, waits
+for the server port to become reachable, and passes `--fail-fast` by default.
+Set `FAIL_FAST=0` only when you intentionally want to keep evaluating after a
+rollout exception.
 
 The 9 registered LIBERO-Skill tasks are:
 

@@ -20,6 +20,17 @@ LIBERO_ENV_RESOLUTION = 256  # resolution used to render training data
 DEFAULT_SKILL_ANNOTATION_PATH = (
     pathlib.Path(__file__).resolve().parent / "annotations" / "libero_skill_obj_annotations.json"
 )
+EXPECTED_LIBERO_SKILL_TASKS = [
+    "LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket",
+    "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate",
+    "KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet",
+    "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate",
+    "KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave",
+    "KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet",
+    "KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave",
+    "KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove",
+    "KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave",
+]
 
 
 @dataclasses.dataclass
@@ -35,9 +46,9 @@ class Args:
     #################################################################################################################
     # LIBERO environment-specific parameters
     #################################################################################################################
-    # Task suite. Options: libero_spatial, libero_object, libero_goal, libero_10, libero_90, libero_skill.
-    # The alias "libero_skill_obj" is also accepted when the installed LIBERO registers that name directly.
-    task_suite_name: str = "libero_skill"
+    # Task suite. Options: libero_spatial, libero_object, libero_goal, libero_10, libero_90, libero_skill_obj.
+    # The alias "libero_skill" is also accepted when the installed LIBERO registers that name directly.
+    task_suite_name: str = "libero_skill_obj"
     num_steps_wait: int = 10  # Number of steps to wait for objects to stabilize i n sim
     num_trials_per_task: int = 50  # Number of rollouts per task
 
@@ -49,6 +60,20 @@ class Args:
 
     seed: int = 7  # Random Seed (for reproducibility)
     zero_shot: bool = True
+    fail_fast: bool = False
+
+
+def _validate_libero_skill_tasks(task_suite) -> None:
+    observed = [pathlib.Path(task_suite.get_task(task_id).bddl_file).stem for task_id in range(task_suite.n_tasks)]
+    if observed != EXPECTED_LIBERO_SKILL_TASKS:
+        expected = "\n".join(f"  {idx + 1}. {task}" for idx, task in enumerate(EXPECTED_LIBERO_SKILL_TASKS))
+        actual = "\n".join(f"  {idx + 1}. {task}" for idx, task in enumerate(observed))
+        raise ValueError(
+            "The registered LIBERO-Skill task list does not match SkillNet's public 9-task benchmark.\n"
+            f"Expected:\n{expected}\nActual:\n{actual}\n"
+            "Run examples/libero/install_libero_skill_assets.py --install or set --task-suite-name to the "
+            "benchmark key that contains these 9 tasks."
+        )
 
 
 def eval_libero(args: Args) -> None:
@@ -68,6 +93,8 @@ def eval_libero(args: Args) -> None:
     task_suite = benchmark_dict[task_suite_name]()
     num_tasks_in_suite = task_suite.n_tasks
     logging.info(f"Task suite: {task_suite_name}")
+    if task_suite_name in ("libero_skill", "libero_skill_obj"):
+        _validate_libero_skill_tasks(task_suite)
 
     pathlib.Path(args.video_out_path).mkdir(parents=True, exist_ok=True)
 
@@ -199,8 +226,10 @@ def eval_libero(args: Args) -> None:
                         break
                     t += 1
 
-                except Exception as e:
-                    logging.error(f"Caught exception: {e}")
+                except Exception:
+                    logging.exception("Caught exception during rollout")
+                    if args.fail_fast:
+                        raise
                     break
 
             task_episodes += 1
@@ -260,16 +289,13 @@ def _quat2axisangle(quat):
 if __name__ == "__main__":
     import datetime
 
-    # 1️⃣ 先解析命令行参数（不启动 eval_libero）
     args = tyro.cli(Args)
 
-    # 2️⃣ 创建日志文件夹 + 自动生成带时间戳的日志文件
     log_dir = pathlib.Path("logs")
     log_dir.mkdir(exist_ok=True)
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file = log_dir / f"eval_libero_{args.task_suite_name}_{timestamp}.log"
 
-    # 3️⃣ 初始化 logging：同时写入文件和打印到控制台
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
@@ -279,15 +305,6 @@ if __name__ == "__main__":
         ],
     )
 
-    # 只显示 INFO 级别的日志
-    class InfoOnlyFilter(logging.Filter):
-        def filter(self, record):
-            return record.levelno == logging.INFO
-
-    for handler in logging.getLogger().handlers:
-        handler.addFilter(InfoOnlyFilter())
-
     logging.info(f"Logging to {log_file}")
 
-    # 4️⃣ 运行主函数
     eval_libero(args)

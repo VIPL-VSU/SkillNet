@@ -24,7 +24,7 @@ fresh checkout.
 | `jsw19/libero_90_v1` | Pending public dataset visibility | Direct LIBERO-90 training for LIBERO-Skill needs this LeRobot dataset or an equivalent local copy under `LEROBOT_HOME`. |
 | RoboTwin LeRobot datasets | Local-generation path documented | The release provides download/conversion scripts; checkpoint weights and derived task datasets are not published in this release. |
 | pi0.5 base checkpoint | External dependency | Training configs default to the public pi0.5 base checkpoint; mirror it locally and set `SKILLNET_PI05_BASE_PARAMS` if the default GCS asset is not reachable. |
-| LIBERO/RoboTwin simulators | External dependency | Evaluation requires working simulator installs outside this repository. Use `SKILLNET_REQUIRE_LIBERO=1` to make LIBERO registration failures fatal during setup. |
+| LIBERO/RoboTwin simulators | External dependency | Evaluation requires working simulator installs outside this repository. `install_libero.sh` runs the repo-local LIBERO-Skill registration helper when possible; use `SKILLNET_REQUIRE_LIBERO=1` to make LIBERO registration failures fatal during setup. |
 
 Before claiming that external users can train LIBERO directly from Hub datasets,
 run:
@@ -93,6 +93,7 @@ On Linux, also run:
 
 ```bash
 python scripts/check_public_release.py --install-smoke --skip-help
+python skill_moe/skillnet/examples/libero/install_libero_skill_assets.py --help
 SKILLNET_REQUIRE_LIBERO=1 bash skill_moe/skillnet/install_libero.sh
 ```
 
