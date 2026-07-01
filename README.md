@@ -62,8 +62,9 @@ Clone SkillNet and keep the repository root as your documentation and data
 processing root:
 
 ```bash
-# The -c flag is important on Windows because LIBERO-Skill task filenames are long.
-git -c core.longpaths=true clone https://github.com/VIPL-VSU/SkillNet.git
+# On Windows, clone under a short path such as C:\sn because LIBERO-Skill
+# task filenames are long. The -c flag enables Git long-path checkout.
+git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet
 cd SkillNet
 ```
 

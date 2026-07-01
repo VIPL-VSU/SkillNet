@@ -305,7 +305,7 @@ DOC_EXPECTATIONS = [
             "## 3. In-Domain Training and Evaluation",
             "## 4. LIBERO-Skill Training and Zero-Shot Evaluation",
             "## 5. Few-Shot Transfer",
-            "git -c core.longpaths=true clone https://github.com/VIPL-VSU/SkillNet.git",
+            "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "RoboTwin checkpoint",
             "weights are not part of this release",
             "configs. If derived datasets",
@@ -314,7 +314,7 @@ DOC_EXPECTATIONS = [
     (
         "docs/quick_start.md",
         [
-            "git -c core.longpaths=true clone https://github.com/VIPL-VSU/SkillNet.git",
+            "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "python scripts/check_public_release.py --hub-smoke",
             "SKILLNET_REQUIRE_LIBERO=1",
             "LIBERO-Skill evaluation",
@@ -344,6 +344,7 @@ DOC_EXPECTATIONS = [
     (
         "docs/training_and_evaluation.md",
         [
+            "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "## LIBERO-40 Training",
             "## LIBERO-90 Training",
             "## LIBERO-40 Evaluation",

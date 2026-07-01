@@ -8,7 +8,7 @@ configs and the LIBERO-Skill OOD evaluation entrypoint.
 Clone SkillNet and use `skill_moe/skillnet` as the runnable source root:
 
 ```bash
-git -c core.longpaths=true clone https://github.com/VIPL-VSU/SkillNet.git
+git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet
 cd SkillNet/skill_moe/skillnet
 ```
 
