@@ -86,12 +86,23 @@ their visibility with an authenticated token that has write access, then rerun
 the anonymous `--include-libero-derived-datasets` gate:
 
 ```bash
-python - <<'PY'
-from huggingface_hub import update_repo_settings
+python -m pip install -U huggingface_hub
+read -rsp "HF_TOKEN: " HF_TOKEN
+export HF_TOKEN
+echo
 
-for repo_id in ["jsw19/libero_40_v1", "jsw19/libero_90_v1"]:
-    update_repo_settings(repo_id=repo_id, repo_type="dataset", private=False)
-PY
+python scripts/set_hf_dataset_visibility.py \
+  --public \
+  --dry-run \
+  jsw19/libero_40_v1 \
+  jsw19/libero_90_v1
+
+python scripts/set_hf_dataset_visibility.py \
+  --public \
+  jsw19/libero_40_v1 \
+  jsw19/libero_90_v1
+
+unset HF_TOKEN
 python scripts/check_public_release.py --hub-smoke --include-libero-derived-datasets
 ```
 

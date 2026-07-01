@@ -36,6 +36,7 @@ REQUIRED_FILES = [
     "docs/robotwin_few_shot.md",
     "scripts/verify_lerobot_dataset.py",
     "scripts/publish_lerobot_dataset.py",
+    "scripts/set_hf_dataset_visibility.py",
     "data_process/skill_hierarchy/README.md",
     "data_process/skill_hierarchy/tokenization_strategy.json",
     "data_process/skill_hierarchy/skill_graph_example.json",
@@ -83,6 +84,7 @@ PYTHON_FILES = [
     "data_process/robotwin/build_robotwin_skill_metadata.py",
     "scripts/verify_lerobot_dataset.py",
     "scripts/publish_lerobot_dataset.py",
+    "scripts/set_hf_dataset_visibility.py",
     "skill_moe/skillnet/examples/libero/install_libero_skill_assets.py",
     "skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py",
 ]
@@ -93,6 +95,7 @@ HELP_COMMANDS = [
     ["data_process/libero/export_libero_skill_slices.py", "--help"],
     ["scripts/verify_lerobot_dataset.py", "--help"],
     ["scripts/publish_lerobot_dataset.py", "--help"],
+    ["scripts/set_hf_dataset_visibility.py", "--help"],
     ["skill_moe/skillnet/examples/libero/install_libero_skill_assets.py", "--help"],
     ["data_process/robotwin/download_robotwin_sources.py", "--help"],
     ["data_process/robotwin/convert_robotwin_to_lerobot.py", "--help"],
@@ -361,6 +364,16 @@ SCRIPT_EXPECTATIONS = [
             "HUGGINGFACE_HUB_TOKEN",
         ],
     ),
+    (
+        "scripts/set_hf_dataset_visibility.py",
+        [
+            "api.update_repo_settings",
+            "--skip-anonymous-check",
+            "HUGGINGFACE_HUB_TOKEN",
+            "Anonymous read check failed",
+            "do not put tokens in command lines or docs",
+        ],
+    ),
 ]
 
 MOE_EXPECTATIONS = [
@@ -470,8 +483,9 @@ DOC_EXPECTATIONS = [
             "--require-bash",
             "no-deps editable metadata check",
             "--install-python /path/to/python3.10",
-            "update_repo_settings",
-            "private=False",
+            "scripts/set_hf_dataset_visibility.py",
+            "--dry-run",
+            "unset HF_TOKEN",
         ],
     ),
     (
@@ -529,6 +543,7 @@ DOC_EXPECTATIONS = [
             "--private",
             "--strict-parquet",
             "README_libero_40_v1.md",
+            "scripts/set_hf_dataset_visibility.py",
         ],
     ),
     (

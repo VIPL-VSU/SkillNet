@@ -180,6 +180,16 @@ long-running session by removing only `--dry-run`. The uploader uses
 `HfApi.upload_large_folder`, which is resumable and better suited to the 33G and
 65G derived LIBERO datasets than a single ordinary folder upload.
 
+If the upload already completed but either dataset repo is still private, switch
+only the repo visibility with the token-safe helper:
+
+```bash
+python scripts/set_hf_dataset_visibility.py \
+  --public \
+  jsw19/libero_40_v1 \
+  jsw19/libero_90_v1
+```
+
 After publishing, run:
 
 ```bash
