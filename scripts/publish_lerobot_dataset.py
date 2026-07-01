@@ -171,6 +171,11 @@ def main() -> None:
     repo_info = None
     if args.dry_run and args.skip_hub_preflight:
         print("Hub preflight skipped by --skip-hub-preflight.")
+    elif not token:
+        raise SystemExit(
+            f"Missing {args.token_env} for Hub preflight. "
+            "Set the token or pass --skip-hub-preflight for a local-only dry run."
+        )
     elif token or not requested_private:
         try:
             api = load_hub_api(args.endpoint, token)
@@ -184,11 +189,6 @@ def main() -> None:
             )
         except SystemExit as exc:
             raise
-    elif args.dry_run:
-        raise SystemExit(
-            f"Missing {args.token_env} for private Hub preflight. "
-            "Set the token or pass --skip-hub-preflight for a local-only dry run."
-        )
 
     if args.dry_run:
         print("Dry run only; no Hub writes were performed.")

@@ -12,12 +12,13 @@ if [[ -n "${TRANSFER_TASK}" && -z "${SKILLNET_ROBOTWIN_TRANSFER_REPO_ID:-}" ]]; 
 fi
 
 if [[ -z "${SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS:-}" ]]; then
-  echo "Warning: SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS is unset." >&2
-  echo "The config will initialize from SKILLNET_PI05_BASE_PARAMS instead of a RoboTwin pretraining checkpoint." >&2
-  echo "Set SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS to reproduce the paper few-shot transfer path." >&2
-  if [[ "${REQUIRE_ROBOTWIN_PRETRAIN_INIT:-0}" == "1" ]]; then
+  echo "Error: SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS is unset." >&2
+  echo "RoboTwin few-shot transfer should initialize from a RoboTwin pretraining checkpoint." >&2
+  echo "Set SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS, or set ALLOW_PI05_TRANSFER_INIT=1 for a pi0.5-base debugging run." >&2
+  if [[ "${ALLOW_PI05_TRANSFER_INIT:-0}" != "1" ]]; then
     exit 2
   fi
+  echo "ALLOW_PI05_TRANSFER_INIT=1 is set; continuing from SKILLNET_PI05_BASE_PARAMS." >&2
 fi
 
 EXP_NAME="${EXP_NAME:-robotwin_moe_skill_transfer${TRANSFER_TASK:+_${TRANSFER_TASK}}}"

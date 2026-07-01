@@ -220,18 +220,16 @@ The released config names are:
 
 The pi0.5 base checkpoint is controlled by `SKILLNET_PI05_BASE_PARAMS`.
 Transfer initialization is controlled by
-`SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS`; by default it falls back to the pi0.5
-base checkpoint, so set it explicitly when reproducing the few-shot transfer
-from a RoboTwin pretraining checkpoint.
-The transfer launcher prints a warning when this variable is unset; set
-`REQUIRE_ROBOTWIN_PRETRAIN_INIT=1` to make that warning an error.
+`SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS`. The transfer launcher requires this
+variable by default so the paper few-shot path cannot silently fall back to the
+pi0.5 base checkpoint. Set `ALLOW_PI05_TRANSFER_INIT=1` only for a debugging run
+that intentionally starts transfer from `SKILLNET_PI05_BASE_PARAMS`.
 
 Fine-tune all 15 transfer tasks with one checkpoint per task:
 
 ```bash
 cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
 export SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS=checkpoints/pi05_robotwin_moe_skill_pretrain/robotwin_moe_skill_pretrain/19999/params
-export REQUIRE_ROBOTWIN_PRETRAIN_INIT=1
 
 for task in \
   blocks_ranking_size hanging_mug move_pillbottle_pad open_laptop \

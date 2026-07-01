@@ -268,7 +268,8 @@ SCRIPT_EXPECTATIONS = [
         [
             'CONFIG_NAME="${CONFIG_NAME:-pi05_robotwin_moe_skill_transfer}"',
             'export SKILLNET_ROBOTWIN_TRANSFER_REPO_ID="jsw19/robotwin_${TRANSFER_TASK}_v1"',
-            "SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS is unset.",
+            "Error: SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS is unset.",
+            "ALLOW_PI05_TRANSFER_INIT",
         ],
     ),
     (
@@ -417,6 +418,7 @@ DOC_EXPECTATIONS = [
             "SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS",
             "Fine-tune all 15 transfer tasks",
             "RoboTwin checkpoint weights are not published",
+            "ALLOW_PI05_TRANSFER_INIT",
             "success_rate",
         ],
     ),
