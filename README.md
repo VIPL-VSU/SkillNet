@@ -89,6 +89,13 @@ environment without downloading heavyweight runtime dependencies, run:
 python scripts/check_public_release.py --install-smoke
 ```
 
+If Python 3.10 is not discoverable as `3.10` on your machine, pass an explicit
+interpreter:
+
+```bash
+python scripts/check_public_release.py --install-smoke --install-python /path/to/python3.10
+```
+
 To verify the public Hugging Face checkpoint and source-dataset links, run:
 
 ```bash

@@ -96,6 +96,8 @@ On Linux, also run:
 ```bash
 python -m pip install -U uv
 python scripts/check_public_release.py --install-smoke --skip-help
+# If `uv venv --python 3.10` cannot resolve Python 3.10, pass the interpreter:
+python scripts/check_public_release.py --install-smoke --install-python /path/to/python3.10 --skip-help
 python skill_moe/skillnet/examples/libero/install_libero_skill_assets.py --help
 SKILLNET_REQUIRE_LIBERO=1 bash skill_moe/skillnet/install_libero.sh
 ```

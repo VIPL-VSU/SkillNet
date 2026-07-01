@@ -282,6 +282,8 @@ SCRIPT_EXPECTATIONS = [
             "install_libero_skill_assets.py --install",
             "SKILLNET_SKIP_LIBERO_SKILL_ASSET_INSTALL",
             "SKILLNET_REQUIRE_LIBERO",
+            'ACTIVATE_SCRIPT="${VENV_PATH}/bin/activate"',
+            '${VENV_PATH}/Scripts/activate',
         ],
     ),
     (
@@ -382,8 +384,10 @@ DOC_EXPECTATIONS = [
         [
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "Command blocks in this guide use Bash syntax",
-            "On Windows, use WSL or Git Bash",
+            "On Windows, use WSL",
+            ".venv/Scripts/activate",
             "python scripts/check_public_release.py --hub-smoke",
+            "--install-python /path/to/python3.10",
             "intentionally does not use",
             "--hub-authenticated",
             "docs/release_status.md",
@@ -411,6 +415,7 @@ DOC_EXPECTATIONS = [
             "HfApi.upload_large_folder",
             "data_process/libero/dataset_cards/",
             "--strict-parquet",
+            "--install-python /path/to/python3.10",
         ],
     ),
     (

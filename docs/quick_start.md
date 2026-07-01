@@ -6,9 +6,10 @@ released data-processing, training, and evaluation entrypoints.
 ## Clone
 
 Command blocks in this guide use Bash syntax (`export`, `source`, `bash`).
-On Windows, use WSL or Git Bash for the workflow commands below. PowerShell can
-run the clone command, but its environment-variable and activation syntax is
-different and LIBERO/RoboTwin simulator evaluation is Linux-oriented.
+On Windows, use WSL for the simulator and training workflows below. Git Bash or
+PowerShell can run the clone command and lightweight release checks, but native
+Windows environment-variable and venv activation syntax differs, and
+LIBERO/RoboTwin simulator evaluation is Linux-oriented.
 
 ```bash
 # On Windows, clone under a short, non-user-specific directory because
@@ -72,6 +73,10 @@ uv pip install -e .
 uv pip install -e packages/openpi-client
 export PYTHONPATH="${PWD}/src:${PWD}/packages/openpi-client/src:${PWD}/third_party/libero:${PYTHONPATH:-}"
 ```
+
+For a native Windows venv, activate with `.venv/Scripts/activate` instead of
+`.venv/bin/activate`; simulator workflows should still be run from Linux or
+WSL.
 
 For GPU training, install the JAX wheel that matches your CUDA setup in this
 same environment.
@@ -163,6 +168,13 @@ environment without downloading heavyweight runtime dependencies:
 
 ```bash
 python scripts/check_public_release.py --install-smoke
+```
+
+If your Python 3.10 executable is not discoverable as `3.10`, provide it
+explicitly:
+
+```bash
+python scripts/check_public_release.py --install-smoke --install-python /path/to/python3.10
 ```
 
 To check that the public Hugging Face checkpoints and LIBERO/RoboTwin source

@@ -16,8 +16,16 @@ fi
 
 if [[ -z "${VIRTUAL_ENV:-}" || "${VIRTUAL_ENV}" != "${VENV_PATH}" ]]; then
   uv venv --python "${PYTHON_VERSION:-3.10}" "${VENV_PATH}"
+  ACTIVATE_SCRIPT="${VENV_PATH}/bin/activate"
+  if [[ ! -f "${ACTIVATE_SCRIPT}" && -f "${VENV_PATH}/Scripts/activate" ]]; then
+    ACTIVATE_SCRIPT="${VENV_PATH}/Scripts/activate"
+  fi
+  if [[ ! -f "${ACTIVATE_SCRIPT}" ]]; then
+    echo "Could not find a venv activation script under ${VENV_PATH}." >&2
+    exit 2
+  fi
   # shellcheck disable=SC1091
-  source "${VENV_PATH}/bin/activate"
+  source "${ACTIVATE_SCRIPT}"
 fi
 
 if [[ "${SKILLNET_SKIP_CORE_INSTALL:-0}" != "1" ]]; then
@@ -100,5 +108,9 @@ else
 fi
 
 echo "Prepared ${VENV_PATH}"
-echo "Run: source ${VENV_PATH}/bin/activate"
+if [[ -f "${VENV_PATH}/bin/activate" ]]; then
+  echo "Run: source ${VENV_PATH}/bin/activate"
+elif [[ -f "${VENV_PATH}/Scripts/activate" ]]; then
+  echo "Run: source ${VENV_PATH}/Scripts/activate"
+fi
 echo "Run: source examples/libero/skillnet_env.sh"
