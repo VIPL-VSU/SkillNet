@@ -43,6 +43,9 @@ REQUIRED_FILES = [
     "data_process/libero/instruct2plan_40.json",
     "data_process/libero/instruct2plan_90.json",
     "data_process/libero/instruct2plan_obj_90.json",
+    "data_process/libero/export_libero_skill_slices.py",
+    "data_process/libero/slice_indices/libero40_slice_index.json",
+    "data_process/libero/slice_indices/libero90_slice_index.json",
     "data_process/libero/dataset_cards/README_libero_40_v1.md",
     "data_process/libero/dataset_cards/README_libero_90_v1.md",
     "data_process/robotwin/robotwin_plan.json",
@@ -73,6 +76,7 @@ PYTHON_FILES = [
     "data_process/skill_hierarchy/skill_hierarchy_tokenizer.py",
     "data_process/libero/download_libero_sources.py",
     "data_process/libero/convert_libero_to_lerobot.py",
+    "data_process/libero/export_libero_skill_slices.py",
     "data_process/robotwin/download_robotwin_sources.py",
     "data_process/robotwin/convert_robotwin_to_lerobot.py",
     "data_process/robotwin/build_robotwin_skill_metadata.py",
@@ -85,6 +89,7 @@ PYTHON_FILES = [
 HELP_COMMANDS = [
     ["data_process/skill_hierarchy/skill_hierarchy_tokenizer.py", "--help"],
     ["data_process/libero/download_libero_sources.py", "--help"],
+    ["data_process/libero/export_libero_skill_slices.py", "--help"],
     ["scripts/verify_lerobot_dataset.py", "--help"],
     ["scripts/publish_lerobot_dataset.py", "--help"],
     ["skill_moe/skillnet/examples/libero/install_libero_skill_assets.py", "--help"],
@@ -105,10 +110,13 @@ SHELL_FILES = [
     "skill_moe/skillnet/examples/robotwin/run_eval_robotwin_moe_skill.sh",
 ]
 
+REMOTE_SHARE_PATTERN = re.compile("/share" + r"/project")
+WINDOWS_ABSOLUTE_PATH_PATTERN = re.compile(r"\b[A-Za-z]:\\")
+
 SENSITIVE_PATTERNS = [
-    re.compile("/share" + r"/project"),
+    REMOTE_SHARE_PATTERN,
     re.compile("C:" + r"\\Users|C:" + "/Users"),
-    re.compile(r"\b[A-Za-z]:\\"),
+    WINDOWS_ABSOLUTE_PATH_PATTERN,
     re.compile(r"~[/\\]"),
     re.compile(r"10\.8\.36\."),
     re.compile(r"ssh\.platform"),
@@ -408,7 +416,7 @@ DOC_EXPECTATIONS = [
             "LIBERO-Skill evaluation",
             "RoboTwin few-shot evaluation",
             "ALLOW_PI05_TRANSFER_INIT=1",
-            "libero40_plan_sliced.json",
+            "slice_indices/libero40_slice_index.json",
             "Set `TRANSFER_TASK` for the paper-style per-task dataset",
             "--motion-code 200100",
         ],
@@ -473,6 +481,9 @@ DOC_EXPECTATIONS = [
             "RLDS source datasets alone are not enough",
             "scripts/verify_lerobot_dataset.py",
             "scripts/publish_lerobot_dataset.py",
+            "export_libero_skill_slices.py",
+            "--slice-index",
+            "slice_indices/libero40_slice_index.json",
             "libero40_plan_sliced.json",
             "libero90_plan_sliced.json",
             "--include-libero-derived-datasets",
@@ -660,6 +671,8 @@ def check_json_files(errors: list[str], *, verbose: bool) -> None:
         "data_process/libero/instruct2plan_40.json",
         "data_process/libero/instruct2plan_90.json",
         "data_process/libero/instruct2plan_obj_90.json",
+        "data_process/libero/slice_indices/libero40_slice_index.json",
+        "data_process/libero/slice_indices/libero90_slice_index.json",
         "skill_moe/skillnet/examples/libero/annotations/instruct2plan_40.json",
         "skill_moe/skillnet/examples/libero/annotations/instruct2plan_obj_90.json",
         "skill_moe/skillnet/examples/libero/annotations/libero_skill_obj_annotations.json",
@@ -999,6 +1012,95 @@ def check_libero_annotation_contract(errors: list[str], *, verbose: bool) -> Non
 
     if len(errors) == error_count:
         ok("LIBERO in-domain annotation copies and schemas match", verbose=verbose)
+
+
+def check_libero_slice_index_contract(errors: list[str], *, verbose: bool) -> None:
+    error_count = len(errors)
+    expectations = {
+        "data_process/libero/slice_indices/libero40_slice_index.json": {
+            "repo_id": "jsw19/libero_40_v1",
+            "episodes": 1693,
+            "segments": 3862,
+            "frames": 273465,
+        },
+        "data_process/libero/slice_indices/libero90_slice_index.json": {
+            "repo_id": "jsw19/libero_90_v1",
+            "episodes": 4006,
+            "segments": 7874,
+            "frames": 574571,
+        },
+    }
+    for rel_path, expected in expectations.items():
+        payload = load_json(rel_path)
+        if not isinstance(payload, dict):
+            fail(f"LIBERO slice-index must be a JSON object: {rel_path}", errors)
+            continue
+        text = json.dumps(payload)
+        if REMOTE_SHARE_PATTERN.search(text) or WINDOWS_ABSOLUTE_PATH_PATTERN.search(text):
+            fail(f"LIBERO slice-index contains a local absolute path: {rel_path}", errors)
+        if payload.get("format") != "skillnet_libero_slice_index_v1":
+            fail(f"unexpected LIBERO slice-index format in {rel_path}: {payload.get('format')!r}", errors)
+        if payload.get("repo_id") != expected["repo_id"]:
+            fail(f"unexpected repo_id in {rel_path}: {payload.get('repo_id')!r}", errors)
+        if payload.get("is_partial"):
+            fail(f"LIBERO slice-index must not be partial: {rel_path}", errors)
+        episodes = payload.get("episodes")
+        if not isinstance(episodes, list):
+            fail(f"LIBERO slice-index episodes must be a list: {rel_path}", errors)
+            continue
+        if payload.get("num_episodes") != len(episodes) or len(episodes) != expected["episodes"]:
+            fail(
+                f"LIBERO slice-index episode count mismatch in {rel_path}: "
+                f"{payload.get('num_episodes')} / {len(episodes)}",
+                errors,
+            )
+        total_segments = 0
+        total_frames = 0
+        for expected_index, episode in enumerate(episodes):
+            if episode.get("episode_index") != expected_index:
+                fail(
+                    f"LIBERO slice-index episode_index mismatch in {rel_path}: "
+                    f"{episode.get('episode_index')} != {expected_index}",
+                    errors,
+                )
+                break
+            segments = episode.get("segments")
+            if not isinstance(segments, list) or not segments:
+                fail(f"LIBERO slice-index episode has no segments in {rel_path}: {expected_index}", errors)
+                break
+            cursor = 0
+            classes = []
+            for segment in segments:
+                start = int(segment["start"])
+                end = int(segment["end"])
+                if start != cursor or end <= start:
+                    fail(f"non-contiguous LIBERO slice segment in {rel_path}, episode {expected_index}: {segment}", errors)
+                    break
+                cursor = end
+                classes.append(int(segment["class"]))
+            if cursor != int(episode["length"]):
+                fail(
+                    f"LIBERO slice-index length mismatch in {rel_path}, episode {expected_index}: "
+                    f"{cursor} != {episode['length']}",
+                    errors,
+                )
+                break
+            try:
+                all_classes = ast.literal_eval(segments[0]["all_classes"])
+            except Exception as exc:
+                fail(f"invalid all_classes in {rel_path}, episode {expected_index}: {exc}", errors)
+                break
+            if [int(item) for item in all_classes] != classes:
+                fail(f"LIBERO slice-index classes do not match all_classes in {rel_path}, episode {expected_index}", errors)
+                break
+            total_segments += len(segments)
+            total_frames += int(episode["length"])
+        if total_segments != expected["segments"]:
+            fail(f"LIBERO slice-index segment count mismatch in {rel_path}: {total_segments}", errors)
+        if total_frames != expected["frames"]:
+            fail(f"LIBERO slice-index frame count mismatch in {rel_path}: {total_frames}", errors)
+    if len(errors) == error_count:
+        ok("LIBERO compact slice-index metadata matches v1 release counts", verbose=verbose)
 
 
 def check_robotwin_contract(errors: list[str], *, verbose: bool) -> None:
@@ -1389,6 +1491,7 @@ def main() -> None:
     check_config_and_script_contracts(errors, verbose=args.verbose)
     check_skill_hierarchy_contract(errors, verbose=args.verbose)
     check_libero_annotation_contract(errors, verbose=args.verbose)
+    check_libero_slice_index_contract(errors, verbose=args.verbose)
     check_libero_skill_contract(errors, verbose=args.verbose)
     check_robotwin_contract(errors, verbose=args.verbose)
     check_python_compile(errors, verbose=args.verbose)

@@ -226,11 +226,14 @@ python -c "import openpi.training.config_moe_skill as c; print(c.get_config('pi0
 LIBERO data processing:
 
 Exact LIBERO training uses derived LeRobot datasets with frame-level skill
-boundaries. The converter commands below require `libero40_plan_sliced.json`
-and `libero90_plan_sliced.json` skill-slice metadata in addition to the public
-RLDS source frames. If the derived `jsw19/libero_40_v1` and
+boundaries. The repository includes compact slice-index metadata under
+`data_process/libero/slice_indices/`, so the converter commands below can
+rebuild the v1 labels from public RLDS source frames. If the derived
+`jsw19/libero_40_v1` and
 `jsw19/libero_90_v1` Hub repos are accessible, you can use those directly under
-`LEROBOT_HOME` instead of rebuilding.
+`LEROBOT_HOME` instead of rebuilding. If you have an existing local v1 LeRobot
+copy, `data_process/libero/export_libero_skill_slices.py` can export a compact
+slice-index JSON, and the converter can consume it with `--slice-index`.
 
 ```bash
 cd "${SKILLNET_REPO_ROOT}"
@@ -240,12 +243,12 @@ python data_process/libero/download_libero_sources.py \
 
 python data_process/libero/convert_libero_40_to_lerobot.py \
   --data-dir "$LIBERO40_RLDS_DIR" \
-  --plan-root "$LIBERO40_PLAN_ROOT" \
+  --slice-index data_process/libero/slice_indices/libero40_slice_index.json \
   --output-repo-id jsw19/libero_40_v1
 
 python data_process/libero/convert_libero_90_to_lerobot.py \
   --data-dir "$LIBERO90_RLDS_DIR" \
-  --plan-root "$LIBERO90_PLAN_ROOT" \
+  --slice-index data_process/libero/slice_indices/libero90_slice_index.json \
   --output-repo-id jsw19/libero_90_v1
 ```
 

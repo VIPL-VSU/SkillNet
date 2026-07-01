@@ -265,6 +265,31 @@ equivalent skill-slice export generated with the same schema. The public
 converter intentionally fails fast rather than silently producing an
 unsegmented dataset.
 
+As an alternative to the legacy `*_plan_sliced.json` files, SkillNet includes
+compact slice-index metadata exported from the v1 LeRobot datasets:
+
+```text
+data_process/libero/slice_indices/libero40_slice_index.json
+data_process/libero/slice_indices/libero90_slice_index.json
+```
+
+This is the preferred small metadata format for public release because it
+records reconstructed source episode ids, frame ranges, `class`, and
+`all_classes` labels without storing local absolute paths. You can regenerate it
+from an existing LeRobot v1 dataset if needed:
+
+```bash
+python data_process/libero/export_libero_skill_slices.py \
+  "$LEROBOT_HOME/jsw19/libero_40_v1" \
+  --repo-id jsw19/libero_40_v1 \
+  --output data/libero/libero40_slice_index.json
+
+python data_process/libero/convert_libero_40_to_lerobot.py \
+  --data-dir "$LIBERO40_RLDS_DIR" \
+  --slice-index data_process/libero/slice_indices/libero40_slice_index.json \
+  --output-repo-id jsw19/libero_40_v1
+```
+
 ## Released Scripts
 
 The cleaned scripts live at:
@@ -274,6 +299,7 @@ data_process/libero/download_libero_sources.py
 data_process/libero/convert_libero_40_to_lerobot.py
 data_process/libero/convert_libero_90_to_lerobot.py
 data_process/libero/convert_libero_to_lerobot.py
+data_process/libero/export_libero_skill_slices.py
 data_process/libero/instruct2plan_40.json
 data_process/libero/instruct2plan_90.json
 data_process/libero/instruct2plan_obj_90.json
@@ -329,7 +355,7 @@ Convert LIBERO-40:
 ```bash
 python data_process/libero/convert_libero_40_to_lerobot.py \
   --data-dir "$LIBERO40_RLDS_DIR" \
-  --plan-root "$LIBERO40_PLAN_ROOT" \
+  --slice-index data_process/libero/slice_indices/libero40_slice_index.json \
   --output-repo-id jsw19/libero_40_v1
 ```
 
@@ -338,7 +364,7 @@ Convert LIBERO-90:
 ```bash
 python data_process/libero/convert_libero_90_to_lerobot.py \
   --data-dir "$LIBERO90_RLDS_DIR" \
-  --plan-root "$LIBERO90_PLAN_ROOT" \
+  --slice-index data_process/libero/slice_indices/libero90_slice_index.json \
   --output-repo-id jsw19/libero_90_v1
 ```
 
@@ -347,7 +373,7 @@ For object-aware LIBERO-90 variants, use the object map explicitly:
 ```bash
 python data_process/libero/convert_libero_90_to_lerobot.py \
   --data-dir "$LIBERO90_RLDS_DIR" \
-  --plan-root "$LIBERO90_PLAN_ROOT" \
+  --slice-index data_process/libero/slice_indices/libero90_slice_index.json \
   --output-repo-id jsw19/libero_90_v1 \
   --instruction-map data_process/libero/instruct2plan_obj_90.json \
   --include-objects

@@ -70,6 +70,15 @@ def parse_args(default_preset: str | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--data-dir", type=Path, default=None)
     parser.add_argument("--plan-root", type=Path, default=None)
+    parser.add_argument(
+        "--slice-index",
+        type=Path,
+        default=None,
+        help=(
+            "Compact SkillNet slice-index JSON exported from an existing "
+            "LeRobot v1 dataset. This is an alternative to --plan-root."
+        ),
+    )
     parser.add_argument("--output-repo-id", default=None)
     parser.add_argument("--instruction-map", type=Path, default=None)
     parser.add_argument(
@@ -132,11 +141,79 @@ def load_plan_index(plan_root: Path, plan_file: str) -> dict[str, dict]:
     return {item["image_root"]: item for item in sliced_items}
 
 
+def load_slice_index(slice_index_path: Path) -> dict[int, dict]:
+    if not slice_index_path.exists():
+        raise FileNotFoundError(f"Missing slice-index file: {slice_index_path}")
+    with slice_index_path.open("r", encoding="utf-8") as f:
+        payload = json.load(f)
+    if payload.get("format") != "skillnet_libero_slice_index_v1":
+        raise ValueError(
+            f"Unsupported slice-index format in {slice_index_path}: "
+            f"{payload.get('format')!r}"
+        )
+    episodes = payload.get("episodes")
+    if not isinstance(episodes, list):
+        raise ValueError(f"slice-index file must contain an episodes list: {slice_index_path}")
+    return {int(item["episode_index"]): item for item in episodes}
+
+
 def infer_class(plan_step: str) -> int:
     verb = plan_step.split(" ")[0].lower()
     if verb not in VERB_TO_CLASS:
         raise KeyError(f"Unsupported skill verb in plan step: {plan_step!r}")
     return VERB_TO_CLASS[verb]
+
+
+def class_value_to_array(value) -> np.ndarray:
+    if isinstance(value, list):
+        values = value
+    else:
+        values = [value]
+    if len(values) != 1:
+        raise ValueError(
+            "The released LIBERO v1 converter expects one flat skill class per frame; "
+            f"got {values!r}."
+        )
+    return np.array([int(values[0])], dtype=np.int64)
+
+
+def add_segment_frames(
+    dataset: LeRobotDataset,
+    steps: list[dict],
+    segments: list[dict],
+    instruction_map: dict,
+    *,
+    include_objects: bool,
+) -> None:
+    episode_length = len(steps)
+    for segment in segments:
+        start = int(segment["start"])
+        end = int(segment["end"])
+        if not (0 <= start < end <= episode_length):
+            raise ValueError(f"Invalid segment {segment!r} for episode length {episode_length}")
+
+        for step in steps[start:end]:
+            instruction = step["language_instruction"].decode()
+            instruction_entry = instruction_map.get(instruction, {})
+            all_classes = segment.get("all_classes", instruction_entry.get("all_classes"))
+            if all_classes is None:
+                raise KeyError(f"Missing all_classes for instruction: {instruction!r}")
+            frame = {
+                "image": step["observation"]["image"],
+                "wrist_image": step["observation"]["wrist_image"],
+                "state": step["observation"]["state"],
+                "actions": step["action"],
+                "task": instruction,
+                "class": class_value_to_array(segment["class"]),
+                "all_classes": str(all_classes),
+            }
+            if include_objects:
+                objects = segment.get("objects", instruction_entry.get("objects"))
+                if objects is None:
+                    raise KeyError(f"Missing objects for instruction: {instruction!r}")
+                frame["objects"] = str(objects)
+            dataset.add_frame(frame)
+        dataset.save_episode()
 
 
 def convert(args: argparse.Namespace) -> None:
@@ -160,7 +237,11 @@ def convert(args: argparse.Namespace) -> None:
     if not instruction_map_path.exists():
         raise FileNotFoundError(f"Missing instruction map: {instruction_map_path}")
 
-    plan_by_root = load_plan_index(plan_root, preset["plan_file"])
+    if args.slice_index and args.plan_root:
+        raise ValueError("Pass either --slice-index or --plan-root, not both.")
+
+    slice_by_episode = load_slice_index(args.slice_index) if args.slice_index else None
+    plan_by_root = None if slice_by_episode is not None else load_plan_index(plan_root, preset["plan_file"])
     with instruction_map_path.open("r", encoding="utf-8") as f:
         instruction_map = json.load(f)
 
@@ -173,6 +254,7 @@ def convert(args: argparse.Namespace) -> None:
     )
 
     counter: defaultdict[str, int] = defaultdict(int)
+    episode_index = 0
     for raw_dataset_name in preset["raw_dataset_names"]:
         raw_dataset = tfds.load(
             raw_dataset_name,
@@ -184,39 +266,48 @@ def convert(args: argparse.Namespace) -> None:
             file_path = episode["episode_metadata"]["file_path"].numpy().decode("utf-8")
             folder_name = os.path.splitext(os.path.basename(file_path))[0]
             counter[folder_name] += 1
-            image_root = str(plan_root / f"{folder_name}_{counter[folder_name]}")
-            if image_root not in plan_by_root:
-                raise KeyError(f"No skill slice entry for {image_root}")
-
-            plan_item = plan_by_root[image_root]
-            seq = plan_item["seq"]
-            intervals = plan_item["skill_slices"]
-            keypoints = [seq[i - 1] for i in intervals]
-            plans = plan_item["plan"]
             steps = list(episode["steps"].as_numpy_iterator())
+            if slice_by_episode is not None:
+                slice_item = slice_by_episode.get(episode_index)
+                if slice_item is None:
+                    raise KeyError(f"No slice-index entry for episode_index={episode_index}")
+                if int(slice_item["length"]) != len(steps):
+                    raise ValueError(
+                        f"slice-index length mismatch for episode_index={episode_index}: "
+                        f"{slice_item['length']} != {len(steps)}"
+                    )
+                add_segment_frames(
+                    dataset,
+                    steps,
+                    slice_item["segments"],
+                    instruction_map,
+                    include_objects=include_objects,
+                )
+            else:
+                image_root = str(plan_root / f"{folder_name}_{counter[folder_name]}")
+                if image_root not in plan_by_root:
+                    raise KeyError(f"No skill slice entry for {image_root}")
 
-            for i in range(1, len(keypoints)):
-                left = keypoints[i - 1] - 1
-                right = keypoints[i] - 1
-                if i == len(keypoints) - 1:
-                    right += 1
-                skill_class = infer_class(plans[i - 1])
-
-                for step in steps[left:right]:
-                    instruction = step["language_instruction"].decode()
-                    frame = {
-                        "image": step["observation"]["image"],
-                        "wrist_image": step["observation"]["wrist_image"],
-                        "state": step["observation"]["state"],
-                        "actions": step["action"],
-                        "task": instruction,
-                        "class": np.array([skill_class], dtype=np.int64),
-                        "all_classes": str(instruction_map[instruction]["all_classes"]),
-                    }
-                    if include_objects:
-                        frame["objects"] = str(instruction_map[instruction]["objects"])
-                    dataset.add_frame(frame)
-                dataset.save_episode()
+                plan_item = plan_by_root[image_root]
+                seq = plan_item["seq"]
+                intervals = plan_item["skill_slices"]
+                keypoints = [seq[i - 1] for i in intervals]
+                plans = plan_item["plan"]
+                segments = []
+                for i in range(1, len(keypoints)):
+                    left = keypoints[i - 1] - 1
+                    right = keypoints[i] - 1
+                    if i == len(keypoints) - 1:
+                        right += 1
+                    segments.append(
+                        {
+                            "start": left,
+                            "end": right,
+                            "class": infer_class(plans[i - 1]),
+                        }
+                    )
+                add_segment_frames(dataset, steps, segments, instruction_map, include_objects=include_objects)
+            episode_index += 1
 
 
 def main() -> None:

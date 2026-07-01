@@ -57,8 +57,8 @@ released configs. LIBERO checkpoint weights are published; RoboTwin checkpoint
 weights are not part of this release and should be trained from the included
 configs. Direct LIBERO training requires either public access to the derived
 LeRobot datasets above or a local rebuild from the public RLDS sources plus the
-skill-slice metadata documented in `docs/libero_data_processing.md`. The plain
-`--hub-smoke` check verifies checkpoints and source datasets; add
+included compact slice-index metadata under `data_process/libero/slice_indices/`.
+The plain `--hub-smoke` check verifies checkpoints and source datasets; add
 `--include-libero-derived-datasets` only when those derived LIBERO datasets
 should be publicly visible.
 

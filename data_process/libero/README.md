@@ -58,8 +58,29 @@ In that case, either pass `--plan-root "$PLAN_ROOT"` to the converter or
 copy/symlink the files into the corresponding plan-root directories.
 
 The two `*_plan_sliced.json` files are metadata inputs and are not produced by
-`download_libero_sources.py`. If you do not have them, use accessible copies of
-the derived LeRobot datasets instead of rebuilding from RLDS.
+`download_libero_sources.py`. The public release also includes compact
+slice-index metadata exported from the v1 LeRobot datasets:
+
+```text
+slice_indices/libero40_slice_index.json
+slice_indices/libero90_slice_index.json
+```
+
+These files let the public converter rebuild the v1 frame labels from the RLDS
+source episode order without local absolute paths. If you need to regenerate
+them from an existing LeRobot v1 dataset, run:
+
+```bash
+python data_process/libero/export_libero_skill_slices.py \
+  "$LEROBOT_HOME/jsw19/libero_40_v1" \
+  --repo-id jsw19/libero_40_v1 \
+  --output data/libero/libero40_slice_index.json
+```
+
+The slice-index format stores reconstructed source episode order, frame ranges,
+and the released `class` / `all_classes` labels without recording local
+absolute paths. It can be used instead of `--plan-root` when converting from the
+public RLDS sources.
 
 The small instruction maps required by the converter are included here:
 
@@ -101,6 +122,15 @@ Build LIBERO-40:
 ```bash
 python data_process/libero/convert_libero_40_to_lerobot.py \
   --data-dir "$LIBERO40_RLDS_DIR" \
+  --slice-index data_process/libero/slice_indices/libero40_slice_index.json \
+  --output-repo-id jsw19/libero_40_v1
+```
+
+If you are using legacy `*_plan_sliced.json` files instead, pass `--plan-root`:
+
+```bash
+python data_process/libero/convert_libero_40_to_lerobot.py \
+  --data-dir "$LIBERO40_RLDS_DIR" \
   --plan-root "$LIBERO40_PLAN_ROOT" \
   --output-repo-id jsw19/libero_40_v1
 ```
@@ -110,9 +140,11 @@ Build LIBERO-90:
 ```bash
 python data_process/libero/convert_libero_90_to_lerobot.py \
   --data-dir "$LIBERO90_RLDS_DIR" \
-  --plan-root "$LIBERO90_PLAN_ROOT" \
+  --slice-index data_process/libero/slice_indices/libero90_slice_index.json \
   --output-repo-id jsw19/libero_90_v1
 ```
+
+The same `--plan-root` legacy alternative is available for LIBERO-90.
 
 For object-aware LIBERO-90 variants, use the object map explicitly:
 
