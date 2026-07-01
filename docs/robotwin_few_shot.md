@@ -181,9 +181,12 @@ The converter writes state and action in
 `[left_arm, left_gripper, right_arm, right_gripper]` order. The training config
 then repacks these LeRobot features into the SkillNet model input fields.
 
-`skills` is a variable-length integer sequence, not a one-hot vector. During
-training it is truncated or padded to four entries, shifted by +1 so `0` can be
-used as padding, and paired with `skill_mask`.
+`skills` is stored in the LeRobot dataset as a JSON-encoded string, for example
+`"[1, 3, 5]"`, because the public LeRobot writer path expects a scalar column
+for variable-length metadata. The SkillNet RoboTwin transform parses this JSON
+string back into a variable-length integer sequence. It is not a one-hot vector:
+during training it is truncated or padded to four entries, shifted by +1 so `0`
+can be used as padding, and paired with `skill_mask`.
 
 The paper describes 12 semantic manipulation skills. The public flat skill id
 space contains 13 non-padding ids in `robotwin_plan.json`, and the released
@@ -294,6 +297,23 @@ The wrapper validates `ROBOTWIN_ROOT`, `SKILL_PLAN`, and `CKPT_DIR` before
 starting evaluation, writes policy-server logs under
 `data/robotwin/server_logs/`, and waits for the server port to accept
 connections before launching the simulator adapter.
+
+The evaluator expects a RoboTwin-2.0-style checkout that provides this public
+API/tree contract:
+
+- `collect_data.sh` for optional demonstration collection.
+- `task_config/<TASK_CONFIG>.yml`, `_camera_config.yml`, and
+  `_embodiment_config.yml`.
+- `envs/__init__.py` exporting `CONFIGS_PATH`.
+- importable task modules named `envs.<task>` with classes named `<task>`.
+- importable `policy` and `description/utils` packages on `PYTHONPATH`.
+- `test_render.Sapien_TEST` for the default render preflight, or pass
+  `--skip-render-test` through the launcher after validating rendering
+  separately.
+
+Use the official RoboTwin-2.0 codebase or a fork that preserves this API. The
+SkillNet repository does not vendor the simulator, assets, or SAPIEN/MuJoCo
+runtime dependencies.
 
 Evaluate a single fine-tuned transfer checkpoint:
 

@@ -208,3 +208,15 @@ The converter writes a LeRobot dataset with `task` as the language prompt,
 `hand_left_color`, and `hand_right_color`, proprioception under `state`, and
 actions under `actions`. The SkillNet training config repacks those LeRobot
 features into the model input fields.
+
+Implementation detail: `skills` is written as a JSON-encoded string column such
+as `"[1, 3, 5]"` so variable-length skill metadata can live in a scalar LeRobot
+field. The SkillNet RoboTwin transform parses the JSON string back into integer
+ids, pads or truncates to four skills, shifts ids by +1 to reserve `0` for
+padding, and emits `skill_mask`.
+
+For optional data collection and simulator evaluation, `ROBOTWIN_ROOT` must
+point to a RoboTwin-2.0 checkout that contains `collect_data.sh`,
+`task_config/*.yml`, `_camera_config.yml`, `_embodiment_config.yml`, importable
+`envs.<task>` modules, `envs.CONFIGS_PATH`, `policy`, `description/utils`, and
+`test_render.Sapien_TEST`.
