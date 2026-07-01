@@ -10,6 +10,7 @@ Clone SkillNet and use `skill_moe/skillnet` as the runnable source root:
 ```bash
 git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet
 cd SkillNet/skill_moe/skillnet
+git -C ../.. config core.longpaths true
 ```
 
 For prerequisites such as Python 3.10, `uv`, and Hugging Face Hub CLI, see

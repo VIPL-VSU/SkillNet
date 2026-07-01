@@ -69,9 +69,11 @@ processing root:
 
 ```bash
 # On Windows, clone under a short, non-user-specific directory because
-# LIBERO-Skill task filenames are long. The -c flag enables long paths.
+# LIBERO-Skill task filenames are long. The -c flag handles checkout; the
+# local config keeps later git status/diff commands from hitting path limits.
 git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet
 cd SkillNet
+git config core.longpaths true
 ```
 
 Follow `docs/quick_start.md` for installation, smoke checks, checkpoint

@@ -117,5 +117,8 @@ python skill_moe/skillnet/examples/libero/install_libero_skill_assets.py --help
 SKILLNET_REQUIRE_LIBERO=1 bash skill_moe/skillnet/install_libero.sh
 ```
 
-For Windows users, clone under a short, non-user-specific directory and keep
-`core.longpaths=true`, because bundled LIBERO-Skill filenames are long.
+For Windows users, clone under a short, non-user-specific directory and run
+`git config core.longpaths true` inside the clone after checkout. The
+`git -c core.longpaths=true clone ...` flag handles the initial checkout, while
+the local config keeps later `git status`, `git diff`, and release checks from
+hitting path-length limits on bundled LIBERO-Skill filenames.

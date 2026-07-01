@@ -392,6 +392,7 @@ DOC_EXPECTATIONS = [
             "## 5. Few-Shot Transfer",
             "docs/release_status.md",
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
+            "git config core.longpaths true",
             "RoboTwin checkpoint",
             "weights are not part of this release",
             "configs. Direct LIBERO training",
@@ -404,6 +405,7 @@ DOC_EXPECTATIONS = [
         "docs/quick_start.md",
         [
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
+            "git config core.longpaths true",
             "Command blocks in this guide use Bash syntax",
             "On Windows, use WSL",
             ".venv/Scripts/activate",
@@ -432,6 +434,7 @@ DOC_EXPECTATIONS = [
             "## Ready",
             "Fresh clone gate",
             "short-path fresh clone",
+            "git config core.longpaths true",
             "## Pending External Assets",
             "jsw19/libero_40_v1",
             "jsw19/libero_90_v1",
@@ -504,6 +507,7 @@ DOC_EXPECTATIONS = [
         "docs/training_and_evaluation.md",
         [
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
+            "git -C ../.. config core.longpaths true",
             "## LIBERO-40 Training",
             "## LIBERO-90 Training",
             "## LIBERO-40 Evaluation",
