@@ -15,6 +15,7 @@ format imports those modules directly.
 - `skillnet/examples/libero/`: LIBERO and LIBERO-Skill evaluation scripts.
 - `skillnet/examples/robocasa/scripts/`: RoboCasa evaluation and data-conversion helpers.
 - `skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/`: LIBERO-Skill benchmark task files.
+- `skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json`: public 9-task LIBERO-Skill manifest.
 - `skillnet/third_party/libero/libero/libero/init_files/libero_skill_obj/`: LIBERO-Skill initial states.
 
 ## Not Included
@@ -62,7 +63,7 @@ real-robot launch scripts are intentionally excluded from this release tree.
 - RoboTwin few-shot training: `scripts/run_train_robotwin_pretrain_moe_skill.sh` and `scripts/run_train_robotwin_transfer_moe_skill.sh`.
 - RoboTwin few-shot eval: `examples/robotwin/run_eval_robotwin_moe_skill.sh`.
 - RoboCasa helpers: `examples/robocasa/scripts/robocasa_eval_skill.py` and related data-conversion scripts.
-- LIBERO-Skill OOD eval: `examples/libero/main_skill_obj_test_moe_skill.py` plus the `third_party/libero/libero/libero/bddl_files/libero_skill_obj/` and `third_party/libero/libero/libero/init_files/libero_skill_obj/` folders.
+- LIBERO-Skill OOD eval: `examples/libero/main_skill_obj_test_moe_skill.py` plus `third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json` and the corresponding bddl/init folders.
 
 See `../../docs/skill_hierarchy.md` for hierarchy construction and
 `../../docs/training_and_evaluation.md` for the public LIBERO launch commands.

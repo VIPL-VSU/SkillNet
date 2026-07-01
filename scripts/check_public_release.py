@@ -61,6 +61,9 @@ REQUIRED_FILES = [
     "skill_moe/skillnet/examples/libero/install_libero_skill_assets.py",
     "skill_moe/skillnet/examples/libero/run_eval_libero_skill_moe.sh",
     "skill_moe/skillnet/examples/robotwin/run_eval_robotwin_moe_skill.sh",
+    "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/README.md",
+    "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json",
+    "skill_moe/skillnet/third_party/libero/scripts/README.md",
 ]
 
 PYTHON_FILES = [
@@ -84,6 +87,7 @@ HELP_COMMANDS = [
     ["skill_moe/skillnet/examples/libero/install_libero_skill_assets.py", "--help"],
     ["data_process/robotwin/download_robotwin_sources.py", "--help"],
     ["data_process/robotwin/convert_robotwin_to_lerobot.py", "--help"],
+    ["data_process/robotwin/build_robotwin_skill_metadata.py", "--help"],
     ["skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py", "--help"],
 ]
 
@@ -296,6 +300,11 @@ SCRIPT_EXPECTATIONS = [
             'TASK_SET="${TASK_SET:-transfer}"',
             'ACTION_HORIZON="${ACTION_HORIZON:-10}"',
             'SKILL_PLAN="${SKILL_PLAN:-${SKILLNET_REPO_ROOT}/data_process/robotwin/robotwin_plan.json}"',
+            'SERVER_LOG_PATH="${SERVER_LOG_PATH:-data/robotwin/server_logs/${CONFIG_NAME}_${PORT}.log}"',
+            "ROBOTWIN_ROOT does not exist",
+            "SKILL_PLAN does not exist",
+            "CKPT_DIR does not exist",
+            "Policy server exited before becoming ready",
         ],
     ),
     (
@@ -345,6 +354,7 @@ DOC_EXPECTATIONS = [
             "RoboTwin checkpoint",
             "weights are not part of this release",
             "configs. If derived datasets",
+            "public_task_manifest.json",
         ],
     ),
     (
@@ -415,6 +425,9 @@ DOC_EXPECTATIONS = [
             "## LIBERO-40 Evaluation",
             "## LIBERO-Skill Evaluation",
             "TASK_SUITE=libero_skill_obj",
+            "public_task_manifest.json",
+            "tasks_info.txt",
+            "asset inventory",
             "base rollout limit is 800 simulator steps",
             "install_libero_skill_assets.py --install",
             "FAIL_FAST=0",
@@ -433,9 +446,13 @@ DOC_EXPECTATIONS = [
             "RoboTwin-2.0",
             "SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS",
             "Fine-tune all 15 transfer tasks",
+            "create all matching per-task LeRobot datasets",
+            'jsw19/robotwin_${task}_v1',
             "RoboTwin checkpoint weights are not published",
             "ALLOW_PI05_TRANSFER_INIT",
             "success_rate",
+            "data/robotwin/server_logs/",
+            "waits for the server port",
         ],
     ),
 ]
@@ -715,6 +732,19 @@ def check_libero_skill_contract(errors: list[str], *, verbose: bool) -> None:
         fail(f"LIBERO-Skill annotations expected {len(LIBERO_SKILL_TASKS)} tasks, found {len(annotations)}", errors)
 
     task_names = [task_name for task_name, _ in LIBERO_SKILL_TASKS]
+    manifest = load_json(
+        "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json"
+    )
+    if not isinstance(manifest, dict):
+        fail("LIBERO-Skill public task manifest must be a JSON object", errors)
+    else:
+        if manifest.get("benchmark_key") != "libero_skill_obj":
+            fail("LIBERO-Skill public task manifest has the wrong benchmark_key", errors)
+        if manifest.get("task_count") != len(task_names):
+            fail("LIBERO-Skill public task manifest has the wrong task_count", errors)
+        if manifest.get("tasks") != task_names:
+            fail("LIBERO-Skill public task manifest does not match the release task order", errors)
+
     suite_map = load_python_literal_assignment(
         "skill_moe/skillnet/third_party/libero/libero/libero/benchmark/libero_suite_task_map.py",
         "libero_task_map",
@@ -732,6 +762,11 @@ def check_libero_skill_contract(errors: list[str], *, verbose: bool) -> None:
         fail(f"{tasks_info_path.relative_to(REPO_ROOT).as_posix()} contains duplicate task entries", errors)
     if sorted(tasks_info_names) != bddl_names:
         fail("LIBERO-Skill tasks_info.txt does not match the bundled bddl files", errors)
+    readme_text = (bddl_dir / "README.md").read_text(encoding="utf-8")
+    for snippet in ["public_task_manifest.json", "tasks_info.txt", "asset inventory", "not be used"]:
+        if snippet not in readme_text:
+            fail("LIBERO-Skill bddl README does not explain the public manifest versus auxiliary assets", errors)
+
     missing_init_for_bddl = sorted(set(bddl_names) - {path.stem for path in init_dir.glob("*.pruned_init")})
     if missing_init_for_bddl:
         fail("LIBERO-Skill bddl files missing pruned init files: " + ", ".join(missing_init_for_bddl), errors)
@@ -820,6 +855,8 @@ def check_robotwin_contract(errors: list[str], *, verbose: bool) -> None:
 
     builder_pretrain = load_python_literal_assignment("data_process/robotwin/build_robotwin_skill_metadata.py", "PRETRAIN_TASKS")
     builder_transfer = load_python_literal_assignment("data_process/robotwin/build_robotwin_skill_metadata.py", "TRANSFER_TASKS")
+    download_pretrain = load_python_literal_assignment("data_process/robotwin/download_robotwin_sources.py", "PRETRAIN_TASKS")
+    download_transfer = load_python_literal_assignment("data_process/robotwin/download_robotwin_sources.py", "TRANSFER_TASKS")
     eval_pretrain = load_python_literal_assignment(
         "skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py", "PRETRAIN_TASKS"
     )
@@ -832,6 +869,8 @@ def check_robotwin_contract(errors: list[str], *, verbose: bool) -> None:
     for label, actual, expected in [
         ("metadata pretrain tasks", builder_pretrain, ROBOTWIN_PRETRAIN_TASKS),
         ("metadata transfer tasks", builder_transfer, ROBOTWIN_TRANSFER_TASKS),
+        ("download pretrain tasks", download_pretrain, ROBOTWIN_PRETRAIN_TASKS),
+        ("download transfer tasks", download_transfer, ROBOTWIN_TRANSFER_TASKS),
         ("eval pretrain tasks", eval_pretrain, ROBOTWIN_PRETRAIN_TASKS),
         ("eval transfer tasks", eval_transfer, ROBOTWIN_TRANSFER_TASKS),
         ("collect pretrain tasks", collect_pretrain, ROBOTWIN_PRETRAIN_TASKS),

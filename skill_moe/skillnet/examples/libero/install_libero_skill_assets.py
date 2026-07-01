@@ -11,24 +11,22 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import shutil
 from pathlib import Path
 
 
 SKILLNET_ROOT = Path(__file__).resolve().parents[2]
 BUNDLED_LIBERO_ROOT = SKILLNET_ROOT / "third_party" / "libero" / "libero" / "libero"
+LIBERO_SKILL_MANIFEST = BUNDLED_LIBERO_ROOT / "bddl_files" / "libero_skill_obj" / "public_task_manifest.json"
 
-LIBERO_SKILL_TASKS = [
-    "LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket",
-    "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate",
-    "KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet",
-    "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate",
-    "KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave",
-    "KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet",
-    "KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave",
-    "KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove",
-    "KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave",
-]
+
+def load_libero_skill_tasks() -> list[str]:
+    manifest = json.loads(LIBERO_SKILL_MANIFEST.read_text(encoding="utf-8"))
+    tasks = manifest.get("tasks")
+    if not isinstance(tasks, list) or not all(isinstance(task, str) for task in tasks):
+        raise ValueError(f"Invalid LIBERO-Skill manifest: {LIBERO_SKILL_MANIFEST}")
+    return tasks
 
 
 def parse_args() -> argparse.Namespace:
@@ -107,7 +105,7 @@ def write_text_if_changed(path: Path, text: str, *, dry_run: bool) -> bool:
 
 
 def task_map_patch() -> str:
-    entries = ",\n".join(f'    "{task}"' for task in LIBERO_SKILL_TASKS)
+    entries = ",\n".join(f'    "{task}"' for task in load_libero_skill_tasks())
     return (
         "\n\n# SkillNet LIBERO-Skill public benchmark tasks.\n"
         'libero_task_map["libero_skill_obj"] = [\n'
@@ -219,7 +217,7 @@ def main() -> None:
         force=args.force,
     )
 
-    print(f"Bddl files: {bddl_copied} {'would be copied' if dry_run else 'copied'}, {bddl_skipped} skipped.")
+    print(f"Bddl assets: {bddl_copied} {'would be copied' if dry_run else 'copied'}, {bddl_skipped} skipped.")
     print(f"Init files: {init_copied} {'would be copied' if dry_run else 'copied'}, {init_skipped} skipped.")
     patch_task_map(libero_root, dry_run=dry_run)
     patch_benchmark_init(libero_root, dry_run=dry_run)

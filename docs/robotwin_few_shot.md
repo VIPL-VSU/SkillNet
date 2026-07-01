@@ -26,6 +26,10 @@ The key training parameters are:
 
 ## Pretraining Tasks
 
+The skill names in the two tables below are human-readable summaries. The
+training and conversion code uses the flat integer skill ids in
+`data_process/robotwin/robotwin_plan.json` as the source of truth.
+
 | Task | Skills |
 | --- | --- |
 | `adjust_bottle` | pick |
@@ -122,6 +126,26 @@ python data_process/robotwin/convert_robotwin_to_lerobot.py \
   --tasks blocks_ranking_size \
   --output-repo-id jsw19/robotwin_blocks_ranking_size_v1
 ```
+
+To reproduce the paper-style "one checkpoint per held-out task" protocol for
+all 15 transfer tasks, create all matching per-task LeRobot datasets before
+running the training loop:
+
+```bash
+for task in \
+  blocks_ranking_size hanging_mug move_pillbottle_pad open_laptop \
+  place_a2b_left place_bread_basket place_bread_skillet \
+  place_cans_plasticbox place_fan press_stapler scan_object \
+  shake_bottle stack_blocks_three stack_bowls_two stamp_seal; do
+  python data_process/robotwin/convert_robotwin_to_lerobot.py \
+    --source-dir ./robotwin_datasets \
+    --tasks "${task}" \
+    --output-repo-id "jsw19/robotwin_${task}_v1"
+done
+```
+
+These per-task repo ids match the transfer launcher's default behavior when
+`TRANSFER_TASK` is set.
 
 Build paper-task metadata from the released task plan and hierarchical skill
 annotations:
@@ -266,6 +290,10 @@ the SkillNet policy server, connects the RoboTwin environment adapter to it,
 injects the same flat skill ids from
 `${SKILLNET_REPO_ROOT}/data_process/robotwin/robotwin_plan.json`, and writes
 per-task `episodes.jsonl` plus an aggregate `summary.json`.
+The wrapper validates `ROBOTWIN_ROOT`, `SKILL_PLAN`, and `CKPT_DIR` before
+starting evaluation, writes policy-server logs under
+`data/robotwin/server_logs/`, and waits for the server port to accept
+connections before launching the simulator adapter.
 
 Evaluate a single fine-tuned transfer checkpoint:
 

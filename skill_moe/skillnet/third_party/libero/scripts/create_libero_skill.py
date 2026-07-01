@@ -1,4 +1,9 @@
-"""This is a standalone file for create a task in libero."""
+"""Archival LIBERO-Skill task-generation script.
+
+This file is kept for provenance from the internal task-construction process.
+It is not required for public SkillNet reproduction. Use the checked-in bddl
+and init assets plus the `libero_skill_obj` 9-task manifest for evaluation.
+"""
 import os
 from pathlib import Path
 

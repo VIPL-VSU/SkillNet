@@ -13,7 +13,7 @@ fresh checkout.
 | Quick start and package smoke | Ready | `python scripts/check_public_release.py` and the lightweight `--install-smoke` pass in a fresh Python 3.10 environment; simulator/runtime dependency installs are checked separately on Linux. |
 | Skill hierarchy | Ready | Tokenization strategy, motion-code centers, annotation examples, and tokenizer CLI are included. |
 | LIBERO checkpoints | Ready | `jsw19/SkillNet-LIBERO-40` and `jsw19/SkillNet-LIBERO-90` are reachable with `--hub-smoke`. |
-| LIBERO-Skill benchmark files | Ready | The 9-task bddl/init/annotation contract is checked by `check_public_release.py`. |
+| LIBERO-Skill benchmark files | Ready | The 9-task manifest plus bddl/init/annotation contract are checked by `check_public_release.py`. |
 | RoboTwin few-shot source release | Ready | Data helpers, metadata, train launchers, evaluation adapter, and reported protocol are included. |
 
 ## Pending External Assets

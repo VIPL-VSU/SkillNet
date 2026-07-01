@@ -20,17 +20,27 @@ LIBERO_ENV_RESOLUTION = 256  # resolution used to render training data
 DEFAULT_SKILL_ANNOTATION_PATH = (
     pathlib.Path(__file__).resolve().parent / "annotations" / "libero_skill_obj_annotations.json"
 )
-EXPECTED_LIBERO_SKILL_TASKS = [
-    "LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket",
-    "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate",
-    "KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet",
-    "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate",
-    "KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave",
-    "KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet",
-    "KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave",
-    "KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove",
-    "KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave",
-]
+DEFAULT_LIBERO_SKILL_MANIFEST_PATH = (
+    pathlib.Path(__file__).resolve().parents[2]
+    / "third_party"
+    / "libero"
+    / "libero"
+    / "libero"
+    / "bddl_files"
+    / "libero_skill_obj"
+    / "public_task_manifest.json"
+)
+
+
+def _load_expected_libero_skill_tasks() -> list[str]:
+    manifest = json.loads(DEFAULT_LIBERO_SKILL_MANIFEST_PATH.read_text(encoding="utf-8"))
+    tasks = manifest.get("tasks")
+    if not isinstance(tasks, list) or not all(isinstance(task, str) for task in tasks):
+        raise ValueError(f"Invalid LIBERO-Skill manifest: {DEFAULT_LIBERO_SKILL_MANIFEST_PATH}")
+    return tasks
+
+
+EXPECTED_LIBERO_SKILL_TASKS = _load_expected_libero_skill_tasks()
 
 
 @dataclasses.dataclass

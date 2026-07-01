@@ -10,6 +10,7 @@ transfer.
 - `skill_moe/skillnet/`: SkillNet source tree for training and evaluation.
 - `skill_moe/skillnet/examples/libero/`: LIBERO and LIBERO-Skill evaluation entrypoints.
 - `skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/`: LIBERO-Skill task definitions.
+- `skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json`: public 9-task LIBERO-Skill manifest.
 - `skill_moe/skillnet/third_party/libero/libero/libero/init_files/libero_skill_obj/`: LIBERO-Skill initial-state files.
 - `data_process/skill_hierarchy/`: motion-code annotation, clustering, and tokenization utilities.
 - `data_process/libero/`: LIBERO-40 and LIBERO-90 source-download and LeRobot conversion scripts.
@@ -124,7 +125,9 @@ LIBERO-90 training and LIBERO-Skill zero-shot evaluation are documented in
 `docs/training_and_evaluation.md`. The released LIBERO-Skill benchmark files are
 included under the `bddl_files/libero_skill_obj` and
 `init_files/libero_skill_obj` directories inside
-`skill_moe/skillnet/third_party/libero/libero/libero/`.
+`skill_moe/skillnet/third_party/libero/libero/libero/`. The reported public
+benchmark task order is recorded in
+`bddl_files/libero_skill_obj/public_task_manifest.json`.
 
 ## 5. Few-Shot Transfer
 

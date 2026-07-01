@@ -243,6 +243,15 @@ third_party/libero/libero/libero/init_files/libero_skill_obj
 The LIBERO-Skill tasks live under the `libero_skill_obj` bddl/init-state folder.
 The public benchmark contains 9 tasks: the first task from `libero_10` followed
 by 8 skill-composition tasks.
+The authoritative machine-readable task order is:
+
+```bash
+third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json
+```
+
+The same folder also contains auxiliary candidate bddl files from benchmark
+construction. `tasks_info.txt` is an asset inventory for those bundled files;
+do not use it as the reported LIBERO-Skill evaluation list.
 The evaluation wrapper defaults to `libero_skill_obj` to avoid colliding with
 unrelated external benchmark names. The evaluator still accepts `libero_skill`
 when the installed LIBERO registers that key, but it validates that the

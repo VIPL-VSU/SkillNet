@@ -139,71 +139,16 @@ libero_task_map = {
         "STUDY_SCENE4_pick_up_the_book_on_the_right_and_place_it_on_the_cabinet_shelf",
         "STUDY_SCENE4_pick_up_the_book_on_the_right_and_place_it_under_the_cabinet_shelf",
     ],
-    # "libero_skill_obj": [
-    #     # "KITCHEN_SCENE1_open_the_bottom_drawer_of_the_cabinet_and_put_the_bowl_in_it",
-    #     # "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_in_it,_then_close_the_top_drawer",
-    #     # "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate", # 2
-    #     # "KITCHEN_SCENE1_open_the_bottom_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate",
-    #     # "KITCHEN_SCENE2_open_the_top_drawer_of_the_cabinet,_then_stack_the_black_bowl_at_the_front_on_the_black_bowl_in_the_middle",
-    #     # "KITCHEN_SCENE2_stack_the_black_bowl_at_the_front_on_the_black_bowl_in_the_middle,_then_stack_the_back_black_bowl_on_the_front_black_bowl",
-    #     # "KITCHEN_SCENE2_stack_the_back_black_bowl_on_the_front_black_bowl",
-    #     # "KITCHEN_SCENE3_turn_on_the_stove_and_put_the_moka_pot_on_it",
-    #     # "KITCHEN_SCENE4_put_the_black_bowl_on_the_wine_rack_and_close_the_bottom_drawer_of_the_cabinet",
-    #     # "KITCHEN_SCENE4_put_the_black_bowl_on_the_wine_rack_and_close_the_bottom_drawer_of_the_cabinet,_then_open_the_top_drawer_of_the_cabinet",
-    #     # "KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet", # 10
-    #     # "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate",
-    #     # "KITCHEN_SCENE5_put_the_black_bowl_in_the_top_drawer_of_the_cabinet_and_close_it",
-    #     # "KITCHEN_SCENE6_put_the_yellow_and_white_mug_in_the_microwave_and_close_the_microwave",
-    #     # "KITCHEN_SCENE6_close_the_microwave_and_put_the_white_and_yellow_mug_to_the_front_of_the_white_mug",
-    #     # "KITCHEN_SCENE7_open_the_microwave_and_put_the_white_bowl_on_the_plate",
-    #     # "KITCHEN_SCENE7_open_the_microwave_and_put_the_white_bowl_in_the_microwave",
-    #     # "KITCHEN_SCENE7_open_the_microwave_and_put_the_white_bowl_in_the_microwave,_then_close_the_microwave",
-    #     # "KITCHEN_SCENE8_put_the_right_moka_pot_on_the_stove_and_turn_off_the_stove",
-    #     # "KITCHEN_SCENE8_turn_off_the_stove_and_put_the_right_moka_pot_on_the_stove",
-    #     # "KITCHEN_SCENE9_turn_on_the_stove_and_put_the_white_bowl_on_the_stove",
-    #     # "KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave", # 21
-    #     # "KITCHEN_SCENE11_turn_off_the_stove_and_close_the_microwave",
-    #     # "KITCHEN_SCENE11_turn_off_the_stove_and_close_the_top_drawer_of_the_cabinet",
-    #     # "KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet", # 24
-    #     # "KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave", # 25
-    #     # "KITCHEN_SCENE13_open_the_microwave_and_put_the_black_bowl_on_the_plate", # 26
-    #     # 'KITCHEN_SCENE14_turn_off_the_stove_and_close_the_drawer_of_the_cabinet', # 27
-    #     # 'KITCHEN_SCENE14_close_the_drawer_of_the_cabinet_and_turn_off_the_stove', # 28
-    #     # 'KITCHEN_SCENE14_close_the_drawer_and_turn_off_the_stove', # 29
-    #     # 'KITCHEN_SCENE14_turn_off_the_stove_and_close_the_drawer',
-    #     # 'KITCHEN_SCENE12_close_the_microwave_and_put_the_black_bowl_on_the_plate', # 31
-    #     # 'KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave', # 32
-    #     # 'KITCHEN_SCENE13_put_the_chocolate_pudding_in_the_black_bowl_and_open_the_microwave', # 33
-    #     # 'KITCHEN_SCENE13_open_the_microwave_and_put_the_chocolate_pudding_in_the_black_bowl', # 34
-    #     # 'KITCHEN_SCENE13_put_the_chocolate_pudding_on_the_plate_and_open_the_microwave', # 35
-    #     # 'KITCHEN_SCENE13_open_the_microwave_and_put_the_chocolate_pudding_on_the_plate', # 36
-    #     ########################
-    #     # 'KITCHEN_SCENE15_turn_off_the_stove_and_close_the_drawer_of_the_cabinet', # 38
-    #     'KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove', # 39
-    #     # 'KITCHEN_SCENE15_close_the_drawer_and_turn_off_the_stove', # 
-    #     # 'KITCHEN_SCENE15_turn_off_the_stove_and_close_the_drawer', # 
-    # ],
-        "libero_skill_obj": [
+    "libero_skill_obj": [
         "LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket",
-        "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate", # 2
-        "KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet", # 10
-        "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate", # 11
-        "KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave", # 21
-        "KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet", # 24
-        "KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave", # 25
-        'KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove',  # 39
-        'KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave', # 32
+        "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate",
+        "KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet",
+        "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate",
+        "KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave",
+        "KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet",
+        "KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave",
+        "KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove",
+        "KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave",
     ],
-
-    # test
-    # KITCHEN_SCENE12_close_the_microwave_and_put_the_black_bowl_on_the_plate # 31
-    # KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave # 25
-    # KITCHEN_SCENE13_open_the_microwave_and_put_the_black_bowl_on_the_plate # 26
-    # KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave # 32
-    # KITCHEN_SCENE13_put_the_chocolate_pudding_in_the_black_bowl_and_open_the_microwave # 33
-    # KITCHEN_SCENE13_open_the_microwave_and_put_the_chocolate_pudding_in_the_black_bowl #  34
-    # KITCHEN_SCENE13_put_the_chocolate_pudding_on_the_plate_and_open_the_microwave # 35
-    # KITCHEN_SCENE13_open_the_microwave_and_put_the_chocolate_pudding_on_the_plate # 36
 }
-
 
