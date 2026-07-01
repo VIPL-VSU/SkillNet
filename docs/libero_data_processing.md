@@ -1,7 +1,8 @@
 # LIBERO Data Processing
 
 This note documents how the released SkillNet LIBERO training datasets are
-derived from the public RLDS sources and precomputed skill-slice annotations.
+derived from the public RLDS sources and the compact slice-index metadata
+included in this repository.
 
 ## What Was Verified
 
@@ -60,18 +61,17 @@ Release contract:
 - The public repository includes source downloaders, deterministic converters,
   instruction-to-plan maps, and schema checks.
 - Exact SkillNet training reproduction requires either accessible derived
-  LeRobot datasets with the repo ids above, or the precomputed skill-slice
-  metadata files listed below.
+  LeRobot datasets with the repo ids above, or a local rebuild using the
+  included compact slice-index metadata files listed below.
 - The RLDS source datasets alone are not enough to reconstruct the v1 training
   frames exactly, because frame-level skill boundaries are separate metadata.
-- If neither the derived LeRobot datasets nor equivalent skill-slice metadata
+- If neither the derived LeRobot datasets nor equivalent frame-boundary metadata
   are available in your environment, you can still inspect configs, run release
   smoke checks, and evaluate the published checkpoints after simulator setup,
   but you cannot exactly reproduce the LIBERO training datasets from RLDS alone.
 
-The conversion commands below are for rebuilding compatible datasets from RLDS
-sources. Exact frame-level reconstruction additionally requires the
-precomputed skill-slice metadata described in the next section.
+The conversion commands below rebuild compatible datasets from RLDS sources
+using the included slice-index metadata.
 
 Published v1 dataset sanity-check counts:
 
@@ -279,15 +279,27 @@ records reconstructed source episode ids, frame ranges, `class`, and
 from an existing LeRobot v1 dataset if needed:
 
 ```bash
+mkdir -p data/libero/slice_indices
+
 python data_process/libero/export_libero_skill_slices.py \
   "$LEROBOT_HOME/jsw19/libero_40_v1" \
   --repo-id jsw19/libero_40_v1 \
-  --output data/libero/libero40_slice_index.json
+  --output data/libero/slice_indices/libero40_slice_index.json
+
+python data_process/libero/export_libero_skill_slices.py \
+  "$LEROBOT_HOME/jsw19/libero_90_v1" \
+  --repo-id jsw19/libero_90_v1 \
+  --output data/libero/slice_indices/libero90_slice_index.json
 
 python data_process/libero/convert_libero_40_to_lerobot.py \
   --data-dir "$LIBERO40_RLDS_DIR" \
-  --slice-index data_process/libero/slice_indices/libero40_slice_index.json \
+  --slice-index data/libero/slice_indices/libero40_slice_index.json \
   --output-repo-id jsw19/libero_40_v1
+
+python data_process/libero/convert_libero_90_to_lerobot.py \
+  --data-dir "$LIBERO90_RLDS_DIR" \
+  --slice-index data/libero/slice_indices/libero90_slice_index.json \
+  --output-repo-id jsw19/libero_90_v1
 ```
 
 ## Released Scripts
@@ -389,10 +401,9 @@ tmux attach -t libero-data-process
 ## Current Reproduction Status
 
 Before conversion, confirm that the raw RLDS source directories and the two
-`*_plan_sliced.json` metadata files are present on your machine. If the
-skill-slice files live outside the default plan roots, pass that directory as
-`--plan-root` or link the files into the default locations before conversion.
-If you do not have those metadata files, use accessible copies of
+included slice-index JSON files are present. If you use legacy
+`*_plan_sliced.json` metadata instead, pass the directory with `--plan-root` or
+link the files into the default locations before conversion. If you have neither
+slice-index files nor legacy frame-boundary metadata, use accessible copies of
 `jsw19/libero_40_v1` and `jsw19/libero_90_v1` directly for training and
-evaluation, or request/recreate equivalent skill-slice metadata before
-conversion.
+evaluation, or recreate equivalent metadata before conversion.

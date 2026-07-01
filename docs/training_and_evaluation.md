@@ -84,14 +84,14 @@ The training configs use LeRobot-format LIBERO datasets:
 
 These are the canonical `repo_id` values expected by the released configs. If
 the derived dataset repos are not accessible from your Hugging Face account,
-build them locally from the public RLDS sources and the skill-slice metadata,
-then set `LEROBOT_HOME` so LeRobot can find the same `repo_id` layout. From this
-source root, `../../docs/libero_data_processing.md` documents the conversion
-workflow.
+build them locally from the public RLDS sources and the included compact
+slice-index metadata under `../../data_process/libero/slice_indices/`, then set
+`LEROBOT_HOME` so LeRobot can find the same `repo_id` layout. From this source
+root, `../../docs/libero_data_processing.md` documents the conversion workflow.
 
 Exact training reproduction needs accessible copies of those derived LeRobot
-datasets, or the `libero40_plan_sliced.json` and `libero90_plan_sliced.json`
-metadata needed by the public converter. RLDS source frames alone do not contain
+datasets, or a local rebuild using the included `libero40_slice_index.json` and
+`libero90_slice_index.json` files. RLDS source frames alone do not contain
 SkillNet's frame-level skill boundaries.
 
 Before training, each config needs normalization statistics under
@@ -225,10 +225,15 @@ for suite in libero_spatial libero_object libero_goal libero_10; do
   TASK_SUITE="${suite}" \
   SKILL_ANNOTATION_PATH=examples/libero/annotations/instruct2plan_40.json \
   NUM_TRIALS=50 \
+  ZERO_SHOT=0 \
   VIDEO_OUT_PATH="data/libero/videos/skillnet_libero40_${suite}" \
   bash examples/libero/run_eval_libero_skill_moe.sh
 done
 ```
+
+`ZERO_SHOT=0` keeps the standard in-domain LIBERO rollout budgets: 220 control
+steps for `libero_spatial`, 280 for `libero_object`, 300 for `libero_goal`, and
+520 for `libero_10`, plus 10 initial stabilization steps in the simulator.
 
 Expected outputs:
 
@@ -304,12 +309,14 @@ Override it with `SKILL_ANNOTATION_PATH` or the eval script argument
 `--skill-annotation-path` when testing another benchmark annotation file.
 
 `examples/libero/main_skill_obj_test_moe_skill.py` defaults to zero-shot mode.
-For LIBERO-Skill, the base rollout limit is 800 simulator steps; zero-shot mode
-doubles it to 1600.
+For LIBERO-Skill, the base rollout limit is 800 control steps; zero-shot mode
+doubles it to 1600 control steps, plus 10 initial stabilization steps in the
+simulator.
 The wrapper writes policy-server logs under `data/libero/server_logs/`, waits
 for the server port to become reachable, and passes `--fail-fast` by default.
 Set `FAIL_FAST=0` only when you intentionally want to keep evaluating after a
-rollout exception.
+rollout exception. Set `ZERO_SHOT=0` only for in-domain LIBERO evaluation or an
+ablation that intentionally uses the base rollout budget.
 
 The 9 registered LIBERO-Skill tasks are:
 

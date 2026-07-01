@@ -147,6 +147,11 @@ done
 These per-task repo ids match the transfer launcher's default behavior when
 `TRANSFER_TASK` is set.
 
+The `jsw19/robotwin_*_v1` values are LeRobot `repo_id` names for local datasets
+under `LEROBOT_HOME` or `HF_LEROBOT_HOME`. Set the same cache location before
+conversion and training. RoboTwin derived LeRobot datasets are generated locally
+in this release; they are not required to be publicly downloadable from Hub.
+
 Build paper-task metadata from the released task plan and hierarchical skill
 annotations:
 

@@ -126,7 +126,7 @@ See `docs/skill_hierarchy.md` and `data_process/skill_hierarchy/`.
 
 LIBERO data processing is documented in `docs/libero_data_processing.md`. The
 released converters build `jsw19/libero_40_v1` and `jsw19/libero_90_v1` from the
-public RLDS sources plus precomputed skill-slice annotations.
+public RLDS sources plus the included compact slice-index metadata.
 
 LIBERO-40 in-domain training and evaluation launch commands are documented in
 `docs/training_and_evaluation.md`.

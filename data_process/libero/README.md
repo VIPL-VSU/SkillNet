@@ -12,8 +12,8 @@ The released configs use `jsw19/libero_40_v1` and `jsw19/libero_90_v1` as the
 canonical LeRobot `repo_id` values. If those derived datasets are visible to
 your Hugging Face account, LeRobot can load them directly. If they are private
 or unavailable in your environment, rebuild compatible local datasets from RLDS
-sources when the additional skill-slice metadata is available, and keep the
-same repo_id layout under `LEROBOT_HOME`.
+sources with the included compact slice-index metadata, and keep the same
+repo_id layout under `LEROBOT_HOME`.
 
 Published v1 sanity-check counts are 40 tasks / 3,862 episodes for
 `libero_40_v1` and 73 tasks / 7,874 episodes for `libero_90_v1`.
@@ -33,11 +33,22 @@ scripts used the output name `jsw19/libero_90_obj`; the training configs expect
 The conversion expects two kinds of input:
 
 1. The downloaded TFDS/RLDS source data.
-2. Skill-slice metadata generated with the same schema as the SkillNet v1
+2. Frame-boundary metadata generated with the same schema as the SkillNet v1
    datasets.
 
-Set these paths for your machine. If omitted, the scripts default to
-`data/libero/...` under the current working directory:
+The public default metadata is the compact slice-index included in this
+directory:
+
+```text
+slice_indices/libero40_slice_index.json
+slice_indices/libero90_slice_index.json
+```
+
+Pass those files with `--slice-index` in the conversion commands below.
+
+Legacy `*_plan_sliced.json` files are still supported for custom or historical
+rebuilds. If omitted, the scripts default to `data/libero/...` under the current
+working directory:
 
 ```text
 $LIBERO40_RLDS_DIR
@@ -58,23 +69,24 @@ In that case, either pass `--plan-root "$PLAN_ROOT"` to the converter or
 copy/symlink the files into the corresponding plan-root directories.
 
 The two `*_plan_sliced.json` files are metadata inputs and are not produced by
-`download_libero_sources.py`. The public release also includes compact
-slice-index metadata exported from the v1 LeRobot datasets:
+`download_libero_sources.py`.
 
-```text
-slice_indices/libero40_slice_index.json
-slice_indices/libero90_slice_index.json
-```
-
-These files let the public converter rebuild the v1 frame labels from the RLDS
-source episode order without local absolute paths. If you need to regenerate
-them from an existing LeRobot v1 dataset, run:
+The included slice-index files let the public converter rebuild the v1 frame
+labels from the RLDS source episode order without local absolute paths. If you
+need to regenerate them from an existing LeRobot v1 dataset, run:
 
 ```bash
+mkdir -p data/libero/slice_indices
+
 python data_process/libero/export_libero_skill_slices.py \
   "$LEROBOT_HOME/jsw19/libero_40_v1" \
   --repo-id jsw19/libero_40_v1 \
-  --output data/libero/libero40_slice_index.json
+  --output data/libero/slice_indices/libero40_slice_index.json
+
+python data_process/libero/export_libero_skill_slices.py \
+  "$LEROBOT_HOME/jsw19/libero_90_v1" \
+  --repo-id jsw19/libero_90_v1 \
+  --output data/libero/slice_indices/libero90_slice_index.json
 ```
 
 The slice-index format stores reconstructed source episode order, frame ranges,

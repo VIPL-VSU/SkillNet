@@ -147,6 +147,18 @@ The pi0.5 base checkpoint path can be overridden with:
 export SKILLNET_PI05_BASE_PARAMS=checkpoints/pi05_base/params
 ```
 
+If your training machine can read the default remote asset
+`gs://openpi-assets/checkpoints/pi05_base/params`, no local mirror is required.
+To mirror it locally, use a GCS-capable tool and point SkillNet at the copied
+`params` directory:
+
+```bash
+mkdir -p checkpoints/pi05_base
+gcloud storage cp -r gs://openpi-assets/checkpoints/pi05_base/params checkpoints/pi05_base/
+export SKILLNET_PI05_BASE_PARAMS=checkpoints/pi05_base/params
+test -e "${SKILLNET_PI05_BASE_PARAMS}" && echo "pi0.5 base checkpoint is visible"
+```
+
 ## Public Release Check
 
 From the repository root, run the lightweight release check before installing
@@ -187,9 +199,12 @@ python scripts/check_public_release.py --hub-smoke
 This network check respects `HF_ENDPOINT` and intentionally does not use
 `HF_TOKEN` by default, so it checks what external users can read publicly. Add
 `--include-libero-derived-datasets` when you expect `jsw19/libero_40_v1` and
-`jsw19/libero_90_v1` to be publicly visible. Otherwise, rebuild them locally and
-keep the same repo_id layout under `LEROBOT_HOME`. Use `--hub-authenticated`
-only when checking private or staging assets.
+`jsw19/libero_90_v1` to be publicly visible. A plain `--hub-smoke` pass means
+the public checkpoints and source datasets are reachable; it does not prove that
+the derived LIBERO LeRobot datasets are public. If the derived dataset check is
+not expected to pass, rebuild them locally and keep the same repo_id layout
+under `LEROBOT_HOME`. Use `--hub-authenticated` only when checking private or
+staging assets.
 `docs/libero_data_processing.md` includes metadata verification and Hub
 publishing commands for those derived datasets.
 
@@ -293,6 +308,13 @@ python data_process/robotwin/convert_robotwin_to_lerobot.py \
   --tasks blocks_ranking_size \
   --output-repo-id jsw19/robotwin_blocks_ranking_size_v1
 ```
+
+The `jsw19/robotwin_*_v1` names above are local LeRobot `repo_id` values used
+by the released configs and launchers. Set `LEROBOT_HOME` or
+`HF_LEROBOT_HOME` before conversion if you want the datasets written to a
+specific cache, and keep the same value when training. These derived RoboTwin
+datasets are generated locally in this release rather than treated as public Hub
+download dependencies.
 
 RoboTwin few-shot training:
 

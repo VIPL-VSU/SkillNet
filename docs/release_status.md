@@ -22,8 +22,8 @@ fresh checkout.
 
 | Asset | Status | Why It Matters |
 | --- | --- | --- |
-| `jsw19/libero_40_v1` | Pending public dataset visibility | Direct LIBERO-40 training with the released config needs this LeRobot dataset or an equivalent local copy under `LEROBOT_HOME`. |
-| `jsw19/libero_90_v1` | Pending public dataset visibility | Direct LIBERO-90 training for LIBERO-Skill needs this LeRobot dataset or an equivalent local copy under `LEROBOT_HOME`. |
+| `jsw19/libero_40_v1` | Pending public dataset visibility | Direct Hub loading needs this LeRobot dataset to be public; users can also rebuild the same `repo_id` locally from public RLDS sources plus the included slice-index metadata. |
+| `jsw19/libero_90_v1` | Pending public dataset visibility | Direct Hub loading needs this LeRobot dataset to be public; users can also rebuild the same `repo_id` locally from public RLDS sources plus the included slice-index metadata. |
 | RoboTwin LeRobot datasets | Local-generation path documented | The release provides download/conversion scripts; checkpoint weights and derived task datasets are not published in this release. |
 | pi0.5 base checkpoint | External dependency | Training configs default to the public pi0.5 base checkpoint; mirror it locally and set `SKILLNET_PI05_BASE_PARAMS` if the default GCS asset is not reachable. |
 | LIBERO/RoboTwin simulators | External dependency | Evaluation requires working simulator installs outside this repository. `install_libero.sh` runs the repo-local LIBERO-Skill registration helper when possible; use `SKILLNET_REQUIRE_LIBERO=1` to make LIBERO registration failures fatal during setup. |

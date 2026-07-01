@@ -18,6 +18,7 @@ START_SERVER="${START_SERVER:-1}"
 SERVER_WAIT_SECONDS="${SERVER_WAIT_SECONDS:-60}"
 SERVER_LOG_PATH="${SERVER_LOG_PATH:-data/libero/server_logs/${CONFIG_NAME}_${PORT}.log}"
 FAIL_FAST="${FAIL_FAST:-1}"
+ZERO_SHOT="${ZERO_SHOT:-1}"
 
 if [[ -n "${PYTHON_BIN:-}" ]]; then
   read -r -a PYTHON_CMD <<< "${PYTHON_BIN}"
@@ -101,6 +102,11 @@ EVAL_ARGS=(
 )
 if [[ "${FAIL_FAST}" == "1" ]]; then
   EVAL_ARGS+=(--fail-fast)
+fi
+if [[ "${ZERO_SHOT}" == "0" || "${ZERO_SHOT}" == "false" || "${ZERO_SHOT}" == "False" ]]; then
+  EVAL_ARGS+=(--no-zero-shot)
+else
+  EVAL_ARGS+=(--zero-shot)
 fi
 
 "${PYTHON_CMD[@]}" "${EVAL_ARGS[@]}" "$@"
