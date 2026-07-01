@@ -28,7 +28,7 @@ Passed gates:
 
 ```bash
 python scripts/check_public_release.py --verbose
-python scripts/check_public_release.py --history-smoke --skip-help --verbose
+python scripts/check_public_release.py --history-smoke --skip-help --verbose  # full local branch: 28 commits scanned; shallow clone: 1 commit scanned
 python scripts/check_public_release.py --hub-smoke --skip-help --verbose --hub-retries 3 --hub-timeout 30
 python scripts/check_public_release.py --require-bash --skip-help --verbose
 python scripts/check_public_release.py --install-smoke --install-python /path/to/python --skip-help --verbose
@@ -37,7 +37,10 @@ python scripts/check_public_release.py --install-smoke --install-python /path/to
 The anonymous derived-dataset gate still fails for
 `jsw19/libero_40_v1` and `jsw19/libero_90_v1`, so direct LIBERO training from
 those Hub dataset ids remains pending until their visibility is changed or the
-datasets are mirrored under another public namespace.
+datasets are mirrored under another public namespace. The stricter
+`--include-derived-datasets` gate also fails for RoboTwin derived dataset ids;
+this is expected for the current source-code release because RoboTwin LeRobot
+datasets are generated locally rather than published as release assets.
 
 ## Pending External Assets
 
