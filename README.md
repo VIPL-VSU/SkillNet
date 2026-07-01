@@ -35,7 +35,9 @@ low-level package names are retained only so pi0.5-compatible checkpoints and
 policy clients load without conversion; public commands, environment variables,
 checkpoints, and documentation are organized as SkillNet workflows. See
 `docs/release_status.md` for the current release-readiness checklist, including
-the derived LeRobot dataset visibility gate for direct LIBERO training.
+the derived LeRobot dataset visibility gate for direct LIBERO training. The
+GitHub Actions release gate in `.github/workflows/release-check.yml` runs the
+same public checks on pushes and pull requests to the release branch.
 
 ## Experiments Covered
 

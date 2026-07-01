@@ -10,6 +10,7 @@ fresh checkout.
 | Area | Status | Evidence |
 | --- | --- | --- |
 | Fresh clone gate | Ready | A short-path fresh clone of `skillnet-public-release` passes `python scripts/check_public_release.py --verbose`, `--history-smoke --skip-help --verbose`, and `--hub-smoke --skip-help --verbose`. |
+| GitHub Actions release gate | Ready | `.github/workflows/release-check.yml` runs the static release check, history privacy scan, Bash syntax check, public Hub reachability check, and no-deps editable install smoke on pushes and pull requests for `skillnet-public-release`. |
 | Clean source history | Ready | `python scripts/check_public_release.py --history-smoke --skip-help` passes on the release branch. |
 | Quick start and package smoke | Ready | `python scripts/check_public_release.py` passes in a fresh checkout; the lightweight `--install-smoke` passes after the documented Python 3.10 and `uv` prerequisites are installed. Simulator/runtime dependency installs are checked separately on Linux. |
 | Skill hierarchy | Ready | Tokenization strategy, motion-code centers, annotation examples, and tokenizer CLI are included. |

@@ -28,6 +28,7 @@ REQUIRED_FILES = [
     "LICENSE",
     "NOTICE.md",
     "README.md",
+    ".github/workflows/release-check.yml",
     "docs/quick_start.md",
     "docs/release_status.md",
     "docs/skill_hierarchy.md",
@@ -469,6 +470,28 @@ CONFIG_FORBIDDEN_SNIPPETS = [
     ),
 ]
 
+WORKFLOW_EXPECTATIONS = [
+    (
+        ".github/workflows/release-check.yml",
+        [
+            "branches:",
+            "skillnet-public-release",
+            "fetch-depth: 0",
+            "python-version: \"3.10\"",
+            "python -m pip install --upgrade pip uv",
+            "python scripts/check_public_release.py --skip-help --verbose",
+            "python scripts/check_public_release.py --history-smoke --skip-help --verbose",
+            "python scripts/check_public_release.py --require-bash --skip-help --verbose",
+            "python scripts/check_public_release.py --hub-smoke --skip-help --verbose --hub-retries 3 --hub-timeout 30",
+            "--install-smoke",
+            "--install-python",
+            "$(python -c 'import sys; print(sys.executable)')",
+            "--skip-help",
+            "--verbose",
+        ],
+    ),
+]
+
 DOC_EXPECTATIONS = [
     (
         "README.md",
@@ -481,6 +504,8 @@ DOC_EXPECTATIONS = [
             "LIBERO-Skill task trajectories for training",
             "## 5. Few-Shot Transfer",
             "docs/release_status.md",
+            "GitHub Actions release gate",
+            ".github/workflows/release-check.yml",
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "git config core.longpaths true",
             "RoboTwin checkpoint",
@@ -547,6 +572,8 @@ DOC_EXPECTATIONS = [
         [
             "## Ready",
             "Fresh clone gate",
+            "GitHub Actions release gate",
+            ".github/workflows/release-check.yml",
             "short-path fresh clone",
             "git config core.longpaths true",
             "Record the exact git SHA",
@@ -1078,6 +1105,17 @@ def check_config_and_script_contracts(errors: list[str], *, verbose: bool) -> No
 
     if len(errors) == error_count:
         ok("public config/script/model contracts match documented release settings", verbose=verbose)
+
+
+def check_workflow_contracts(errors: list[str], *, verbose: bool) -> None:
+    error_count = len(errors)
+    for rel_path, snippets in WORKFLOW_EXPECTATIONS:
+        text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+        for snippet in snippets:
+            if snippet not in text:
+                fail(f"{rel_path}: missing expected workflow snippet: {snippet}", errors)
+    if len(errors) == error_count:
+        ok("GitHub Actions release workflow contract matches documented gates", verbose=verbose)
 
 
 def check_documentation_contracts(errors: list[str], *, verbose: bool) -> None:
@@ -1883,6 +1921,7 @@ def main() -> None:
     check_documentation_contracts(errors, verbose=args.verbose)
     check_release_surface_paths(errors, verbose=args.verbose)
     check_config_and_script_contracts(errors, verbose=args.verbose)
+    check_workflow_contracts(errors, verbose=args.verbose)
     check_skill_hierarchy_contract(errors, verbose=args.verbose)
     check_libero_annotation_contract(errors, verbose=args.verbose)
     check_libero_slice_index_contract(errors, verbose=args.verbose)
