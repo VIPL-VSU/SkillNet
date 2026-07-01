@@ -39,7 +39,9 @@ checkpoints, and documentation are organized as SkillNet workflows. See
 `docs/release_status.md` for the current release-readiness checklist, including
 the derived LeRobot dataset visibility gate for direct LIBERO training. The
 GitHub Actions release gate in `.github/workflows/release-check.yml` runs the
-same public checks on pushes and pull requests to the release branch.
+same public checks on pushes and pull requests to the release branch. GitHub
+repository settings that live outside this git tree are tracked in
+`docs/github_repository_setup.md`.
 
 ## Experiments Covered
 
