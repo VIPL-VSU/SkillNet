@@ -327,6 +327,7 @@ SCRIPT_EXPECTATIONS = [
             'CONFIG_NAME="${CONFIG_NAME:-pi05_libero_moe_skill_4_90}"',
             'TASK_SUITE="${TASK_SUITE:-libero_skill_obj}"',
             'SKILL_ANNOTATION_PATH="${SKILL_ANNOTATION_PATH:-examples/libero/annotations/libero_skill_obj_annotations.json}"',
+            'VIDEO_OUT_PATH="${VIDEO_OUT_PATH:-data/libero/videos/skillnet_libero_skill_obj}"',
             'SERVER_LOG_PATH="${SERVER_LOG_PATH:-data/libero/server_logs/${CONFIG_NAME}_${PORT}.log}"',
             'FAIL_FAST="${FAIL_FAST:-1}"',
             'ZERO_SHOT="${ZERO_SHOT:-1}"',
@@ -420,6 +421,9 @@ DOC_EXPECTATIONS = [
             "intentionally does not use",
             "--hub-authenticated",
             "docs/release_status.md",
+            'export LIBERO40_RLDS_DIR="${LIBERO40_RLDS_DIR:-$SKILLNET_LIBERO_DATA_ROOT/libero40_rlds}"',
+            "--expected-episodes 3862",
+            "--expected-episodes 7874",
             "SKILLNET_REQUIRE_LIBERO=1",
             "install_libero_skill_assets.py --install",
             "SKILLNET_SKIP_LIBERO_SKILL_ASSET_INSTALL",
@@ -443,6 +447,8 @@ DOC_EXPECTATIONS = [
             "jsw19/libero_40_v1",
             "jsw19/libero_90_v1",
             "--include-libero-derived-datasets",
+            "--expected-episodes 3862",
+            "--expected-episodes 7874",
             "HF_TOKEN",
             "HF_XET_HIGH_PERFORMANCE",
             "HfApi.upload_large_folder",
@@ -534,7 +540,11 @@ DOC_EXPECTATIONS = [
             "data/libero/server_logs/",
             "benchmark.get_benchmark_dict()",
             "RLDS source frames alone do not contain",
-            "flat `skills` field",
+            "class` and `all_classes",
+            "skills` and `skill_mask",
+            "--expected-episodes 3862",
+            "--expected-episodes 7874",
+            "skillnet_libero_skill_obj",
             "Expected outputs:",
         ],
     ),
@@ -1094,17 +1104,25 @@ def check_libero_slice_index_contract(errors: list[str], *, verbose: bool) -> No
     expectations = {
         "data_process/libero/slice_indices/libero40_slice_index.json": {
             "repo_id": "jsw19/libero_40_v1",
-            "episodes": 1693,
-            "segments": 3862,
+            "tasks": 40,
+            "source_episodes": 1693,
+            "lerobot_episodes": 3862,
             "frames": 273465,
         },
         "data_process/libero/slice_indices/libero90_slice_index.json": {
             "repo_id": "jsw19/libero_90_v1",
-            "episodes": 4006,
-            "segments": 7874,
+            "tasks": 73,
+            "source_episodes": 4006,
+            "lerobot_episodes": 7874,
             "frames": 574571,
         },
     }
+    verification_doc_paths = [
+        "docs/quick_start.md",
+        "docs/training_and_evaluation.md",
+        "docs/libero_data_processing.md",
+        "docs/release_status.md",
+    ]
     for rel_path, expected in expectations.items():
         payload = load_json(rel_path)
         if not isinstance(payload, dict):
@@ -1123,9 +1141,9 @@ def check_libero_slice_index_contract(errors: list[str], *, verbose: bool) -> No
         if not isinstance(episodes, list):
             fail(f"LIBERO slice-index episodes must be a list: {rel_path}", errors)
             continue
-        if payload.get("num_episodes") != len(episodes) or len(episodes) != expected["episodes"]:
+        if payload.get("num_episodes") != len(episodes) or len(episodes) != expected["source_episodes"]:
             fail(
-                f"LIBERO slice-index episode count mismatch in {rel_path}: "
+                f"LIBERO slice-index source episode count mismatch in {rel_path}: "
                 f"{payload.get('num_episodes')} / {len(episodes)}",
                 errors,
             )
@@ -1170,12 +1188,28 @@ def check_libero_slice_index_contract(errors: list[str], *, verbose: bool) -> No
                 break
             total_segments += len(segments)
             total_frames += int(episode["length"])
-        if total_segments != expected["segments"]:
+        if total_segments != expected["lerobot_episodes"]:
             fail(f"LIBERO slice-index segment count mismatch in {rel_path}: {total_segments}", errors)
         if total_frames != expected["frames"]:
             fail(f"LIBERO slice-index frame count mismatch in {rel_path}: {total_frames}", errors)
+        for doc_rel_path in verification_doc_paths:
+            doc_text = (REPO_ROOT / doc_rel_path).read_text(encoding="utf-8")
+            for snippet in [
+                f"$LEROBOT_HOME/{expected['repo_id']}",
+                f"--expected-tasks {expected['tasks']}",
+                f"--expected-episodes {expected['lerobot_episodes']}",
+                f"--expected-frames {expected['frames']}",
+                "--require-feature class",
+                "--require-feature all_classes",
+            ]:
+                if snippet not in doc_text:
+                    fail(
+                        f"{doc_rel_path}: missing LIBERO dataset verification snippet for "
+                        f"{expected['repo_id']}: {snippet}",
+                        errors,
+                    )
     if len(errors) == error_count:
-        ok("LIBERO compact slice-index metadata matches v1 release counts", verbose=verbose)
+        ok("LIBERO compact slice-index metadata and documented verification counts match", verbose=verbose)
 
 
 def check_robotwin_contract(errors: list[str], *, verbose: bool) -> None:

@@ -95,6 +95,25 @@ datasets, or a local rebuild using the included `libero40_slice_index.json` and
 `libero90_slice_index.json` files. RLDS source frames alone do not contain
 SkillNet's frame-level skill boundaries.
 
+Before launching training, verify that the derived datasets are present in the
+same local `repo_id` layout used by the configs:
+
+```bash
+python ../../scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_40_v1" \
+  --expected-tasks 40 \
+  --expected-episodes 3862 \
+  --expected-frames 273465 \
+  --require-feature class \
+  --require-feature all_classes
+
+python ../../scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_90_v1" \
+  --expected-tasks 73 \
+  --expected-episodes 7874 \
+  --expected-frames 574571 \
+  --require-feature class \
+  --require-feature all_classes
+```
+
 Before training, each config needs normalization statistics under
 `assets/<config_name>/<repo_id>/norm_stats.json`. The public launch scripts below
 compute the stats automatically if they are missing.
@@ -119,10 +138,12 @@ Skill annotations used by training and evaluation are included in SkillNet:
 
 The model receives integer skill ids plus a mask, for example
 `skills: (batch, 4)@int32` and `skill_mask: (batch, 4)@bool`. This is a sequence
-of up to four flat skill ids, not a one-hot vector. The hierarchy tokenizer in
-`docs/skill_hierarchy.md` publishes `[motion_cluster_id, verbnet_class_id,
+of up to four flat skill ids, not a one-hot vector. The LIBERO LeRobot datasets
+store frame labels as `class` and `all_classes`; the SkillNet transform converts
+them into model inputs named `skills` and `skill_mask`. The hierarchy tokenizer
+in `docs/skill_hierarchy.md` publishes `[motion_cluster_id, verbnet_class_id,
 verb_id]` metadata for hierarchy construction and analysis; the released LIBERO
-checkpoint configs use the flat `skills` field stored in the LeRobot datasets.
+checkpoint configs still consume the flat skill-id sequence.
 
 ## Released Checkpoints
 
@@ -287,7 +308,7 @@ CKPT_DIR=checkpoints/pi05_libero_moe_skill_4_90/moe_balance_4_32_90_20000/19999 
 SERVER_GPU=0 \
 PORT=8056 \
 NUM_TRIALS=50 \
-VIDEO_OUT_PATH=data/libero/videos/skill_moe_libero_skill_obj \
+VIDEO_OUT_PATH=data/libero/videos/skillnet_libero_skill_obj \
 bash examples/libero/run_eval_libero_skill_moe.sh
 ```
 

@@ -65,7 +65,7 @@ class Args:
     #################################################################################################################
     # Utils
     #################################################################################################################
-    video_out_path: str = "data/libero/videos/skill_moe_libero_skill_obj"
+    video_out_path: str = "data/libero/videos/skillnet_libero_skill_obj"
     skill_annotation_path: pathlib.Path = DEFAULT_SKILL_ANNOTATION_PATH
 
     seed: int = 7  # Random Seed (for reproducibility)

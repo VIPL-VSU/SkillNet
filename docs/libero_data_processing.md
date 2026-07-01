@@ -73,12 +73,17 @@ Release contract:
 The conversion commands below rebuild compatible datasets from RLDS sources
 using the included slice-index metadata.
 
-Published v1 dataset sanity-check counts:
+Published v1 LeRobot dataset sanity-check counts:
 
 | Dataset | Tasks | Episodes | Frames |
 | --- | --- | --- | --- |
 | `jsw19/libero_40_v1` | 40 | 3,862 | 273,465 |
 | `jsw19/libero_90_v1` | 73 | 7,874 | 574,571 |
+
+The compact slice-index JSON uses `num_episodes` for source RLDS episodes
+before skill slicing: 1,693 for LIBERO-40 and 4,006 for LIBERO-90. During
+conversion, each skill segment is saved as one LeRobot episode, so the final
+LeRobot episode counts are 3,862 and 7,874.
 
 ## Dataset Hub Publishing
 
@@ -338,6 +343,9 @@ On the project machine, activate the environment that contains `tensorflow_datas
 ```bash
 export http_proxy=http://<proxy-host>:<proxy-port>
 export https_proxy=http://<proxy-host>:<proxy-port>
+export SKILLNET_LIBERO_DATA_ROOT="${SKILLNET_LIBERO_DATA_ROOT:-data/libero}"
+export LIBERO40_RLDS_DIR="${LIBERO40_RLDS_DIR:-$SKILLNET_LIBERO_DATA_ROOT/libero40_rlds}"
+export LIBERO90_RLDS_DIR="${LIBERO90_RLDS_DIR:-$SKILLNET_LIBERO_DATA_ROOT/libero90_rlds}"
 
 python data_process/libero/download_libero_sources.py --dataset all
 ```

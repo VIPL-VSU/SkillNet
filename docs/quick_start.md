@@ -260,6 +260,10 @@ slice-index JSON, and the converter can consume it with `--slice-index`.
 
 ```bash
 cd "${SKILLNET_REPO_ROOT}"
+export SKILLNET_LIBERO_DATA_ROOT="${SKILLNET_LIBERO_DATA_ROOT:-data/libero}"
+export LIBERO40_RLDS_DIR="${LIBERO40_RLDS_DIR:-$SKILLNET_LIBERO_DATA_ROOT/libero40_rlds}"
+export LIBERO90_RLDS_DIR="${LIBERO90_RLDS_DIR:-$SKILLNET_LIBERO_DATA_ROOT/libero90_rlds}"
+
 python data_process/libero/download_libero_sources.py \
   --dataset all \
   --hf-endpoint https://hf-mirror.com
@@ -273,6 +277,20 @@ python data_process/libero/convert_libero_90_to_lerobot.py \
   --data-dir "$LIBERO90_RLDS_DIR" \
   --slice-index data_process/libero/slice_indices/libero90_slice_index.json \
   --output-repo-id jsw19/libero_90_v1
+
+python scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_40_v1" \
+  --expected-tasks 40 \
+  --expected-episodes 3862 \
+  --expected-frames 273465 \
+  --require-feature class \
+  --require-feature all_classes
+
+python scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_90_v1" \
+  --expected-tasks 73 \
+  --expected-episodes 7874 \
+  --expected-frames 574571 \
+  --require-feature class \
+  --require-feature all_classes
 ```
 
 LIBERO-40 training:
