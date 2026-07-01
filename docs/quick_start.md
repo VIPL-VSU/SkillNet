@@ -157,7 +157,8 @@ This network check respects `HF_ENDPOINT` and `HF_TOKEN`. Add
 `--include-derived-datasets` only when you expect the derived LeRobot output
 repo ids such as `jsw19/libero_40_v1` and `jsw19/libero_90_v1` to be visible
 from the current account. Otherwise, rebuild them locally and keep the same
-repo_id layout under `LEROBOT_HOME`.
+repo_id layout under `LEROBOT_HOME`. `docs/libero_data_processing.md` includes
+metadata verification and Hub publishing commands for those derived datasets.
 
 ## Smoke Checks
 

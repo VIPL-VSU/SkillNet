@@ -32,6 +32,8 @@ REQUIRED_FILES = [
     "docs/training_and_evaluation.md",
     "docs/libero_data_processing.md",
     "docs/robotwin_few_shot.md",
+    "scripts/verify_lerobot_dataset.py",
+    "scripts/publish_lerobot_dataset.py",
     "data_process/skill_hierarchy/tokenization_strategy.json",
     "data_process/skill_hierarchy/motion_code_clusters.json",
     "data_process/skill_hierarchy/motion_code_annotation_examples.jsonl",
@@ -64,12 +66,16 @@ PYTHON_FILES = [
     "data_process/robotwin/download_robotwin_sources.py",
     "data_process/robotwin/convert_robotwin_to_lerobot.py",
     "data_process/robotwin/build_robotwin_skill_metadata.py",
+    "scripts/verify_lerobot_dataset.py",
+    "scripts/publish_lerobot_dataset.py",
     "skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py",
 ]
 
 HELP_COMMANDS = [
     ["data_process/skill_hierarchy/skill_hierarchy_tokenizer.py", "--help"],
     ["data_process/libero/download_libero_sources.py", "--help"],
+    ["scripts/verify_lerobot_dataset.py", "--help"],
+    ["scripts/publish_lerobot_dataset.py", "--help"],
     ["data_process/robotwin/download_robotwin_sources.py", "--help"],
     ["data_process/robotwin/convert_robotwin_to_lerobot.py", "--help"],
     ["skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py", "--help"],
@@ -337,6 +343,8 @@ DOC_EXPECTATIONS = [
         [
             "Release contract:",
             "RLDS source datasets alone are not enough",
+            "scripts/verify_lerobot_dataset.py",
+            "scripts/publish_lerobot_dataset.py",
             "libero40_plan_sliced.json",
             "libero90_plan_sliced.json",
         ],

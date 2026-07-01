@@ -80,6 +80,62 @@ Published v1 dataset sanity-check counts:
 | `jsw19/libero_40_v1` | 40 | 3,862 | 273,465 |
 | `jsw19/libero_90_v1` | 73 | 7,874 | 574,571 |
 
+## Dataset Hub Publishing
+
+If you maintain the derived LeRobot datasets locally, verify the metadata before
+training or publishing:
+
+```bash
+python scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_40_v1" \
+  --expected-tasks 40 \
+  --expected-episodes 3862 \
+  --expected-frames 273465 \
+  --require-feature class \
+  --require-feature all_classes
+
+python scripts/verify_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_90_v1" \
+  --expected-tasks 73 \
+  --expected-episodes 7874 \
+  --expected-frames 574571 \
+  --require-feature class \
+  --require-feature all_classes
+```
+
+To publish the datasets to Hugging Face Hub, install `huggingface_hub`, set
+`HF_TOKEN` in the shell environment, and run a dry run first:
+
+```bash
+python scripts/publish_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_40_v1" \
+  --repo-id jsw19/libero_40_v1 \
+  --expected-tasks 40 \
+  --expected-episodes 3862 \
+  --expected-frames 273465 \
+  --require-feature class \
+  --require-feature all_classes \
+  --dry-run
+
+python scripts/publish_lerobot_dataset.py "$LEROBOT_HOME/jsw19/libero_90_v1" \
+  --repo-id jsw19/libero_90_v1 \
+  --expected-tasks 73 \
+  --expected-episodes 7874 \
+  --expected-frames 574571 \
+  --require-feature class \
+  --require-feature all_classes \
+  --dry-run
+```
+
+Remove `--dry-run` to upload. The script reads the token from `HF_TOKEN`; do not
+put tokens into command lines, scripts, or repository files. After publishing,
+run:
+
+```bash
+python scripts/check_public_release.py --hub-smoke --include-derived-datasets
+```
+
+The strict Hub check should pass for `jsw19/libero_40_v1` and
+`jsw19/libero_90_v1` before claiming that external users can train directly
+from the released configs.
+
 LIBERO-40 uses:
 
 ```text
