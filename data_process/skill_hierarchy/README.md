@@ -2,7 +2,12 @@
 
 This directory contains the public SkillNet skill hierarchy tokenizer. It turns
 short manipulation subtasks such as `pick red block` into hierarchical skill
-tokens used by SkillNet.
+tokens for SkillNet hierarchy construction and analysis.
+
+The released LIBERO and RoboTwin training configs consume flat integer `skills`
+sequences plus masks. Do not replace those flat fields with the three-level
+`[motion_cluster_id, verbnet_class_id, verb_id]` tokens unless you also update
+the model input contract.
 
 ## Files
 

@@ -41,6 +41,8 @@ Install these command-line tools before the workflows below:
 - `git` for cloning the repository.
 - `uv` for creating the local environment and installing editable packages.
 - Hugging Face Hub CLI (`hf`) for checkpoint and dataset downloads.
+- Optional Google Cloud SDK (`gcloud`) if you want to mirror the pi0.5 base
+  checkpoint locally instead of reading the default GCS asset at training time.
 
 For example:
 
@@ -127,9 +129,11 @@ export MUJOCO_GL=glx
 
 ## Checkpoints
 
-Download released SkillNet checkpoints:
+Download released SkillNet checkpoints from the runnable SkillNet source root:
 
 ```bash
+cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
+
 hf download jsw19/SkillNet-LIBERO-40 \
   --local-dir checkpoints/pi05_libero_moe_skill_4_40/moe_add_balance_4_128_30000/29999
 
@@ -155,6 +159,7 @@ To mirror it locally, use a GCS-capable tool and point SkillNet at the copied
 `params` directory:
 
 ```bash
+cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
 mkdir -p checkpoints/pi05_base
 gcloud storage cp -r gs://openpi-assets/checkpoints/pi05_base/params checkpoints/pi05_base/
 export SKILLNET_PI05_BASE_PARAMS=checkpoints/pi05_base/params
@@ -178,7 +183,8 @@ See `docs/release_status.md` for the current release-readiness checklist and
 external asset gates.
 
 To additionally test editable package metadata in a temporary Python 3.10
-environment without downloading heavyweight runtime dependencies:
+environment without downloading heavyweight runtime dependencies, run the
+no-deps install smoke:
 
 ```bash
 python scripts/check_public_release.py --install-smoke

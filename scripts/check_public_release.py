@@ -38,6 +38,7 @@ REQUIRED_FILES = [
     "scripts/publish_lerobot_dataset.py",
     "data_process/skill_hierarchy/README.md",
     "data_process/skill_hierarchy/tokenization_strategy.json",
+    "data_process/skill_hierarchy/skill_graph_example.json",
     "data_process/skill_hierarchy/motion_code_clusters.json",
     "data_process/skill_hierarchy/motion_code_annotation_examples.jsonl",
     "data_process/libero/instruct2plan_40.json",
@@ -409,6 +410,9 @@ DOC_EXPECTATIONS = [
             "Command blocks in this guide use Bash syntax",
             "On Windows, use WSL",
             ".venv/Scripts/activate",
+            "Optional Google Cloud SDK",
+            "Download released SkillNet checkpoints from the runnable SkillNet source root",
+            "no-deps install smoke",
             "python scripts/check_public_release.py --hub-smoke",
             "--install-python /path/to/python3.10",
             "gcloud storage cp -r gs://openpi-assets/checkpoints/pi05_base/params",
@@ -444,6 +448,8 @@ DOC_EXPECTATIONS = [
             "HfApi.upload_large_folder",
             "data_process/libero/dataset_cards/",
             "--strict-parquet",
+            "--require-bash",
+            "no-deps editable metadata check",
             "--install-python /path/to/python3.10",
             "update_repo_settings",
             "private=False",
@@ -472,6 +478,9 @@ DOC_EXPECTATIONS = [
         "data_process/skill_hierarchy/README.md",
         [
             "Skill Hierarchy Tokenization",
+            "flat integer `skills`",
+            "model input contract",
+            "skill_graph_example.json",
             "motion_code_clusters.json",
             "motion_code_annotation_examples.jsonl",
             "OpenAI-compatible endpoint",
@@ -614,7 +623,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--install-smoke",
         action="store_true",
-        help="Create a temporary venv and install the SkillNet packages with --no-deps.",
+        help="Create a temporary venv and run a --no-deps editable package metadata smoke.",
     )
     parser.add_argument("--install-python", default="3.10", help="Python version or executable for --install-smoke.")
     parser.add_argument(
@@ -626,6 +635,11 @@ def parse_args() -> argparse.Namespace:
         "--history-smoke",
         action="store_true",
         help="Scan commits reachable from HEAD for private paths, tokens, and release-blocking names.",
+    )
+    parser.add_argument(
+        "--require-bash",
+        action="store_true",
+        help="Fail when bash is unavailable for shell-script syntax checks.",
     )
     parser.add_argument(
         "--include-derived-datasets",
@@ -669,6 +683,11 @@ def ok(message: str, *, verbose: bool = True) -> None:
         print(f"[ OK ] {message}")
 
 
+def skip(message: str, *, verbose: bool = True) -> None:
+    if verbose:
+        print(f"[SKIP] {message}")
+
+
 def check_required_files(errors: list[str], *, verbose: bool) -> None:
     for rel_path in REQUIRED_FILES:
         path = REPO_ROOT / rel_path
@@ -681,6 +700,7 @@ def check_required_files(errors: list[str], *, verbose: bool) -> None:
 def check_json_files(errors: list[str], *, verbose: bool) -> None:
     json_paths = [
         "data_process/skill_hierarchy/tokenization_strategy.json",
+        "data_process/skill_hierarchy/skill_graph_example.json",
         "data_process/skill_hierarchy/motion_code_clusters.json",
         "data_process/libero/instruct2plan_40.json",
         "data_process/libero/instruct2plan_90.json",
@@ -892,6 +912,47 @@ def check_skill_hierarchy_contract(errors: list[str], *, verbose: bool) -> None:
         }
         if center_map != MOTION_CODE_CENTERS:
             fail("Skill hierarchy motion-code centers do not match the released contract", errors)
+
+    graph = load_json("data_process/skill_hierarchy/skill_graph_example.json")
+    if not isinstance(graph, dict) or not graph:
+        fail("Skill hierarchy skill_graph_example.json must be a non-empty JSON object", errors)
+    else:
+        for cluster_name, verbnet_map in graph.items():
+            if not isinstance(cluster_name, str) or not cluster_name.startswith("cluster_"):
+                fail(f"Skill hierarchy example graph has invalid cluster key: {cluster_name!r}", errors)
+                break
+            if not isinstance(verbnet_map, dict) or not verbnet_map:
+                fail(f"Skill hierarchy example graph cluster must map to a non-empty object: {cluster_name}", errors)
+                break
+            for verbnet_class, verb_map in verbnet_map.items():
+                if not isinstance(verbnet_class, str) or not isinstance(verb_map, dict) or not verb_map:
+                    fail(
+                        "Skill hierarchy example graph VerbNet level must be a non-empty object: "
+                        f"{cluster_name}/{verbnet_class!r}",
+                        errors,
+                    )
+                    break
+                for verb, examples in verb_map.items():
+                    if not isinstance(verb, str) or not isinstance(examples, list) or not examples:
+                        fail(
+                            "Skill hierarchy example graph verb level must contain examples: "
+                            f"{cluster_name}/{verbnet_class}/{verb!r}",
+                            errors,
+                        )
+                        break
+                    first_example = examples[0]
+                    if (
+                        not isinstance(first_example, list)
+                        or len(first_example) != 2
+                        or not isinstance(first_example[0], str)
+                        or not isinstance(first_example[1], list)
+                    ):
+                        fail(
+                            "Skill hierarchy example graph examples must be [text, metadata] pairs: "
+                            f"{cluster_name}/{verbnet_class}/{verb}",
+                            errors,
+                        )
+                        break
 
     examples_path = REPO_ROOT / "data_process/skill_hierarchy/motion_code_annotation_examples.jsonl"
     rows = [json.loads(line) for line in examples_path.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -1273,10 +1334,14 @@ def check_help_commands(errors: list[str], *, verbose: bool) -> None:
             ok(f"help works: python {' '.join(command)}", verbose=verbose)
 
 
-def check_shell_syntax(errors: list[str], *, verbose: bool) -> None:
+def check_shell_syntax(errors: list[str], *, verbose: bool, require_bash: bool) -> None:
     bash = shutil.which("bash")
     if bash is None:
-        ok("bash not found; skipping shell syntax checks", verbose=verbose)
+        message = "bash not found; skipping shell syntax checks"
+        if require_bash:
+            fail(message + " (--require-bash set)", errors)
+        else:
+            skip(message, verbose=verbose)
         return
     shell_files = tracked_files(".sh", SHELL_FILES)
     for rel_path in shell_files:
@@ -1511,7 +1576,7 @@ def main() -> None:
     check_python_compile(errors, verbose=args.verbose)
     if not args.skip_help:
         check_help_commands(errors, verbose=args.verbose)
-    check_shell_syntax(errors, verbose=args.verbose)
+    check_shell_syntax(errors, verbose=args.verbose, require_bash=args.require_bash)
     check_sensitive_patterns(errors, verbose=args.verbose)
     if args.history_smoke:
         check_history_sensitive_patterns(errors, verbose=args.verbose)
