@@ -45,19 +45,22 @@ gate for direct LIBERO training.
 - LIBERO-90 Skill-MoE training and LIBERO-Skill zero-shot evaluation.
 - RoboTwin-2.0 few-shot transfer protocol, data preparation, training launchers, and simulator-side evaluation adapter.
 
-| Track | Config | Dataset | Checkpoint |
-| --- | --- | --- | --- |
-| LIBERO-40 | `pi05_libero_moe_skill_4_40` | `jsw19/libero_40_v1` | [`jsw19/SkillNet-LIBERO-40`](https://huggingface.co/jsw19/SkillNet-LIBERO-40) |
-| LIBERO-90 to LIBERO-Skill | `pi05_libero_moe_skill_4_90` | `jsw19/libero_90_v1` | [`jsw19/SkillNet-LIBERO-90`](https://huggingface.co/jsw19/SkillNet-LIBERO-90) |
-| RoboTwin pretraining | `pi05_robotwin_moe_skill_pretrain` | `jsw19/robotwin_pretrain_v1` | Train locally |
-| RoboTwin per-task few-shot transfer | `pi05_robotwin_moe_skill_transfer` | `jsw19/robotwin_<task>_v1` | Train locally from the RoboTwin pretraining checkpoint |
+| Track | Config | Dataset | Asset status | Checkpoint |
+| --- | --- | --- | --- | --- |
+| LIBERO-40 | `pi05_libero_moe_skill_4_40` | `jsw19/libero_40_v1` | Derived LeRobot dataset; direct Hub visibility is checked separately | [`jsw19/SkillNet-LIBERO-40`](https://huggingface.co/jsw19/SkillNet-LIBERO-40) |
+| LIBERO-90 to LIBERO-Skill | `pi05_libero_moe_skill_4_90` | `jsw19/libero_90_v1` | Derived LeRobot dataset; direct Hub visibility is checked separately | [`jsw19/SkillNet-LIBERO-90`](https://huggingface.co/jsw19/SkillNet-LIBERO-90) |
+| RoboTwin pretraining | `pi05_robotwin_moe_skill_pretrain` | `jsw19/robotwin_pretrain_v1` | Generate locally from RoboTwin-2.0 sources | Train locally |
+| RoboTwin per-task few-shot transfer | `pi05_robotwin_moe_skill_transfer` | `jsw19/robotwin_<task>_v1` | Generate one per-task dataset locally | Train locally from the RoboTwin pretraining checkpoint |
 
 The dataset names are the canonical LeRobot `repo_id` values used by the
 released configs. LIBERO checkpoint weights are published; RoboTwin checkpoint
 weights are not part of this release and should be trained from the included
-configs. If derived datasets are not accessible from your Hugging Face account,
-rebuild them locally with the converters under `data_process/` and point
-`LEROBOT_HOME` at the directory containing the same `repo_id` layout.
+configs. Direct LIBERO training requires either public access to the derived
+LeRobot datasets above or a local rebuild from the public RLDS sources plus the
+skill-slice metadata documented in `docs/libero_data_processing.md`. The plain
+`--hub-smoke` check verifies checkpoints and source datasets; add
+`--include-libero-derived-datasets` only when those derived LIBERO datasets
+should be publicly visible.
 
 ## 1. Quick Start
 

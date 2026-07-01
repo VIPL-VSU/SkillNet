@@ -319,9 +319,10 @@ source-dataset Hub links:
 python scripts/check_public_release.py --hub-smoke
 ```
 
-Use `--include-derived-datasets` only when the derived LeRobot dataset repos are
-expected to be accessible from the current account. A 401/403 result for those
-derived datasets means you should rebuild them locally or request access.
+Use `--include-libero-derived-datasets` only when the derived LIBERO LeRobot
+dataset repos are expected to be accessible from the current account. A 401/403
+result for those derived datasets means you should rebuild them locally or
+request access.
 
 Convert LIBERO-40:
 

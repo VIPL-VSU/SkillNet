@@ -42,6 +42,15 @@ released tokenizer. A small public graph with the same schema is included at
 for testing the strategy builder; it is not intended to regenerate the full
 released strategy exactly.
 
+The released LIBERO and RoboTwin training configs consume flat integer skill-id
+sequences plus masks, because that is the format stored in the public LeRobot
+datasets and expected by the released Skill-MoE checkpoints. The hierarchical
+`[motion_cluster_id, verbnet_class_id, verb_id]` tokens in this document are
+provided as the public hierarchy-construction path and as metadata for analysis
+and hierarchy-token experiments; do not replace the flat `skills` field in the
+released configs with this three-token tuple unless you also update the model
+input contract.
+
 ## Motion Code
 
 The 6-digit code describes:

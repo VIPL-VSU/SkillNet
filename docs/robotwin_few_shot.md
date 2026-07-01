@@ -245,6 +245,12 @@ The released config names are:
 | Pretrain | `pi05_robotwin_moe_skill_pretrain` | `jsw19/robotwin_pretrain_v1` |
 | Transfer | `pi05_robotwin_moe_skill_transfer` | `jsw19/robotwin_transfer_v1` |
 
+`jsw19/robotwin_transfer_v1` is the aggregate transfer default for smoke runs
+or local experiments. The paper-style few-shot setup fine-tunes one checkpoint
+per held-out task; set `TRANSFER_TASK` so the launcher switches the dataset id
+to `jsw19/robotwin_${TRANSFER_TASK}_v1` and keeps normalization assets aligned
+with that task.
+
 The pi0.5 base checkpoint is controlled by `SKILLNET_PI05_BASE_PARAMS`.
 Transfer initialization is controlled by
 `SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS`. The transfer launcher requires this

@@ -1,4 +1,4 @@
-﻿"""See _CONFIGS for the list of available configs."""
+"""See _CONFIGS for the list of available configs."""
 
 import abc
 from collections.abc import Sequence
@@ -8,7 +8,6 @@ import logging
 import os
 import pathlib
 from typing import Any, Literal, Protocol, TypeAlias
-import jax.numpy as jnp
 import etils.epath as epath
 import flax.nnx as nnx
 from typing_extensions import override
@@ -16,7 +15,6 @@ import tyro
 
 import openpi.models.model as _model
 import openpi.models.pi0_config_moe_skill as pi0_config
-import openpi.models.pi0_fast as pi0_fast
 import openpi.models.tokenizer as _tokenizer
 import openpi.policies.aloha_policy as aloha_policy
 import openpi.policies.droid_policy as droid_policy
@@ -26,7 +24,6 @@ import openpi.policies.robotwin_policy as robotwin_policy
 import openpi.shared.download as _download
 import openpi.shared.normalize as _normalize
 import openpi.training.droid_rlds_dataset as droid_rlds_dataset
-import openpi.training.misc.roboarena_config as roboarena_config
 import openpi.training.optimizer as _optimizer
 import openpi.training.weight_loaders as weight_loaders
 import openpi.transforms as _transforms
@@ -738,210 +735,15 @@ class TrainConfig:
 
 
 # Use `get_config` if you need to get a config by name in your code.
+# Only the public SkillNet reproduction configs are exposed through cli()/get_config().
+_PUBLIC_CONFIG_NAMES = (
+    "pi05_libero_moe_skill_4_40",
+    "pi05_libero_moe_skill_4_90",
+    "pi05_robotwin_moe_skill_pretrain",
+    "pi05_robotwin_moe_skill_transfer",
+)
+
 _CONFIGS = [
-    #
-    # Inference Aloha configs.
-    #
-    TrainConfig(
-        name="pi0_aloha",
-        model=pi0_config.Pi0Config(),
-        data=LeRobotAlohaDataConfig(
-            assets=AssetsConfig(asset_id="trossen"),
-        ),
-        policy_metadata={"reset_pose": [0, -1.5, 1.5, 0, 0, 0]},
-    ),
-    TrainConfig(
-        name="pi05_aloha",
-        model=pi0_config.Pi0Config(pi05=True),
-        data=LeRobotAlohaDataConfig(
-            assets=AssetsConfig(asset_id="trossen"),
-        ),
-        policy_metadata={"reset_pose": [0, -1.5, 1.5, 0, 0, 0]},
-    ),
-    TrainConfig(
-        name="pi0_aloha_towel",
-        model=pi0_config.Pi0Config(),
-        data=LeRobotAlohaDataConfig(
-            assets=AssetsConfig(asset_id="trossen"),
-            default_prompt="fold the towel",
-        ),
-        policy_metadata={"reset_pose": [0, -1.5, 1.5, 0, 0, 0]},
-    ),
-    TrainConfig(
-        name="pi0_aloha_tupperware",
-        model=pi0_config.Pi0Config(),
-        data=LeRobotAlohaDataConfig(
-            assets=AssetsConfig(asset_id="trossen"),
-            default_prompt="open the tupperware and put the food on the plate",
-        ),
-        policy_metadata={"reset_pose": [0, -1.5, 1.5, 0, 0, 0]},
-    ),
-    #
-    # Inference DROID configs.
-    #
-    TrainConfig(
-        name="pi0_droid",
-        model=pi0_config.Pi0Config(action_horizon=10),
-        data=SimpleDataConfig(
-            assets=AssetsConfig(asset_id="droid"),
-            data_transforms=lambda model: _transforms.Group(
-                inputs=[droid_policy.DroidInputs(model_type=ModelType.PI0)],
-                outputs=[droid_policy.DroidOutputs()],
-            ),
-            base_config=DataConfig(
-                prompt_from_task=True,
-            ),
-        ),
-    ),
-    TrainConfig(
-        name="pi0_fast_droid",
-        model=pi0_fast.Pi0FASTConfig(action_dim=8, action_horizon=10),
-        data=SimpleDataConfig(
-            assets=AssetsConfig(asset_id="droid"),
-            data_transforms=lambda model: _transforms.Group(
-                inputs=[droid_policy.DroidInputs(model_type=ModelType.PI0_FAST)],
-                outputs=[droid_policy.DroidOutputs()],
-            ),
-            base_config=DataConfig(
-                prompt_from_task=True,
-            ),
-        ),
-    ),
-    TrainConfig(
-        name="pi05_droid",
-        model=pi0_config.Pi0Config(action_horizon=15, pi05=True),
-        data=SimpleDataConfig(
-            assets=AssetsConfig(asset_id="droid"),
-            data_transforms=lambda model: _transforms.Group(
-                inputs=[droid_policy.DroidInputs(model_type=ModelType.PI05)],
-                outputs=[droid_policy.DroidOutputs()],
-            ),
-            base_config=DataConfig(
-                prompt_from_task=True,
-            ),
-        ),
-    ),
-    #
-    # Fine-tuning Libero configs.
-    #
-    # These train configs define the hyperparameters for fine-tuning the base model on your own dataset.
-    # They are used to define key elements like the dataset you are training on, the base checkpoint you
-    # are using, and other hyperparameters like how many training steps to run or what learning rate to use.
-    # For your own dataset, you can copy this class and modify the dataset name, and data transforms based on
-    # the comments below.
-    TrainConfig(
-        # Change the name to reflect your model and dataset.
-        name="pi0_libero",
-        # Here you define the model config -- In this example we use pi0 as the model
-        # architecture and perform *full* finetuning. in the examples below we show how to modify
-        # this to perform *low-memory* (LORA) finetuning and use pi0-FAST as an alternative architecture.
-        model=pi0_config.Pi0Config(),
-        # Here you define the dataset you are training on. In this example we use the Libero
-        # dataset. For your own dataset, you can change the repo_id to point to your dataset.
-        # Also modify the DataConfig to use the new config you made for your dataset above.
-        data=LeRobotLiberoDataConfig(
-            repo_id="physical-intelligence/libero",
-            base_config=DataConfig(
-                # This flag determines whether we load the prompt (i.e. the task instruction) from the
-                # ``task`` field in the LeRobot dataset. If set to True, the prompt will show up in
-                # a field called ``prompt`` in the input dict. The recommended setting is True.
-                prompt_from_task=True,
-            ),
-            extra_delta_transform=True,
-        ),
-        # Here you define which pre-trained checkpoint you want to load to initialize the model.
-        # This should match the model config you chose above -- i.e. in this case we use the pi0 base model.
-        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
-        # Below you can define other hyperparameters like the learning rate, number of training steps, etc.
-        # Check the base TrainConfig class for a full list of available hyperparameters.
-        num_train_steps=30_000,
-    ),
-    TrainConfig(
-        name="pi0_libero_low_mem_finetune",
-        # Here is an example of loading a pi0 model for LoRA fine-tuning.
-        model=pi0_config.Pi0Config(paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"),
-        data=LeRobotLiberoDataConfig(
-            repo_id="physical-intelligence/libero",
-            base_config=DataConfig(prompt_from_task=True),
-            extra_delta_transform=True,
-        ),
-        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
-        num_train_steps=30_000,
-        # The freeze filter defines which parameters should be frozen during training.
-        # We have a convenience function in the model config that returns the default freeze filter
-        # for the given model config for LoRA finetuning. Just make sure it matches the model config
-        # you chose above.
-        freeze_filter=pi0_config.Pi0Config(
-            paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"
-        ).get_freeze_filter(),
-        # Turn off EMA for LoRA finetuning.
-        ema_decay=None,
-    ),
-    TrainConfig(
-        name="pi05_libero",
-        model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False),
-        data=LeRobotLiberoDataConfig(
-            repo_id="physical-intelligence/libero",
-            base_config=DataConfig(prompt_from_task=True),
-            extra_delta_transform=False,
-        ),
-        batch_size=256,
-        lr_schedule=_optimizer.CosineDecaySchedule(
-            warmup_steps=10_000,
-            peak_lr=5e-5,
-            decay_steps=1_000_000,
-            decay_lr=5e-5,
-        ),
-        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0),
-        ema_decay=0.999,
-        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
-        pytorch_weight_path="checkpoints/pi05_base/pytorch_weights",
-        num_train_steps=30_000,
-    ),
-    TrainConfig(
-        name="pi05_libero_moe",
-        model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False, paligemma_variant="gemma_2b", action_expert_variant="gemma_300m_moe"),
-        data=LeRobotLiberoDataConfig(
-            repo_id="jsw19/libero_subtask_gen",
-            base_config=DataConfig(prompt_from_task=True),
-            extra_delta_transform=False,
-        ),
-        batch_size=16,
-        lr_schedule=_optimizer.CosineDecaySchedule(
-            warmup_steps=10_000,
-            peak_lr=5e-5,
-            decay_steps=1_000_000,
-            decay_lr=5e-5,
-        ),
-        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0,
-        b1=0.9,
-        b2=0.95),
-        ema_decay=0.99,
-        weight_loader=weight_loaders.CheckpointWeightLoader_MoE(PI05_BASE_PARAMS),
-        num_train_steps=30_000,
-    ),
-    TrainConfig(
-        name="pi05_libero_moe_4",
-        model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False, paligemma_variant="gemma_2b", action_expert_variant="gemma_300m_moe_4"),
-        data=LeRobotLiberoDataConfig(
-            repo_id="jsw19/libero_subtask_gen",
-            base_config=DataConfig(prompt_from_task=True),
-            extra_delta_transform=False,
-        ),
-        batch_size=32,
-        lr_schedule=_optimizer.CosineDecaySchedule(
-            warmup_steps=10_000,
-            peak_lr=5e-5,
-            decay_steps=1_000_000,
-            decay_lr=5e-5,
-        ),
-        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0,
-        b1=0.9,
-        b2=0.95),
-        ema_decay=0.99,
-        weight_loader=weight_loaders.CheckpointWeightLoader_MoE(PI05_BASE_PARAMS),
-        num_train_steps=30_000,
-    ),
     TrainConfig(
         name="pi05_libero_moe_skill_4_40",
         model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False, paligemma_variant="gemma_2b", action_expert_variant="gemma_300m_moe_4"),
@@ -957,9 +759,7 @@ _CONFIGS = [
             decay_steps=30_000,
             decay_lr=5.0e-6,
         ),
-        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0,
-        b1=0.9,
-        b2=0.95),
+        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0, b1=0.9, b2=0.95),
         ema_decay=0.999,
         weight_loader=weight_loaders.CheckpointWeightLoader_MoE(PI05_BASE_PARAMS),
         num_train_steps=30_000,
@@ -979,31 +779,7 @@ _CONFIGS = [
             decay_steps=20_000,
             decay_lr=2.5e-6,
         ),
-        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0,
-        b1=0.9,
-        b2=0.95),
-        ema_decay=0.99,
-        weight_loader=weight_loaders.CheckpointWeightLoader_MoE(PI05_BASE_PARAMS),
-        num_train_steps=20_000,
-    ),
-    TrainConfig(
-        name="pi05_libero_moe_skill_pos_4_90",
-        model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False, paligemma_variant="gemma_2b", action_expert_variant="gemma_300m_moe_4", positional_encoding=True),
-        data=LeRobotLiberoSkillDataConfig(
-            repo_id="jsw19/libero_90_v1",
-            base_config=DataConfig(prompt_from_task=True),
-            extra_delta_transform=False,
-        ),
-        batch_size=32,
-        lr_schedule=_optimizer.CosineDecaySchedule(
-            warmup_steps=1000,
-            peak_lr=2.5e-5,
-            decay_steps=20_000,
-            decay_lr=2.5e-6,
-        ),
-        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0,
-        b1=0.9,
-        b2=0.95),
+        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0, b1=0.9, b2=0.95),
         ema_decay=0.99,
         weight_loader=weight_loaders.CheckpointWeightLoader_MoE(PI05_BASE_PARAMS),
         num_train_steps=20_000,
@@ -1062,118 +838,10 @@ _CONFIGS = [
         weight_loader=weight_loaders.CheckpointWeightLoader_MoE(ROBOTWIN_TRANSFER_INIT_PARAMS),
         num_train_steps=1_000,
     ),
-        TrainConfig(
-        name="pi05_robocasa_moe_skill",
-        model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False, 
-                                   paligemma_variant="gemma_2b", action_expert_variant="gemma_300m_moe_4", 
-                                   skill_num=6, skill_embed_dim=32),
-        data=LeRobotRobocasaSkillDataConfig(
-            repo_id="robocasa/robocasa_lerobot",
-            base_config=DataConfig(prompt_from_task=True),
-        ),
-        batch_size=32,
-        lr_schedule=_optimizer.CosineDecaySchedule(
-            warmup_steps=18_000,
-            peak_lr=2.5e-5,
-            decay_steps=180_000,
-            decay_lr=2.5e-6,
-        ),
-        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0,
-        b1=0.9,
-        b2=0.95),
-        ema_decay=0.99,
-        weight_loader=weight_loaders.CheckpointWeightLoader_MoE(PI05_BASE_PARAMS),
-        num_train_steps=180_000,
-        fsdp_devices=4,
-        num_workers=8
-    ),
-        TrainConfig(
-        name="pi05_libero_moe_skill_t_4_40",
-        model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False, paligemma_variant="gemma_2b", action_expert_variant="gemma_300m_moe_4", t_coding=True),
-        data=LeRobotLiberoSkillDataConfig(
-            repo_id="jsw19/libero_40_v1",
-            base_config=DataConfig(prompt_from_task=True),
-            extra_delta_transform=False,
-        ),
-        batch_size=32,
-        lr_schedule=_optimizer.CosineDecaySchedule(
-            warmup_steps=1000,
-            peak_lr=2.5e-5,
-            decay_steps=30_000,
-            decay_lr=2.5e-6,
-        ),
-        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0,
-        b1=0.9,
-        b2=0.95),
-        ema_decay=0.99,
-        weight_loader=weight_loaders.CheckpointWeightLoader_MoE(PI05_BASE_PARAMS),
-        num_train_steps=30_000,
-    ),
-    TrainConfig(
-        name="pi05_libero_moe_skill_t_4_90",
-        model=pi0_config.Pi0Config(pi05=True, action_horizon=10, 
-                                   discrete_state_input=False, paligemma_variant="gemma_2b", 
-                                   action_expert_variant="gemma_300m_moe_4", t_coding=True, skill_num=6),
-        data=LeRobotLiberoSkillDataConfig(
-            repo_id="jsw19/libero_90_v1",
-            base_config=DataConfig(prompt_from_task=True),
-            extra_delta_transform=False,
-        ),
-        batch_size=32,
-        lr_schedule=_optimizer.CosineDecaySchedule(
-            warmup_steps=1000,
-            peak_lr=2.5e-5,
-            decay_steps=20_000,
-            decay_lr=2.5e-6,
-        ),
-        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0,
-        b1=0.9,
-        b2=0.95),
-        ema_decay=0.99,
-        weight_loader=weight_loaders.CheckpointWeightLoader_MoE(PI05_BASE_PARAMS),
-        num_train_steps=20_000,
-    ),
-    #
-    # Debugging configs.
-    #
-    TrainConfig(
-        name="debug",
-        data=FakeDataConfig(),
-        batch_size=2,
-        model=pi0_config.Pi0Config(paligemma_variant="dummy", action_expert_variant="dummy"),
-        save_interval=100,
-        overwrite=True,
-        exp_name="debug",
-        num_train_steps=10,
-        wandb_enabled=False,
-    ),
-    TrainConfig(
-        name="debug_restore",
-        data=FakeDataConfig(),
-        batch_size=2,
-        model=pi0_config.Pi0Config(paligemma_variant="dummy", action_expert_variant="dummy"),
-        weight_loader=weight_loaders.CheckpointWeightLoader("./checkpoints/debug/debug/9/params"),
-        overwrite=True,
-        exp_name="debug",
-        num_train_steps=10,
-        wandb_enabled=False,
-    ),
-    TrainConfig(
-        name="debug_pi05",
-        model=pi0_config.Pi0Config(pi05=True, paligemma_variant="dummy", action_expert_variant="dummy"),
-        data=FakeDataConfig(),
-        batch_size=2,
-        num_train_steps=10,
-        overwrite=True,
-        exp_name="debug_pi05",
-        wandb_enabled=False,
-    ),
-    #
-    # RoboArena configs.
-    #
-    *roboarena_config.get_roboarena_configs(),
 ]
 
+if tuple(config.name for config in _CONFIGS) != _PUBLIC_CONFIG_NAMES:
+    raise ValueError("Public SkillNet config order must match _PUBLIC_CONFIG_NAMES.")
 if len({config.name for config in _CONFIGS}) != len(_CONFIGS):
     raise ValueError("Config names must be unique.")
 _CONFIGS_DICT = {config.name: config for config in _CONFIGS}

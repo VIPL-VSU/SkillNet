@@ -13,18 +13,17 @@ from openpi.training import config_moe_skill as _config
 class EnvMode(enum.Enum):
     """Supported environments."""
 
-    ALOHA = "aloha"
-    ALOHA_SIM = "aloha_sim"
-    DROID = "droid"
+    LIBERO40 = "libero40"
+    LIBERO90 = "libero90"
 
 
 @dataclasses.dataclass
 class Checkpoint:
     """Load a policy from a trained checkpoint."""
 
-    # Training config name (e.g., "pi0_aloha_sim").
+    # Training config name (e.g., "pi05_libero_moe_skill_4_90").
     config: str
-    # Checkpoint directory (e.g., "checkpoints/pi0_aloha_sim/exp/10000").
+    # Checkpoint directory (e.g., "checkpoints/pi05_libero_moe_skill_4_90/moe_balance_4_32_90_20000/19999").
     dir: str
 
 
@@ -38,7 +37,7 @@ class Args:
     """Arguments for the serve_policy script."""
 
     # Environment to serve the policy for. This is only used when serving default policies.
-    env: EnvMode = EnvMode.ALOHA
+    env: EnvMode = EnvMode.LIBERO90
 
     # If provided, will be used in case the "prompt" key is not present in the data, or if the model doesn't have a default
     # prompt.
@@ -53,20 +52,17 @@ class Args:
     policy: Checkpoint | Default = dataclasses.field(default_factory=Default)
 
 
-# Default checkpoints that should be used for each environment. Skill-MoE checkpoints are not bundled
-# with this repository, so LIBERO users should pass policy:checkpoint explicitly.
+# Default checkpoints that should be used for each public SkillNet environment.
+# Download checkpoints first with the commands in docs/training_and_evaluation.md,
+# or pass policy:checkpoint explicitly for a custom training run.
 DEFAULT_CHECKPOINT: dict[EnvMode, Checkpoint] = {
-    EnvMode.ALOHA: Checkpoint(
-        config="pi05_aloha",
-        dir="gs://openpi-assets/checkpoints/pi05_base",
+    EnvMode.LIBERO40: Checkpoint(
+        config="pi05_libero_moe_skill_4_40",
+        dir="checkpoints/pi05_libero_moe_skill_4_40/moe_add_balance_4_128_30000/29999",
     ),
-    EnvMode.ALOHA_SIM: Checkpoint(
-        config="pi0_aloha_sim",
-        dir="gs://openpi-assets/checkpoints/pi0_aloha_sim",
-    ),
-    EnvMode.DROID: Checkpoint(
-        config="pi05_droid",
-        dir="gs://openpi-assets/checkpoints/pi05_droid",
+    EnvMode.LIBERO90: Checkpoint(
+        config="pi05_libero_moe_skill_4_90",
+        dir="checkpoints/pi05_libero_moe_skill_4_90/moe_balance_4_32_90_20000/19999",
     ),
 }
 

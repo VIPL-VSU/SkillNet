@@ -118,7 +118,10 @@ Skill annotations used by training and evaluation are included in SkillNet:
 
 The model receives integer skill ids plus a mask, for example
 `skills: (batch, 4)@int32` and `skill_mask: (batch, 4)@bool`. This is a sequence
-of up to four skill tokens, not a one-hot vector.
+of up to four flat skill ids, not a one-hot vector. The hierarchy tokenizer in
+`docs/skill_hierarchy.md` publishes `[motion_cluster_id, verbnet_class_id,
+verb_id]` metadata for hierarchy construction and analysis; the released LIBERO
+checkpoint configs use the flat `skills` field stored in the LeRobot datasets.
 
 ## Released Checkpoints
 
@@ -140,8 +143,8 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 From the repository root, `python scripts/check_public_release.py --hub-smoke`
 verifies the public checkpoint and source-dataset links. Add
-`--include-derived-datasets` only when the derived LeRobot dataset repos should
-be visible to the current account.
+`--include-libero-derived-datasets` only when the derived LIBERO LeRobot dataset
+repos should be visible to the current account.
 
 ## Model and Config Summary
 

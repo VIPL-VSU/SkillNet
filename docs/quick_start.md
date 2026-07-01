@@ -225,6 +225,13 @@ python -c "import openpi.training.config_moe_skill as c; print(c.get_config('pi0
 
 LIBERO data processing:
 
+Exact LIBERO training uses derived LeRobot datasets with frame-level skill
+boundaries. The converter commands below require `libero40_plan_sliced.json`
+and `libero90_plan_sliced.json` skill-slice metadata in addition to the public
+RLDS source frames. If the derived `jsw19/libero_40_v1` and
+`jsw19/libero_90_v1` Hub repos are accessible, you can use those directly under
+`LEROBOT_HOME` instead of rebuilding.
+
 ```bash
 cd "${SKILLNET_REPO_ROOT}"
 python data_process/libero/download_libero_sources.py \
@@ -297,8 +304,11 @@ bash scripts/run_train_robotwin_transfer_moe_skill.sh
 
 For paper-style few-shot transfer, keep
 `SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS` pointed at a RoboTwin pretraining
-checkpoint. The transfer launcher exits if it is unset. For a debugging-only
-pi0.5-base initialization run, set `ALLOW_PI05_TRANSFER_INIT=1` explicitly.
+checkpoint. Set `TRANSFER_TASK` for the paper-style per-task dataset and
+checkpoint naming convention; without it, the transfer config uses the aggregate
+`SKILLNET_ROBOTWIN_TRANSFER_REPO_ID` value. The transfer launcher exits if the
+initialization checkpoint is unset. For a debugging-only pi0.5-base
+initialization run, set `ALLOW_PI05_TRANSFER_INIT=1` explicitly.
 
 RoboTwin few-shot evaluation against a local RoboTwin-2.0 checkout:
 

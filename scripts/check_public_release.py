@@ -258,6 +258,15 @@ CONFIG_EXPECTATIONS = {
 
 SCRIPT_EXPECTATIONS = [
     (
+        "skill_moe/skillnet/scripts/serve_policy_moe_skill.py",
+        [
+            "EnvMode.LIBERO90",
+            'config="pi05_libero_moe_skill_4_40"',
+            'config="pi05_libero_moe_skill_4_90"',
+            "docs/training_and_evaluation.md",
+        ],
+    ),
+    (
         "skill_moe/skillnet/scripts/run_train_libero40_moe_skill.sh",
         [
             'CONFIG_NAME="${CONFIG_NAME:-pi05_libero_moe_skill_4_40}"',
@@ -375,7 +384,9 @@ DOC_EXPECTATIONS = [
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "RoboTwin checkpoint",
             "weights are not part of this release",
-            "configs. If derived datasets",
+            "configs. Direct LIBERO training",
+            "--include-libero-derived-datasets",
+            "Generate one per-task dataset locally",
             "public_task_manifest.json",
         ],
     ),
@@ -397,6 +408,8 @@ DOC_EXPECTATIONS = [
             "LIBERO-Skill evaluation",
             "RoboTwin few-shot evaluation",
             "ALLOW_PI05_TRANSFER_INIT=1",
+            "libero40_plan_sliced.json",
+            "Set `TRANSFER_TASK` for the paper-style per-task dataset",
             "--motion-code 200100",
         ],
     ),
@@ -430,6 +443,8 @@ DOC_EXPECTATIONS = [
             "Manual annotation protocol",
             "motion_code_clusters.json",
             "weighted distance",
+            "flat integer skill-id",
+            "hierarchy-token experiments",
             TOKENIZATION_STRATEGY_SHA256,
             "tokenization_strategy.json",
             "frozen vocabulary",
@@ -460,6 +475,7 @@ DOC_EXPECTATIONS = [
             "scripts/publish_lerobot_dataset.py",
             "libero40_plan_sliced.json",
             "libero90_plan_sliced.json",
+            "--include-libero-derived-datasets",
             "HF_XET_HIGH_PERFORMANCE",
             "upload_large_folder",
             "--public",
@@ -482,10 +498,12 @@ DOC_EXPECTATIONS = [
             "asset inventory",
             "base rollout limit is 800 simulator steps",
             "install_libero_skill_assets.py --install",
+            "--include-libero-derived-datasets",
             "FAIL_FAST=0",
             "data/libero/server_logs/",
             "benchmark.get_benchmark_dict()",
             "RLDS source frames alone do not contain",
+            "flat `skills` field",
             "Expected outputs:",
         ],
     ),
@@ -500,6 +518,7 @@ DOC_EXPECTATIONS = [
             "Fine-tune all 15 transfer tasks",
             "create all matching per-task LeRobot datasets",
             'jsw19/robotwin_${task}_v1',
+            "aggregate transfer default",
             "RoboTwin checkpoint weights are not published",
             "ALLOW_PI05_TRANSFER_INIT",
             "success_rate",
@@ -750,6 +769,21 @@ def check_config_and_script_contracts(errors: list[str], *, verbose: bool) -> No
     for snippet in global_expectations:
         if compact_text(snippet) not in compact_config:
             fail(f"config global contract missing in {config_path}: {snippet}", errors)
+
+    public_names_match = re.search(r"_PUBLIC_CONFIG_NAMES\s*=\s*\((.*?)\)", config_text, re.S)
+    if not public_names_match:
+        fail(f"{config_path}: missing _PUBLIC_CONFIG_NAMES release surface", errors)
+    else:
+        public_config_names = re.findall(r'"([^"]+)"', public_names_match.group(1))
+        expected_config_names = list(CONFIG_EXPECTATIONS)
+        if public_config_names != expected_config_names:
+            fail(
+                f"{config_path}: public config surface mismatch: "
+                f"expected {expected_config_names}, found {public_config_names}",
+                errors,
+            )
+    if compact_text("if tuple(config.name for config in _CONFIGS) != _PUBLIC_CONFIG_NAMES:") not in compact_config:
+        fail(f"{config_path}: public _CONFIGS order must be checked against _PUBLIC_CONFIG_NAMES", errors)
 
     for config_name, snippets in CONFIG_EXPECTATIONS.items():
         try:
