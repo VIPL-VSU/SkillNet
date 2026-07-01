@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.bddl text eol=lf
+*.pruned_init text eol=lf

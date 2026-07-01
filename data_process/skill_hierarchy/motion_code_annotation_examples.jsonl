@@ -1,0 +1,12 @@
+{"task_id":"example_pick_block","subtask":"pick red block","motion_code":"200200","rationale":"Long contact, rigid object, free 3D object translation, no fixed-axis rotation, no tool."}
+{"task_id":"example_retrieve_tomato","subtask":"retrieve tomato from shelf","motion_code":"200200","rationale":"Long contact grasp and retrieve, rigid object, free 3D object translation, no tool."}
+{"task_id":"example_place_bowl","subtask":"place bowl on plate","motion_code":"200200","rationale":"Long contact with a rigid object while moving it freely in 3D, no tool."}
+{"task_id":"example_open_drawer","subtask":"open drawer","motion_code":"200100","rationale":"Long contact with a rigid handle, object translates along a constrained 1D path."}
+{"task_id":"example_close_drawer","subtask":"close drawer","motion_code":"200100","rationale":"Long contact with constrained 1D translation, no fixed-axis object rotation."}
+{"task_id":"example_press_button","subtask":"press button","motion_code":"100100","rationale":"Short contact, elastic interaction, constrained 1D displacement, no tool."}
+{"task_id":"example_tap_bell","subtask":"tap bell","motion_code":"100100","rationale":"Impulse contact with a small constrained target, no tool."}
+{"task_id":"example_open_door","subtask":"open door","motion_code":"200010","rationale":"Long contact and fixed-axis object rotation around a hinge."}
+{"task_id":"example_turn_knob","subtask":"turn knob","motion_code":"201010","rationale":"Long contact with arm fixed-axis rotation and fixed-axis object rotation."}
+{"task_id":"example_use_spatula","subtask":"use spatula to lift pancake","motion_code":"200001","rationale":"Long contact, rigid object interaction, direct motion mediated by a tool."}
+{"task_id":"example_cut_apple","subtask":"cut apple","motion_code":"220001","rationale":"Long contact, rigid separation/cutting, tool-mediated interaction."}
+{"task_id":"example_scan_qrcode","subtask":"scan qrcode","motion_code":"000001","rationale":"No physical contact with the target; perception/tool-mediated operation."}

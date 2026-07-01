@@ -1,0 +1,816 @@
+{
+    "Use one arm to pick the pillbottle and place it onto the pad.": {
+        "plan": [
+            "pick pillbottle",
+            "place pillbottle on pad"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "stack the two bowls on top of each other": {
+        "plan": [
+            "pick bowl A",
+            "place on bowl B"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "there is a can and a pot on the table, use one arm to <pick up the can> and <move it to beside the pot>": {
+        "plan": [
+            "pick can",
+            "place can beside pot"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "click the <bell's top center> on the table": {
+        "plan": [
+            "press bell top center"
+        ],
+        "all_classes": [
+            4,
+            43,
+            125
+        ]
+    },
+    "use BOTH!!! arms to lift the pot": {
+        "plan": [
+            "pick pot with left arm",
+            "pick pot with right arm",
+            "lift pot with both arms"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            2,
+            9,
+            0,
+            5,
+            31
+        ]
+    },
+    "Grab the stamp and stamp onto the specific color mat": {
+        "plan": [
+            "pick stamp",
+            "stamp on specific color mat"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            10,
+            113,
+            231
+        ]
+    },
+    "Use dual arm to pick the hamburg and frenchfries and put them onto the tray.": {
+        "plan": [
+            "pick hamburg",
+            "pick frenchfries",
+            "place hamburg on tray",
+            "place frenchfries on tray"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            1,
+            4
+        ]
+    },
+    "use one arm to grab the object and put it on the scale": {
+        "plan": [
+            "pick object",
+            "place on scale"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "pick up one bottle with one arm, and pick up another bottle with the other arm": {
+        "plan": [
+            "pick bottle with left arm",
+            "pick bottle with right arm"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            2,
+            9
+        ]
+    },
+    "Use one arm to open the microwave.": {
+        "plan": [
+            "open microwave"
+        ],
+        "all_classes": [
+            3,
+            8,
+            57
+        ]
+    },
+    "use the robotic arm to click the switch": {
+        "plan": [
+            "press switch"
+        ],
+        "all_classes": [
+            4,
+            43,
+            125
+        ]
+    },
+    "<Place> the red block, green block, and blue block <in the order> of red, green, and blue from left to right, <placing in a row>.": {
+        "plan": [
+            "pick red block",
+            "place red block left",
+            "pick green block",
+            "place green block center",
+            "pick blue block",
+            "place blue block right"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "use appropriate arm to move the stapler to a colored mat": {
+        "plan": [
+            "pick stapler with right arm",
+            "place stapler on colored mat"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "use one arm to grab the target object and put it in the basket, then use the other arm to grab the basket, and finally move the basket slightly away": {
+        "plan": [
+            "pick target object with one arm",
+            "place target object in basket",
+            "pick basket with other arm",
+            "place basket slightly away"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "use one arm to pick up the can, put it into the basket, and use another arm to lift the basket": {
+        "plan": [
+            "pick can with left arm",
+            "place can in basket",
+            "lift basket with right arm"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            5,
+            31
+        ]
+    },
+    "if there is one bread on the table, use one arm to grab the bread and put it into the skillet": {
+        "plan": [
+            "pick bread",
+            "place in skillet"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "use the left arm to grasp the red block on the table, handover it to the right arm and place it on the blue pad": {
+        "plan": [
+            "pick red block with left arm",
+            "pass red block to right arm",
+            "place red block on blue pad"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            6,
+            36,
+            0,
+            1,
+            4
+        ]
+    },
+    "pick up the phone and put it on the phone stand": {
+        "plan": [
+            "pick phone",
+            "place on phone stand"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "place the container onto the plate": {
+        "plan": [
+            "pick container",
+            "place container on plate"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "there are three blocks on the table, the color of the blocks is <red, green and blue>, <move the blocks to the center of the table>, and <stack the blue block on the green block, and the green block on the red block>": {
+        "plan": [
+            "pick red block",
+            "place red block in center",
+            "pick green block",
+            "place green block in center",
+            "pick blue block",
+            "place blue block in center",
+            "pick green block",
+            "place green block on red block",
+            "pick blue block",
+            "place blue block on green block"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "use the arm to <pick up the playing card> and <move it away from the table>.For example, if the playing card is on the outward side of the table, you should move it further outward side of the table.": {
+        "plan": [
+            "pick playing card",
+            "place playing card away from table"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "stack the three bowls on top of each other": {
+        "plan": [
+            "pick bowl1",
+            "place on bowl2",
+            "pick bowl3",
+            "place on bowl1"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "there are three blocks on the table, the color of the blocks is random, move the blocks to the center of the table, and arrange them from largest to smallest, from left to right": {
+        "plan": [
+            "pick largest block",
+            "place largest block left-center",
+            "pick medium block",
+            "place medium block center",
+            "pick smallest block",
+            "place smallest block right-center"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "use appropriate arm to place object A on the right of object B": {
+        "plan": [
+            "pick object A",
+            "place object A on the right of object B"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "there are two blocks on the table, the color of the blocks is <red, green>, <move the blocks to the center of the table>, and <stack the geen block on the red block>": {
+        "plan": [
+            "pick red block",
+            "place red block at center",
+            "pick green block",
+            "place green block on red block"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "use appropriate arm to place the object on the stand": {
+        "plan": [
+            "pick object with appropriate arm",
+            "place object on stand"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "use arms to grab the bottles and put them into the dustbin to the left of the table": {
+        "plan": [
+            "pick bottle",
+            "place in dustbin"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "Shake the bottle horizontally with proper arm": {
+        "plan": [
+            "pick bottle",
+            "shake bottle horizontally",
+            "place bottle"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            51,
+            138,
+            0,
+            1,
+            4
+        ]
+    },
+    "Use dual arm to pick and place cans into plasticbox": {
+        "plan": [
+            "pick left can",
+            "place left in plasticbox",
+            "pick right can",
+            "place right in plasticbox"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "Use one arm to pick the scanner and use the other arm to pick the object, and use the scanner to scan the object": {
+        "plan": [
+            "pick scanner",
+            "pick object",
+            "scan object"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            2,
+            9,
+            8,
+            74,
+            222
+        ]
+    },
+    "Grab the small bin and pour the balls into the big bin": {
+        "plan": [
+            "pick small bin",
+            "pour small bin into big bin"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            7,
+            14,
+            42
+        ]
+    },
+    "there is a hammer and a block on the table, use the arm to <grab the hammer> and <beat the block>": {
+        "plan": [
+            "pick hammer",
+            "strike block"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            10,
+            83,
+            237
+        ]
+    },
+    "use one arm to grab the shoe from the table and place it on the mat": {
+        "plan": [
+            "pick shoe",
+            "place on mat"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "use both arms to pick up the two shoes on the table and put them in the shoebox, with the shoe tip pointing to the left": {
+        "plan": [
+            "pick left_shoe with left_arm",
+            "pick right_shoe with right_arm",
+            "place left_shoe in shoebox toe-left",
+            "place right_shoe in shoebox toe-left"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            2,
+            9,
+            1,
+            1,
+            4,
+            1,
+            1,
+            4
+        ]
+    },
+    "use one arm to open the laptop": {
+        "plan": [
+            "pick laptop lid",
+            "lift laptop lid"
+        ],
+        "all_classes": [
+            3,
+            2,
+            9,
+            3,
+            5,
+            31
+        ]
+    },
+    "if there is one bread on the table, use one arm to grab the bread and put it in the basket, if there are two breads on the table, use two arms to simultaneously!!! grab up two breads and put them in the basket": {
+        "plan": [
+            "pick bread left",
+            "pick bread right",
+            "place breads in basket"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "use an arm to place the empty cup on the coaster": {
+        "plan": [
+            "pick empty cup",
+            "place cup on coaster"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "click the alarm clock's center of the top side button on the table": {
+        "plan": [
+            "press alarm clock top button"
+        ],
+        "all_classes": [
+            4,
+            43,
+            125
+        ]
+    },
+    "use {a} to open the cabinet's drawer, and use another arm to put the object on the table to the drawer.": {
+        "plan": [
+            "open cabinet drawer with {a}",
+            "place object on table near drawer with other arm"
+        ],
+        "all_classes": [
+            1,
+            8,
+            57,
+            0,
+            1,
+            4
+        ]
+    },
+    "Use one arm to press the stapler.": {
+        "plan": [
+            "press stapler"
+        ],
+        "all_classes": [
+            3,
+            43,
+            125
+        ]
+    },
+    "use appropriate arm to place object A on the left of object B": {
+        "plan": [
+            "pick object A with appropriate arm",
+            "place object A left of object B"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "Shake the bottle with proper arm": {
+        "plan": [
+            "pick bottle",
+            "shake bottle",
+            "place bottle"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            51,
+            138,
+            0,
+            1,
+            4
+        ]
+    },
+    "Use left arm to pick the mug on the table, rotate the mug and put the mug down in the middle of the table, use the right arm to pick the mug and hang it onto the rack.": {
+        "plan": [
+            "pick mug with left arm",
+            "rotate mug",
+            "place mug in middle of table",
+            "pick mug with right arm",
+            "hang mug on rack"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            5,
+            51,
+            137,
+            0,
+            1,
+            4,
+            0,
+            2,
+            9,
+            0,
+            20,
+            54
+        ]
+    },
+    "Use one arm to grasp the microphone on the table and handover it to the other arm": {
+        "plan": [
+            "pick microphone with left arm",
+            "pass microphone to right arm"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            6,
+            36
+        ]
+    },
+    "use both arms to grab the roller on the table": {
+        "plan": [
+            "pick roller with left arm",
+            "pick roller with right arm"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            2,
+            9
+        ]
+    },
+    "grab the fan and place it on a colored mat, <make sure the fan is facing the robot!(THIS MUST BE REFERRED TO>": {
+        "plan": [
+            "pick fan",
+            "place fan on colored mat facing robot"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "grab the mouse and place it on a colored mat": {
+        "plan": [
+            "pick mouse",
+            "place on colored mat"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            0,
+            1,
+            4
+        ]
+    },
+    "Pick up the bottle on the table headup with the correct arm": {
+        "plan": [
+            "pick bottle upright with right arm"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9
+        ]
+    },
+    "Use arm to catch the qrcode board on the table, pick it up and rotate to let the qrcode face towards you": {
+        "plan": [
+            "pick qrcode board",
+            "rotate qrcode board"
+        ],
+        "all_classes": [
+            0,
+            2,
+            9,
+            5,
+            51,
+            137
+        ]
+    }
+}

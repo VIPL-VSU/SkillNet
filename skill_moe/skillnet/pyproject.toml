@@ -1,0 +1,60 @@
+[project]
+name = "skillnet"
+version = "0.1.0"
+description = "SkillNet Skill-MoE training and evaluation runtime"
+requires-python = ">=3.10"
+dependencies = [
+    "augmax>=0.3.4",
+    "beartype>=0.19.0",
+    "boto3>=1.34.0",
+    "botocore>=1.34.0",
+    "dlimp>=0.0.1",
+    "einops>=0.8.0",
+    "etils[epath]>=1.9.0",
+    "filelock>=3.13.0",
+    "flax>=0.10.0",
+    "fsspec>=2024.6.0",
+    "gcsfs>=2024.6.0",
+    "humanize>=4.9.0",
+    "imageio>=2.34.0",
+    "jax>=0.4.34",
+    "jaxtyping>=0.2.34",
+    "lerobot>=0.1.0",
+    "matplotlib>=3.8.0",
+    "ml-collections>=0.1.1",
+    "msgpack>=1.0.5",
+    "numpy>=1.26.0",
+    "numpydantic>=1.6.0",
+    "optax>=0.2.3",
+    "orbax-checkpoint>=0.6.4",
+    "pandas>=2.2.0",
+    "pillow>=10.0.0",
+    "pydantic>=2.7.0",
+    "s3transfer>=0.10.0",
+    "safetensors>=0.4.3",
+    "sentencepiece>=0.2.0",
+    "tensorflow>=2.16.0",
+    "tensorflow-datasets>=4.9.0",
+    "torch>=2.2.0",
+    "tqdm>=4.66.0",
+    "tqdm-loggable>=0.2",
+    "transformers>=4.45.0",
+    "tree>=0.2.4",
+    "types-boto3-s3>=1.34.0",
+    "typing-extensions>=4.12.0",
+    "tyro>=0.8.10",
+    "wandb>=0.17.0",
+    "websockets>=11.0",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["openpi*"]
+namespaces = true
+
+[tool.ruff]
+line-length = 120

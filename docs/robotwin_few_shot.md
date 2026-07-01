@@ -1,0 +1,323 @@
+# RoboTwin Few-Shot Experiments
+
+This document records the RoboTwin-2.0 few-shot transfer setting used in the
+SkillNet paper and the public data-preparation, training, and evaluation
+entrypoints. The public evaluator is split into a SkillNet policy server and a
+RoboTwin environment-side adapter so simulator dependencies stay outside the
+SkillNet package.
+
+## Experiment Setting
+
+RoboTwin-2.0 contains 50 tasks covering 12 manipulation skills. The SkillNet
+few-shot experiment uses:
+
+- 15 pretraining tasks.
+- 15 held-out transfer tasks.
+- 50 expert trajectories per pretraining task.
+- 50 single-task transfer trajectories per held-out task.
+- Transfer tasks are fine-tuned separately.
+
+The key training parameters are:
+
+| Phase | Batch | Steps | Peak LR | Optimizer | EMA | Action horizon | Experts | Top-k | Skill dim |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Pretrain | 32 | 20,000 | `2.5e-5` | AdamW, beta1=0.9, beta2=0.95 | 0.99 | 10 | 4 | 1 | 64 |
+| Transfer | 32 | 1,000 | `2.5e-5` | AdamW, beta1=0.9, beta2=0.95 | 0.99 | 10 | 4 | 1 | 64 |
+
+## Pretraining Tasks
+
+| Task | Skills |
+| --- | --- |
+| `adjust_bottle` | pick |
+| `beat_block_hammer` | pick, strike |
+| `click_alarmclock` | press |
+| `click_bell` | press |
+| `grab_roller` | pick, pick |
+| `handover_block` | pick, pass, place |
+| `lift_pot` | pick, pick, lift |
+| `move_can_pot` | pick, place |
+| `move_playingcard_away` | pick, place |
+| `open_microwave` | open |
+| `place_burger_fries` | pick, pick, place, place |
+| `place_object_basket` | pick, place, pick, place |
+| `rotate_qrcode` | pick, rotate |
+| `shake_bottle_horizontally` | pick, shake, place |
+| `stack_blocks_two` | pick, place, pick, place |
+
+## Transfer Tasks
+
+| Task | Skills |
+| --- | --- |
+| `blocks_ranking_size` | pick, place, pick, place, pick, place |
+| `hanging_mug` | pick, rotate, place, pick, hang |
+| `move_pillbottle_pad` | pick, place |
+| `open_laptop` | pick, lift |
+| `place_a2b_left` | pick, place |
+| `place_bread_basket` | pick, pick, place |
+| `place_bread_skillet` | pick, place |
+| `place_cans_plasticbox` | pick, place, pick, place |
+| `place_fan` | pick, place |
+| `press_stapler` | press |
+| `scan_object` | pick, pick, scan |
+| `shake_bottle` | pick, shake, place |
+| `stack_blocks_three` | pick, place, pick, place, pick, place, pick, place, pick, place |
+| `stack_bowls_two` | pick, place |
+| `stamp_seal` | pick, stamp |
+
+## Data Preparation
+
+Download RoboTwin-2.0 50-demo zips:
+
+```bash
+python data_process/robotwin/download_robotwin_sources.py \
+  --task-set paper \
+  --output-dir ./robotwin_datasets
+```
+
+For networks that need a Hugging Face mirror:
+
+```bash
+HF_ENDPOINT=https://hf-mirror.com \
+python data_process/robotwin/download_robotwin_sources.py --task-set paper
+```
+
+If collecting demonstrations from a local RoboTwin installation:
+
+```bash
+ROBOTWIN_ROOT="$HOME/RoboTwin_eval" GPU_ID=0 \
+bash data_process/robotwin/collect_train_data.sh pretrain
+
+ROBOTWIN_ROOT="$HOME/RoboTwin_eval" GPU_ID=0 \
+bash data_process/robotwin/collect_train_data.sh transfer
+```
+
+Convert the downloaded or collected demonstrations to LeRobot format:
+
+```bash
+python data_process/robotwin/convert_robotwin_to_lerobot.py \
+  --source-dir ./robotwin_datasets \
+  --task-set pretrain \
+  --output-repo-id jsw19/robotwin_pretrain_v1
+
+python data_process/robotwin/convert_robotwin_to_lerobot.py \
+  --source-dir ./robotwin_datasets \
+  --task-set transfer \
+  --output-repo-id jsw19/robotwin_transfer_v1
+```
+
+The converter reads the public RoboTwin raw layout under
+`data/episode*.hdf5`. The downloaded archives also include
+`instructions/episode*.json`, but the released converter uses the canonical
+task description from `robotwin_plan.json` so the language prompt and skill ids
+stay aligned. Older `aligned_joints.h5` extracted episodes are supported via
+`--source-format aligned`. Use `--dry-run` before a full conversion to check
+that the expected episodes are visible.
+
+For paper-style per-task fine-tuning, a single held-out task can be converted
+separately:
+
+```bash
+python data_process/robotwin/convert_robotwin_to_lerobot.py \
+  --source-dir ./robotwin_datasets \
+  --tasks blocks_ranking_size \
+  --output-repo-id jsw19/robotwin_blocks_ranking_size_v1
+```
+
+Build paper-task metadata from the released task plan and hierarchical skill
+annotations:
+
+```bash
+python data_process/robotwin/build_robotwin_skill_metadata.py \
+  --task-set paper \
+  --output robotwin_skill_metadata.jsonl
+```
+
+The metadata records contain the task name, instruction, flat skill ids,
+subtask plan, hierarchical skill tokens, and split. The current RoboTwin
+training path consumes the flat `skills` sequence from `robotwin_plan.json`;
+hierarchical tokens from `skill_anno_robotwin.json` are provided for analysis
+and hierarchy-token experiments.
+
+## LeRobot Schema
+
+The RoboTwin SkillNet configs expect LeRobot-format datasets with these feature
+keys:
+
+| Column | Meaning |
+| --- | --- |
+| `head_color` | base camera RGB image |
+| `hand_left_color` | left wrist RGB image |
+| `hand_right_color` | right wrist RGB image |
+| `state` | 16-D dual-arm proprioceptive state |
+| `actions` | dual-arm action sequence, first 16 dims used |
+| `task` | language instruction used as the model prompt |
+| `skills` | list of flat skill ids for the instruction |
+
+The converter writes state and action in
+`[left_arm, left_gripper, right_arm, right_gripper]` order. The training config
+then repacks these LeRobot features into the SkillNet model input fields.
+
+`skills` is a variable-length integer sequence, not a one-hot vector. During
+training it is truncated or padded to four entries, shifted by +1 so `0` can be
+used as padding, and paired with `skill_mask`.
+
+The paper describes 12 semantic manipulation skills. The public flat skill id
+space contains 13 non-padding ids in `robotwin_plan.json`, and the released
+RoboTwin configs set `skill_num=14` to reserve id `0` for padding.
+
+Default dataset ids can be overridden with environment variables:
+
+```bash
+export SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID=jsw19/robotwin_pretrain_v1
+export SKILLNET_ROBOTWIN_TRANSFER_REPO_ID=jsw19/robotwin_transfer_v1
+```
+
+For per-task transfer datasets, the transfer launcher also supports:
+
+```bash
+cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
+TRANSFER_TASK=blocks_ranking_size bash scripts/run_train_robotwin_transfer_moe_skill.sh
+```
+
+When `TRANSFER_TASK` is set and `SKILLNET_ROBOTWIN_TRANSFER_REPO_ID` is not set,
+the launcher uses `jsw19/robotwin_${TRANSFER_TASK}_v1`.
+
+## Training
+
+Set `SKILLNET_REPO_ROOT` as described in `docs/quick_start.md`, then run from
+the SkillNet source root:
+
+Pretrain on the 15 RoboTwin pretraining tasks:
+
+```bash
+cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
+bash scripts/run_train_robotwin_pretrain_moe_skill.sh
+```
+
+Fine-tune on a held-out transfer task:
+
+```bash
+cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
+export SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS=checkpoints/pi05_robotwin_moe_skill_pretrain/robotwin_moe_skill_pretrain/19999/params
+TRANSFER_TASK=blocks_ranking_size \
+bash scripts/run_train_robotwin_transfer_moe_skill.sh
+```
+
+The launchers compute normalization statistics automatically when
+`assets/<config>/<repo_id>/norm_stats.json` is missing. They call:
+
+```bash
+scripts/compute_norm_stats_moe_skill.py
+scripts/train_moe_skill.py
+```
+
+The released config names are:
+
+| Phase | Config | Default dataset id |
+| --- | --- | --- |
+| Pretrain | `pi05_robotwin_moe_skill_pretrain` | `jsw19/robotwin_pretrain_v1` |
+| Transfer | `pi05_robotwin_moe_skill_transfer` | `jsw19/robotwin_transfer_v1` |
+
+The pi0.5 base checkpoint is controlled by `SKILLNET_PI05_BASE_PARAMS`.
+Transfer initialization is controlled by
+`SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS`; by default it falls back to the pi0.5
+base checkpoint, so set it explicitly when reproducing the few-shot transfer
+from a RoboTwin pretraining checkpoint.
+The transfer launcher prints a warning when this variable is unset; set
+`REQUIRE_ROBOTWIN_PRETRAIN_INIT=1` to make that warning an error.
+
+## Evaluation
+
+The cleaned evaluator lives under:
+
+```bash
+skill_moe/skillnet/examples/robotwin/
+```
+
+Run it from the SkillNet source root and point `ROBOTWIN_ROOT` to a local
+RoboTwin-2.0 checkout with simulator dependencies installed. The launcher starts
+the SkillNet policy server, connects the RoboTwin environment adapter to it,
+injects the same flat skill ids from
+`${SKILLNET_REPO_ROOT}/data_process/robotwin/robotwin_plan.json`, and writes
+per-task `episodes.jsonl` plus an aggregate `summary.json`.
+
+Evaluate a single fine-tuned transfer checkpoint:
+
+```bash
+cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
+
+export ROBOTWIN_ROOT="$HOME/RoboTwin_eval"
+export CKPT_DIR=checkpoints/pi05_robotwin_moe_skill_transfer/robotwin_moe_skill_transfer_blocks_ranking_size/999
+export TRANSFER_TASK=blocks_ranking_size
+export TASKS=blocks_ranking_size
+
+bash examples/robotwin/run_eval_robotwin_moe_skill.sh
+```
+
+Evaluate a set of transfer tasks with an already running SkillNet policy
+server:
+
+```bash
+cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
+START_SERVER=0 \
+ROBOTWIN_ROOT="$HOME/RoboTwin_eval" \
+TASK_SET=transfer \
+NUM_TRIALS=20 \
+bash examples/robotwin/run_eval_robotwin_moe_skill.sh
+```
+
+The launcher accepts these common overrides:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `CONFIG_NAME` | `pi05_robotwin_moe_skill_transfer` | SkillNet training config used to load the checkpoint |
+| `CKPT_DIR` | unset | Checkpoint directory containing `params` and `assets` |
+| `ROBOTWIN_ROOT` | unset | Local RoboTwin-2.0 checkout |
+| `TASK_CONFIG` | `demo_clean` | RoboTwin `task_config/*.yml` stem |
+| `TASKS` | unset | Space-separated task list, overrides `TASK_SET` |
+| `TASK_SET` | `transfer` | `pretrain`, `transfer`, `paper`, or `all` |
+| `NUM_TRIALS` | `20` | Trials per task |
+| `ACTION_HORIZON` | `10` | Actions executed per policy-server call |
+| `RESULT_DIR` | `data/robotwin/eval_results` | Output directory |
+
+For per-task transfer checkpoints, set `TRANSFER_TASK`. If
+`SKILLNET_ROBOTWIN_TRANSFER_REPO_ID` is not already set, the launcher maps it to
+`jsw19/robotwin_${TRANSFER_TASK}_v1` so the checkpoint loads the same
+normalization-stat asset id used during fine-tuning.
+
+The public adapter replaces the research runner's cluster-specific
+conda activation, tmux orchestration, checkpoint paths, and hard-coded skill
+annotation path. It keeps the evaluation semantics: expert seed filtering,
+RoboTwin environment rollout, instruction selection, skill-plan injection, and
+success-rate reporting.
+
+## Reported Results
+
+The paper reports success rate (%) on 15 RoboTwin transfer tasks:
+
+| Method | Average |
+| --- | --- |
+| pi0 | 22.1 |
+| pi0.5 | 38.8 |
+| Vanilla MoE | 40.5 |
+| SkillNet | 44.7 |
+| Ablation, motion code | 38.5 |
+| Ablation, balance loss | 38.0 |
+
+Per-task values are in Appendix D.1 of the paper. The main takeaway is that
+SkillNet improves over pi0.5 by 5.9 points in this RoboTwin few-shot setting.
+
+## Migration Status
+
+Completed in this step:
+
+- Public data download helper.
+- Public data-collection wrapper.
+- Raw RoboTwin zip or extracted episode to LeRobot conversion script.
+- Paper-aligned task lists and experiment protocol.
+- Paper task metadata builder with flat and hierarchical skill annotations.
+- RoboTwin LeRobot policy transform.
+- Pretraining and transfer training configs.
+- Public pretraining and transfer training launch scripts.
+- Public RoboTwin simulator adapter for SkillNet websocket policies.
+- Per-task `episodes.jsonl` and aggregate `summary.json` success-rate outputs.

@@ -1,0 +1,21 @@
+{
+  "weights": [3.056, 1.539, 1.35, 2.844, 1.039, 2.632],
+  "distance_rule": {
+    "digits_1_2_4": "zero-vs-nonzero changes add full weight; nonzero-vs-nonzero changes add half weight",
+    "digits_3_5_6": "any change adds full weight"
+  },
+  "centers": [
+    {"cluster": "cluster_0", "motion_code": "200200"},
+    {"cluster": "cluster_1", "motion_code": "200100"},
+    {"cluster": "cluster_2", "motion_code": "100200"},
+    {"cluster": "cluster_3", "motion_code": "200010"},
+    {"cluster": "cluster_4", "motion_code": "100100"},
+    {"cluster": "cluster_5", "motion_code": "201010"},
+    {"cluster": "cluster_6", "motion_code": "200001"},
+    {"cluster": "cluster_7", "motion_code": "201201"},
+    {"cluster": "cluster_8", "motion_code": "000001"},
+    {"cluster": "cluster_9", "motion_code": "220001"},
+    {"cluster": "cluster_10", "motion_code": "100001"},
+    {"cluster": "cluster_11", "motion_code": "200201"}
+  ]
+}

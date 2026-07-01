@@ -1,0 +1,1023 @@
+"""Run lightweight checks for the public SkillNet release tree.
+
+The checks avoid heavyweight simulator/model imports. They are intended for a
+fresh clone before running the GPU or simulator workflows.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+REQUIRED_FILES = [
+    "LICENSE",
+    "NOTICE.md",
+    "README.md",
+    "docs/quick_start.md",
+    "docs/skill_hierarchy.md",
+    "docs/training_and_evaluation.md",
+    "docs/libero_data_processing.md",
+    "docs/robotwin_few_shot.md",
+    "data_process/skill_hierarchy/tokenization_strategy.json",
+    "data_process/skill_hierarchy/motion_code_clusters.json",
+    "data_process/skill_hierarchy/motion_code_annotation_examples.jsonl",
+    "data_process/libero/instruct2plan_40.json",
+    "data_process/libero/instruct2plan_90.json",
+    "data_process/libero/instruct2plan_obj_90.json",
+    "data_process/robotwin/robotwin_plan.json",
+    "data_process/robotwin/skill_anno_robotwin.json",
+    "skill_moe/skillnet/pyproject.toml",
+    "skill_moe/skillnet/packages/openpi-client/pyproject.toml",
+    "skill_moe/skillnet/packages/openpi-client/src/openpi_client/__init__.py",
+    "skill_moe/skillnet/packages/openpi-client/src/openpi_client/websocket_client_policy.py",
+    "skill_moe/skillnet/install_libero.sh",
+    "skill_moe/skillnet/scripts/compute_norm_stats_moe_skill.py",
+    "skill_moe/skillnet/scripts/train_moe_skill.py",
+    "skill_moe/skillnet/scripts/serve_policy_moe_skill.py",
+    "skill_moe/skillnet/scripts/run_train_libero40_moe_skill.sh",
+    "skill_moe/skillnet/scripts/run_train_libero90_moe_skill.sh",
+    "skill_moe/skillnet/examples/libero/annotations/instruct2plan_40.json",
+    "skill_moe/skillnet/examples/libero/annotations/instruct2plan_obj_90.json",
+    "skill_moe/skillnet/examples/libero/annotations/libero_skill_obj_annotations.json",
+    "skill_moe/skillnet/examples/libero/run_eval_libero_skill_moe.sh",
+    "skill_moe/skillnet/examples/robotwin/run_eval_robotwin_moe_skill.sh",
+]
+
+PYTHON_FILES = [
+    "data_process/skill_hierarchy/skill_hierarchy_tokenizer.py",
+    "data_process/libero/download_libero_sources.py",
+    "data_process/libero/convert_libero_to_lerobot.py",
+    "data_process/robotwin/download_robotwin_sources.py",
+    "data_process/robotwin/convert_robotwin_to_lerobot.py",
+    "data_process/robotwin/build_robotwin_skill_metadata.py",
+    "skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py",
+]
+
+HELP_COMMANDS = [
+    ["data_process/skill_hierarchy/skill_hierarchy_tokenizer.py", "--help"],
+    ["data_process/libero/download_libero_sources.py", "--help"],
+    ["data_process/robotwin/download_robotwin_sources.py", "--help"],
+    ["data_process/robotwin/convert_robotwin_to_lerobot.py", "--help"],
+    ["skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py", "--help"],
+]
+
+SHELL_FILES = [
+    "data_process/robotwin/collect_train_data.sh",
+    "skill_moe/skillnet/install_libero.sh",
+    "skill_moe/skillnet/scripts/run_train_libero40_moe_skill.sh",
+    "skill_moe/skillnet/scripts/run_train_libero90_moe_skill.sh",
+    "skill_moe/skillnet/scripts/run_train_robotwin_pretrain_moe_skill.sh",
+    "skill_moe/skillnet/scripts/run_train_robotwin_transfer_moe_skill.sh",
+    "skill_moe/skillnet/examples/libero/run_eval_libero_skill_moe.sh",
+    "skill_moe/skillnet/examples/robotwin/run_eval_robotwin_moe_skill.sh",
+]
+
+SENSITIVE_PATTERNS = [
+    re.compile("/share" + r"/project"),
+    re.compile("C:" + r"\\Users|C:" + "/Users"),
+    re.compile(r"10\.8\.36\."),
+    re.compile(r"ssh\.platform"),
+    re.compile(r"job-[0-9a-f-]{16,}"),
+    re.compile(r"hf_[A-Za-z0-9]{20,}"),
+    re.compile(r"sk-[A-Za-z0-9]{20,}"),
+    re.compile("openpi-" + "overlay"),
+    re.compile("openpi/" + "backend"),
+]
+
+SCAN_SUFFIXES = {".md", ".py", ".sh", ".json", ".jsonl", ".toml", ".yml", ".yaml"}
+
+LIBERO_SKILL_TASKS = [
+    (
+        "LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket",
+        "put both the alphabet soup and the tomato sauce in the basket",
+    ),
+    (
+        "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate",
+        "open the top drawer of the cabinet and put the bowl on the plate",
+    ),
+    (
+        "KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet",
+        "put the black bowl in the bottom drawer of the cabinet and close the bottom drawer of the cabinet",
+    ),
+    (
+        "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate",
+        "close the top drawer of the cabinet and put the black bowl on the plate",
+    ),
+    (
+        "KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave",
+        "close the top drawer of the cabinet and close the microwave",
+    ),
+    (
+        "KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet",
+        "stack the middle black bowl on the back black bowl and open the top drawer of the cabinet",
+    ),
+    (
+        "KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave",
+        "put the black bowl on the plate and close the microwave",
+    ),
+    (
+        "KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove",
+        "close the drawer of the cabinet and turn off the stove",
+    ),
+    (
+        "KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave",
+        "put the black bowl on the plate and open the microwave",
+    ),
+]
+
+ROBOTWIN_PRETRAIN_TASKS = [
+    "adjust_bottle",
+    "beat_block_hammer",
+    "click_alarmclock",
+    "click_bell",
+    "grab_roller",
+    "handover_block",
+    "lift_pot",
+    "move_can_pot",
+    "move_playingcard_away",
+    "open_microwave",
+    "place_burger_fries",
+    "place_object_basket",
+    "rotate_qrcode",
+    "shake_bottle_horizontally",
+    "stack_blocks_two",
+]
+
+ROBOTWIN_TRANSFER_TASKS = [
+    "blocks_ranking_size",
+    "hanging_mug",
+    "move_pillbottle_pad",
+    "open_laptop",
+    "place_a2b_left",
+    "place_bread_basket",
+    "place_bread_skillet",
+    "place_cans_plasticbox",
+    "place_fan",
+    "press_stapler",
+    "scan_object",
+    "shake_bottle",
+    "stack_blocks_three",
+    "stack_bowls_two",
+    "stamp_seal",
+]
+
+CONFIG_EXPECTATIONS = {
+    "pi05_libero_moe_skill_4_40": [
+        'repo_id="jsw19/libero_40_v1"',
+        'action_expert_variant="gemma_300m_moe_4"',
+        "batch_size=128",
+        "peak_lr=5.0e-5",
+        "decay_lr=5.0e-6",
+        "ema_decay=0.999",
+        "num_train_steps=30_000",
+    ],
+    "pi05_libero_moe_skill_4_90": [
+        'repo_id="jsw19/libero_90_v1"',
+        'action_expert_variant="gemma_300m_moe_4"',
+        "batch_size=32",
+        "peak_lr=2.5e-5",
+        "decay_lr=2.5e-6",
+        "ema_decay=0.99",
+        "num_train_steps=20_000",
+    ],
+    "pi05_robotwin_moe_skill_pretrain": [
+        "repo_id=ROBOTWIN_PRETRAIN_REPO_ID",
+        'action_expert_variant="gemma_300m_moe_4"',
+        "skill_num=14",
+        "skill_embed_dim=64",
+        "batch_size=32",
+        "peak_lr=2.5e-5",
+        "num_train_steps=20_000",
+    ],
+    "pi05_robotwin_moe_skill_transfer": [
+        "repo_id=ROBOTWIN_TRANSFER_REPO_ID",
+        "CheckpointWeightLoader_MoE(ROBOTWIN_TRANSFER_INIT_PARAMS)",
+        'action_expert_variant="gemma_300m_moe_4"',
+        "skill_num=14",
+        "skill_embed_dim=64",
+        "batch_size=32",
+        "peak_lr=2.5e-5",
+        "num_train_steps=1_000",
+    ],
+}
+
+SCRIPT_EXPECTATIONS = [
+    (
+        "skill_moe/skillnet/scripts/run_train_libero40_moe_skill.sh",
+        [
+            'CONFIG_NAME="${CONFIG_NAME:-pi05_libero_moe_skill_4_40}"',
+            'NORM_STATS_PATH="${NORM_STATS_PATH:-assets/${CONFIG_NAME}/jsw19/libero_40_v1/norm_stats.json}"',
+            'elif [[ -n "${VIRTUAL_ENV:-}" ]]',
+        ],
+    ),
+    (
+        "skill_moe/skillnet/scripts/run_train_libero90_moe_skill.sh",
+        [
+            'CONFIG_NAME="${CONFIG_NAME:-pi05_libero_moe_skill_4_90}"',
+            'NORM_STATS_PATH="${NORM_STATS_PATH:-assets/${CONFIG_NAME}/jsw19/libero_90_v1/norm_stats.json}"',
+            'elif [[ -n "${VIRTUAL_ENV:-}" ]]',
+        ],
+    ),
+    (
+        "skill_moe/skillnet/scripts/run_train_robotwin_pretrain_moe_skill.sh",
+        [
+            'CONFIG_NAME="${CONFIG_NAME:-pi05_robotwin_moe_skill_pretrain}"',
+            'ROBOTWIN_REPO_ID="${SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID:-jsw19/robotwin_pretrain_v1}"',
+            'elif [[ -n "${VIRTUAL_ENV:-}" ]]',
+        ],
+    ),
+    (
+        "skill_moe/skillnet/scripts/run_train_robotwin_transfer_moe_skill.sh",
+        [
+            'CONFIG_NAME="${CONFIG_NAME:-pi05_robotwin_moe_skill_transfer}"',
+            'export SKILLNET_ROBOTWIN_TRANSFER_REPO_ID="jsw19/robotwin_${TRANSFER_TASK}_v1"',
+            "SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS is unset.",
+        ],
+    ),
+    (
+        "skill_moe/skillnet/examples/libero/run_eval_libero_skill_moe.sh",
+        [
+            'CONFIG_NAME="${CONFIG_NAME:-pi05_libero_moe_skill_4_90}"',
+            'TASK_SUITE="${TASK_SUITE:-libero_skill}"',
+            'SKILL_ANNOTATION_PATH="${SKILL_ANNOTATION_PATH:-examples/libero/annotations/libero_skill_obj_annotations.json}"',
+        ],
+    ),
+    (
+        "skill_moe/skillnet/examples/robotwin/run_eval_robotwin_moe_skill.sh",
+        [
+            'CONFIG_NAME="${CONFIG_NAME:-pi05_robotwin_moe_skill_transfer}"',
+            'TASK_SET="${TASK_SET:-transfer}"',
+            'ACTION_HORIZON="${ACTION_HORIZON:-10}"',
+            'SKILL_PLAN="${SKILL_PLAN:-${SKILLNET_REPO_ROOT}/data_process/robotwin/robotwin_plan.json}"',
+        ],
+    ),
+]
+
+MOE_EXPECTATIONS = [
+    (
+        "skill_moe/skillnet/src/openpi/models/gemma_moe_skill.py",
+        [
+            'if variant == "gemma_300m_moe_4":',
+            "expert_num=4",
+            "top_k: int = 1",
+            "router_loss_scale: float = 0.01",
+        ],
+    ),
+    (
+        "skill_moe/skillnet/src/openpi/models/pi0_config_moe_skill.py",
+        [
+            'action_expert_variant: _gemma.Variant = "gemma_300m_moe_4"',
+            "skill_num: int = 6",
+            "skill_embed_dim: int = 64",
+        ],
+    ),
+]
+
+PUBLIC_HUB_RESOURCES = [
+    ("model", "jsw19/SkillNet-LIBERO-40"),
+    ("model", "jsw19/SkillNet-LIBERO-90"),
+    ("dataset", "openvla/modified_libero_rlds"),
+    ("dataset", "jesbu1/libero_90_openvla_processed"),
+    ("dataset", "TianxingChen/RoboTwin2.0"),
+]
+
+# Common derived LeRobot repo ids used in the public docs and default scripts.
+DERIVED_LEROBOT_HUB_RESOURCES = [
+    ("dataset", "jsw19/libero_40_v1"),
+    ("dataset", "jsw19/libero_90_v1"),
+    ("dataset", "jsw19/robotwin_pretrain_v1"),
+    ("dataset", "jsw19/robotwin_transfer_v1"),
+    ("dataset", "jsw19/robotwin_blocks_ranking_size_v1"),
+    ("dataset", "jsw19/robotwin_paper_v1"),
+    ("dataset", "jsw19/robotwin_all_v1"),
+]
+
+
+def tracked_files(suffix: str, fallback: list[str]) -> list[str]:
+    """Return tracked files for a suffix when running from a git checkout."""
+    result = subprocess.run(
+        ["git", "ls-files", f"*{suffix}"],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        return fallback
+    files = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    return files or fallback
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--skip-help", action="store_true", help="Skip CLI --help subprocess checks.")
+    parser.add_argument(
+        "--install-smoke",
+        action="store_true",
+        help="Create a temporary venv and install the SkillNet packages with --no-deps.",
+    )
+    parser.add_argument("--install-python", default="3.10", help="Python version or executable for --install-smoke.")
+    parser.add_argument(
+        "--hub-smoke",
+        action="store_true",
+        help="Check that public Hugging Face model/source-dataset resources are reachable.",
+    )
+    parser.add_argument(
+        "--history-smoke",
+        action="store_true",
+        help="Scan commits reachable from HEAD for private paths, tokens, and release-blocking names.",
+    )
+    parser.add_argument(
+        "--include-derived-datasets",
+        action="store_true",
+        help="With --hub-smoke, also check common derived LeRobot dataset repo ids used as local output names.",
+    )
+    parser.add_argument(
+        "--hf-endpoint",
+        default=os.environ.get("HF_ENDPOINT", "https://huggingface.co"),
+        help="Hugging Face endpoint for --hub-smoke. Defaults to HF_ENDPOINT or https://huggingface.co.",
+    )
+    parser.add_argument("--hub-timeout", type=float, default=20.0, help="Per-request timeout for --hub-smoke.")
+    parser.add_argument("--hub-retries", type=int, default=3, help="Retry count for transient --hub-smoke failures.")
+    parser.add_argument("--verbose", action="store_true")
+    return parser.parse_args()
+
+
+def fail(message: str, errors: list[str]) -> None:
+    errors.append(message)
+    print(f"[FAIL] {message}")
+
+
+def ok(message: str, *, verbose: bool = True) -> None:
+    if verbose:
+        print(f"[ OK ] {message}")
+
+
+def check_required_files(errors: list[str], *, verbose: bool) -> None:
+    for rel_path in REQUIRED_FILES:
+        path = REPO_ROOT / rel_path
+        if not path.exists():
+            fail(f"missing required file: {rel_path}", errors)
+        else:
+            ok(f"found {rel_path}", verbose=verbose)
+
+
+def check_json_files(errors: list[str], *, verbose: bool) -> None:
+    json_paths = [
+        "data_process/skill_hierarchy/tokenization_strategy.json",
+        "data_process/skill_hierarchy/motion_code_clusters.json",
+        "data_process/libero/instruct2plan_40.json",
+        "data_process/libero/instruct2plan_90.json",
+        "data_process/libero/instruct2plan_obj_90.json",
+        "skill_moe/skillnet/examples/libero/annotations/instruct2plan_40.json",
+        "skill_moe/skillnet/examples/libero/annotations/instruct2plan_obj_90.json",
+        "skill_moe/skillnet/examples/libero/annotations/libero_skill_obj_annotations.json",
+        "data_process/robotwin/robotwin_plan.json",
+        "data_process/robotwin/skill_anno_robotwin.json",
+    ]
+    for rel_path in json_paths:
+        path = REPO_ROOT / rel_path
+        try:
+            json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            fail(f"invalid JSON in {rel_path}: {exc}", errors)
+        else:
+            ok(f"valid JSON {rel_path}", verbose=verbose)
+
+
+def check_jsonl_files(errors: list[str], *, verbose: bool) -> None:
+    rel_path = "data_process/skill_hierarchy/motion_code_annotation_examples.jsonl"
+    path = REPO_ROOT / rel_path
+    try:
+        rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    except Exception as exc:
+        fail(f"invalid JSONL in {rel_path}: {exc}", errors)
+        return
+    if not rows:
+        fail(f"empty JSONL file: {rel_path}", errors)
+    else:
+        ok(f"valid JSONL {rel_path} ({len(rows)} rows)", verbose=verbose)
+
+
+def compact_text(text: str) -> str:
+    return re.sub(r"\s+", "", text)
+
+
+def load_json(rel_path: str) -> object:
+    return json.loads((REPO_ROOT / rel_path).read_text(encoding="utf-8"))
+
+
+def load_python_literal_assignment(rel_path: str, variable_name: str) -> object:
+    source = (REPO_ROOT / rel_path).read_text(encoding="utf-8-sig")
+    tree = ast.parse(source, filename=rel_path)
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id == variable_name:
+                return ast.literal_eval(node.value)
+    raise ValueError(f"missing literal assignment {variable_name!r} in {rel_path}")
+
+
+def parse_shell_array(rel_path: str, array_name: str) -> list[str]:
+    text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+    match = re.search(rf"{re.escape(array_name)}=\((.*?)\)", text, flags=re.S)
+    if match is None:
+        raise ValueError(f"missing shell array {array_name!r} in {rel_path}")
+    return re.findall(r'"([^"]+)"', match.group(1))
+
+
+def extract_call_block(text: str, call_name: str, anchor: str) -> str:
+    anchor_index = text.find(anchor)
+    if anchor_index < 0:
+        raise ValueError(f"missing anchor {anchor!r}")
+    call_index = text.rfind(call_name, 0, anchor_index)
+    if call_index < 0:
+        raise ValueError(f"missing call {call_name!r} before {anchor!r}")
+    open_index = text.find("(", call_index)
+    if open_index < 0:
+        raise ValueError(f"missing '(' after {call_name!r}")
+
+    depth = 0
+    quote = ""
+    escape = False
+    for index in range(open_index, len(text)):
+        char = text[index]
+        if quote:
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == quote:
+                quote = ""
+            continue
+        if char in ("'", '"'):
+            quote = char
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                return text[call_index : index + 1]
+    raise ValueError(f"unterminated {call_name!r} block for {anchor!r}")
+
+
+def check_config_and_script_contracts(errors: list[str], *, verbose: bool) -> None:
+    error_count = len(errors)
+    config_path = "skill_moe/skillnet/src/openpi/training/config_moe_skill.py"
+    config_text = (REPO_ROOT / config_path).read_text(encoding="utf-8")
+    compact_config = compact_text(config_text)
+
+    global_expectations = [
+        'PI05_BASE_PARAMS=os.environ.get("SKILLNET_PI05_BASE_PARAMS","gs://openpi-assets/checkpoints/pi05_base/params")',
+        'ROBOTWIN_PRETRAIN_REPO_ID=os.environ.get("SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID","jsw19/robotwin_pretrain_v1")',
+        'ROBOTWIN_TRANSFER_REPO_ID=os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_REPO_ID","jsw19/robotwin_transfer_v1")',
+        'ROBOTWIN_TRANSFER_INIT_PARAMS=os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS",PI05_BASE_PARAMS)',
+    ]
+    for snippet in global_expectations:
+        if compact_text(snippet) not in compact_config:
+            fail(f"config global contract missing in {config_path}: {snippet}", errors)
+
+    for config_name, snippets in CONFIG_EXPECTATIONS.items():
+        try:
+            block = extract_call_block(config_text, "TrainConfig", f'name="{config_name}"')
+        except ValueError as exc:
+            fail(f"{config_path}: {exc}", errors)
+            continue
+        compact_block = compact_text(block)
+        for snippet in snippets:
+            if compact_text(snippet) not in compact_block:
+                fail(f"{config_path}: {config_name} missing expected snippet: {snippet}", errors)
+
+    for rel_path, snippets in SCRIPT_EXPECTATIONS:
+        text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+        compact_script = compact_text(text)
+        for snippet in snippets:
+            if compact_text(snippet) not in compact_script:
+                fail(f"{rel_path}: missing expected snippet: {snippet}", errors)
+
+    for rel_path, snippets in MOE_EXPECTATIONS:
+        text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+        compact_model = compact_text(text)
+        for snippet in snippets:
+            if compact_text(snippet) not in compact_model:
+                fail(f"{rel_path}: missing expected MoE snippet: {snippet}", errors)
+
+    if len(errors) == error_count:
+        ok("public config/script/model contracts match documented release settings", verbose=verbose)
+
+
+def check_libero_skill_contract(errors: list[str], *, verbose: bool) -> None:
+    error_count = len(errors)
+    annotations = load_json("skill_moe/skillnet/examples/libero/annotations/libero_skill_obj_annotations.json")
+    if not isinstance(annotations, dict):
+        fail("LIBERO-Skill annotations must be a JSON object", errors)
+        return
+    if len(annotations) != len(LIBERO_SKILL_TASKS):
+        fail(f"LIBERO-Skill annotations expected {len(LIBERO_SKILL_TASKS)} tasks, found {len(annotations)}", errors)
+
+    task_names = [task_name for task_name, _ in LIBERO_SKILL_TASKS]
+    suite_map = load_python_literal_assignment(
+        "skill_moe/skillnet/third_party/libero/libero/libero/benchmark/libero_suite_task_map.py",
+        "libero_task_map",
+    )
+    registered_tasks = suite_map.get("libero_skill_obj") if isinstance(suite_map, dict) else None
+    if registered_tasks != task_names:
+        fail("libero_skill_obj registration does not match the public 9-task manifest", errors)
+
+    bddl_dir = REPO_ROOT / "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj"
+    init_dir = REPO_ROOT / "skill_moe/skillnet/third_party/libero/libero/libero/init_files/libero_skill_obj"
+    bddl_names = sorted(path.stem for path in bddl_dir.glob("*.bddl"))
+    tasks_info_path = bddl_dir / "tasks_info.txt"
+    tasks_info_names = [Path(line.strip()).stem for line in tasks_info_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    if len(tasks_info_names) != len(set(tasks_info_names)):
+        fail(f"{tasks_info_path.relative_to(REPO_ROOT).as_posix()} contains duplicate task entries", errors)
+    if sorted(tasks_info_names) != bddl_names:
+        fail("LIBERO-Skill tasks_info.txt does not match the bundled bddl files", errors)
+    missing_init_for_bddl = sorted(set(bddl_names) - {path.stem for path in init_dir.glob("*.pruned_init")})
+    if missing_init_for_bddl:
+        fail("LIBERO-Skill bddl files missing pruned init files: " + ", ".join(missing_init_for_bddl), errors)
+
+    for bddl_name, annotation_key in LIBERO_SKILL_TASKS:
+        if not (bddl_dir / f"{bddl_name}.bddl").exists():
+            fail(f"missing LIBERO-Skill bddl file: {bddl_name}.bddl", errors)
+        if not (init_dir / f"{bddl_name}.pruned_init").exists():
+            fail(f"missing LIBERO-Skill init file: {bddl_name}.pruned_init", errors)
+        entry = annotations.get(annotation_key)
+        if not isinstance(entry, dict):
+            fail(f"missing LIBERO-Skill annotation: {annotation_key}", errors)
+            continue
+        plan = entry.get("plan")
+        classes = entry.get("all_classes")
+        objects = entry.get("objects")
+        if not isinstance(plan, list) or not plan:
+            fail(f"LIBERO-Skill annotation has empty plan: {annotation_key}", errors)
+        if not isinstance(classes, list) or len(classes) != len(plan):
+            fail(f"LIBERO-Skill all_classes length mismatch: {annotation_key}", errors)
+        if not isinstance(objects, list) or len(objects) != len(plan):
+            fail(f"LIBERO-Skill objects length mismatch: {annotation_key}", errors)
+        if not all(isinstance(item, int) for item in classes or []):
+            fail(f"LIBERO-Skill all_classes must be integers: {annotation_key}", errors)
+        if not all(isinstance(item, int) for item in objects or []):
+            fail(f"LIBERO-Skill objects must be integers: {annotation_key}", errors)
+
+    if len(errors) == error_count:
+        ok("LIBERO-Skill 9-task annotation/bddl/init contract is present", verbose=verbose)
+
+
+def check_libero_annotation_contract(errors: list[str], *, verbose: bool) -> None:
+    error_count = len(errors)
+    libero40 = load_json("data_process/libero/instruct2plan_40.json")
+    libero40_examples = load_json("skill_moe/skillnet/examples/libero/annotations/instruct2plan_40.json")
+    libero90 = load_json("data_process/libero/instruct2plan_90.json")
+    libero90_obj = load_json("data_process/libero/instruct2plan_obj_90.json")
+    libero90_obj_examples = load_json("skill_moe/skillnet/examples/libero/annotations/instruct2plan_obj_90.json")
+
+    if not isinstance(libero40, dict) or len(libero40) != 40:
+        fail(f"LIBERO-40 instruct2plan expected 40 entries, found {len(libero40) if isinstance(libero40, dict) else 'non-object'}", errors)
+    if libero40 != libero40_examples:
+        fail("LIBERO-40 data_process and examples annotation copies differ", errors)
+    if not isinstance(libero90, dict) or len(libero90) != 73:
+        fail(f"LIBERO-90 instruct2plan expected 73 entries, found {len(libero90) if isinstance(libero90, dict) else 'non-object'}", errors)
+    if not isinstance(libero90_obj, dict) or len(libero90_obj) != 73:
+        fail(f"LIBERO-90 object annotation expected 73 entries, found {len(libero90_obj) if isinstance(libero90_obj, dict) else 'non-object'}", errors)
+    if set(libero90) != set(libero90_obj):
+        fail("LIBERO-90 instruct2plan and object annotation keys differ", errors)
+    if libero90_obj != libero90_obj_examples:
+        fail("LIBERO-90 data_process and examples object annotation copies differ", errors)
+
+    for rel_path, data, require_objects in [
+        ("data_process/libero/instruct2plan_40.json", libero40, False),
+        ("data_process/libero/instruct2plan_90.json", libero90, False),
+        ("data_process/libero/instruct2plan_obj_90.json", libero90_obj, True),
+    ]:
+        if not isinstance(data, dict):
+            continue
+        for instruction, entry in data.items():
+            if not isinstance(entry, dict):
+                fail(f"{rel_path}: annotation entry must be an object: {instruction}", errors)
+                continue
+            plan = entry.get("plan")
+            classes = entry.get("all_classes")
+            objects = entry.get("objects")
+            plan_len = len(plan) if isinstance(plan, list) else None
+            if plan_len is None or plan_len == 0:
+                fail(f"{rel_path}: empty plan for {instruction}", errors)
+            if not isinstance(classes, list) or plan_len is None or len(classes) != plan_len:
+                fail(f"{rel_path}: all_classes length mismatch for {instruction}", errors)
+            if require_objects and (not isinstance(objects, list) or plan_len is None or len(objects) != plan_len):
+                fail(f"{rel_path}: objects length mismatch for {instruction}", errors)
+
+    if len(errors) == error_count:
+        ok("LIBERO in-domain annotation copies and schemas match", verbose=verbose)
+
+
+def check_robotwin_contract(errors: list[str], *, verbose: bool) -> None:
+    error_count = len(errors)
+    robotwin_plan = load_json("data_process/robotwin/robotwin_plan.json")
+    skill_annotations = load_json("data_process/robotwin/skill_anno_robotwin.json")
+    if not isinstance(robotwin_plan, dict) or not isinstance(skill_annotations, dict):
+        fail("RoboTwin plan and skill annotations must be JSON objects", errors)
+        return
+
+    builder_pretrain = load_python_literal_assignment("data_process/robotwin/build_robotwin_skill_metadata.py", "PRETRAIN_TASKS")
+    builder_transfer = load_python_literal_assignment("data_process/robotwin/build_robotwin_skill_metadata.py", "TRANSFER_TASKS")
+    eval_pretrain = load_python_literal_assignment(
+        "skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py", "PRETRAIN_TASKS"
+    )
+    eval_transfer = load_python_literal_assignment(
+        "skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py", "TRANSFER_TASKS"
+    )
+    collect_pretrain = [task.replace(" ", "_") for task in parse_shell_array("data_process/robotwin/collect_train_data.sh", "PRETRAIN_TASKS")]
+    collect_transfer = [task.replace(" ", "_") for task in parse_shell_array("data_process/robotwin/collect_train_data.sh", "TRANSFER_TASKS")]
+
+    for label, actual, expected in [
+        ("metadata pretrain tasks", builder_pretrain, ROBOTWIN_PRETRAIN_TASKS),
+        ("metadata transfer tasks", builder_transfer, ROBOTWIN_TRANSFER_TASKS),
+        ("eval pretrain tasks", eval_pretrain, ROBOTWIN_PRETRAIN_TASKS),
+        ("eval transfer tasks", eval_transfer, ROBOTWIN_TRANSFER_TASKS),
+        ("collect pretrain tasks", collect_pretrain, ROBOTWIN_PRETRAIN_TASKS),
+        ("collect transfer tasks", collect_transfer, ROBOTWIN_TRANSFER_TASKS),
+    ]:
+        if actual != expected:
+            fail(f"RoboTwin {label} do not match the public paper task manifest", errors)
+
+    if len(robotwin_plan) != 50:
+        fail(f"RoboTwin full plan expected 50 tasks, found {len(robotwin_plan)}", errors)
+
+    description_to_tasks: dict[str, list[str]] = {}
+    all_skill_ids = []
+    longest_skill_sequence = 0
+    for task, entry in robotwin_plan.items():
+        if not isinstance(entry, dict):
+            fail(f"RoboTwin task entry must be an object: {task}", errors)
+            continue
+        description = entry.get("description")
+        skills = entry.get("skills")
+        if not isinstance(description, str) or not description:
+            fail(f"RoboTwin task missing description: {task}", errors)
+        else:
+            description_to_tasks.setdefault(description, []).append(task)
+            if description not in skill_annotations:
+                fail(f"RoboTwin task description missing hierarchy annotation: {task}", errors)
+        if not isinstance(skills, list) or not skills or not all(isinstance(item, int) for item in skills):
+            fail(f"RoboTwin task must contain integer skills: {task}", errors)
+        else:
+            all_skill_ids.extend(skills)
+            longest_skill_sequence = max(longest_skill_sequence, len(skills))
+
+    duplicate_descriptions = {
+        description: sorted(tasks) for description, tasks in description_to_tasks.items() if len(tasks) > 1
+    }
+    expected_duplicate = {
+        "pick up one bottle with one arm, and pick up another bottle with the other arm": [
+            "pick_diverse_bottles",
+            "pick_dual_bottles",
+        ]
+    }
+    if duplicate_descriptions != expected_duplicate:
+        fail(f"Unexpected RoboTwin duplicate descriptions: {duplicate_descriptions}", errors)
+    if len(skill_annotations) != len(description_to_tasks):
+        fail(
+            f"RoboTwin hierarchy annotations should match unique task descriptions: "
+            f"{len(skill_annotations)} annotations vs {len(description_to_tasks)} descriptions",
+            errors,
+        )
+
+    expected_tasks = ROBOTWIN_PRETRAIN_TASKS + ROBOTWIN_TRANSFER_TASKS
+    if len(expected_tasks) != 30:
+        fail(f"RoboTwin paper task list should contain 30 tasks, found {len(expected_tasks)}", errors)
+
+    max_skill_id = -1
+    for task in expected_tasks:
+        entry = robotwin_plan.get(task)
+        if not isinstance(entry, dict):
+            fail(f"missing RoboTwin paper task in robotwin_plan.json: {task}", errors)
+            continue
+        description = entry.get("description")
+        skills = entry.get("skills")
+        if not isinstance(description, str) or not description:
+            fail(f"RoboTwin task missing description: {task}", errors)
+        if not isinstance(skills, list) or not skills or not all(isinstance(item, int) for item in skills):
+            fail(f"RoboTwin task must contain integer skills: {task}", errors)
+        else:
+            max_skill_id = max(max_skill_id, max(skills))
+
+        annotation = skill_annotations.get(description)
+        if not isinstance(annotation, dict):
+            fail(f"missing RoboTwin hierarchy annotation for task description: {task}", errors)
+            continue
+        subtask_plan = annotation.get("plan")
+        classes = annotation.get("all_classes")
+        if not isinstance(subtask_plan, list) or not subtask_plan:
+            fail(f"RoboTwin hierarchy annotation has empty plan: {task}", errors)
+        if not isinstance(classes, list) or not classes or len(classes) % 3 != 0:
+            fail(f"RoboTwin hierarchy all_classes must be nonempty triples: {task}", errors)
+        if not all(isinstance(item, int) for item in classes or []):
+            fail(f"RoboTwin hierarchy all_classes must be integers: {task}", errors)
+
+    if max_skill_id != 12:
+        fail(f"RoboTwin paper tasks expected max flat skill id 12, found {max_skill_id}", errors)
+    if all_skill_ids and (min(all_skill_ids) != 0 or max(all_skill_ids) != 12):
+        fail(f"RoboTwin full plan expected flat skill id range 0..12, found {min(all_skill_ids)}..{max(all_skill_ids)}", errors)
+    if longest_skill_sequence != 6:
+        fail(f"RoboTwin full plan expected longest flat skill sequence length 6, found {longest_skill_sequence}", errors)
+
+    robotwin_pipeline_snippets = [
+        ("data_process/robotwin/convert_robotwin_to_lerobot.py", ['"task": {"dtype": "string"', '"skills": {"dtype": "string"', '"task": task_desc', '"skills": skill_string']),
+        ("skill_moe/skillnet/src/openpi/training/data_loader_skill.py", ["SkillPromptFromLeRobotTask", "if data_config.prompt_from_task:"]),
+        ("skill_moe/skillnet/src/openpi/policies/robotwin_policy.py", ['inputs["skills"] = padded', 'skill_ids[:num_skills] + 1']),
+    ]
+    for rel_path, snippets in robotwin_pipeline_snippets:
+        text = compact_text((REPO_ROOT / rel_path).read_text(encoding="utf-8"))
+        for snippet in snippets:
+            if compact_text(snippet) not in text:
+                fail(f"{rel_path}: missing RoboTwin data/policy pipeline snippet: {snippet}", errors)
+
+    if len(errors) == error_count:
+        ok("RoboTwin full-plan schema and 30-task few-shot contract are present", verbose=verbose)
+
+
+def check_python_compile(errors: list[str], *, verbose: bool) -> None:
+    python_files = tracked_files(".py", PYTHON_FILES)
+    cmd = [sys.executable, "-m", "py_compile", *python_files]
+    result = subprocess.run(cmd, cwd=REPO_ROOT, text=True, capture_output=True)
+    if result.returncode != 0:
+        fail(f"python compile failed:\n{result.stderr.strip()}", errors)
+    else:
+        ok(f"Python syntax ok for {len(python_files)} tracked files", verbose=verbose)
+
+
+def check_help_commands(errors: list[str], *, verbose: bool) -> None:
+    for command in HELP_COMMANDS:
+        result = subprocess.run([sys.executable, *command], cwd=REPO_ROOT, text=True, capture_output=True)
+        if result.returncode != 0:
+            fail(f"help command failed: python {' '.join(command)}\n{result.stderr.strip()}", errors)
+        else:
+            ok(f"help works: python {' '.join(command)}", verbose=verbose)
+
+
+def check_shell_syntax(errors: list[str], *, verbose: bool) -> None:
+    bash = shutil.which("bash")
+    if bash is None:
+        ok("bash not found; skipping shell syntax checks", verbose=verbose)
+        return
+    shell_files = tracked_files(".sh", SHELL_FILES)
+    for rel_path in shell_files:
+        result = subprocess.run([bash, "-n", rel_path], cwd=REPO_ROOT, text=True, capture_output=True)
+        if result.returncode != 0:
+            fail(f"shell syntax failed: {rel_path}\n{result.stderr.strip()}", errors)
+        else:
+            ok(f"shell syntax ok: {rel_path}", verbose=verbose)
+
+
+def check_sensitive_patterns(errors: list[str], *, verbose: bool) -> None:
+    matches = []
+    for path in REPO_ROOT.rglob("*"):
+        if ".git" in path.parts or not path.is_file() or path.suffix not in SCAN_SUFFIXES:
+            continue
+        if path == Path(__file__).resolve():
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for line_number, line in enumerate(text.splitlines(), start=1):
+            for pattern in SENSITIVE_PATTERNS:
+                if pattern.search(line):
+                    rel_path = path.relative_to(REPO_ROOT).as_posix()
+                    matches.append(f"{rel_path}:{line_number}: {pattern.pattern}")
+    if matches:
+        fail("sensitive/private patterns found:\n" + "\n".join(matches), errors)
+    else:
+        ok("no private path/token patterns found", verbose=verbose)
+
+
+def check_history_sensitive_patterns(errors: list[str], *, verbose: bool) -> None:
+    result = subprocess.run(["git", "rev-list", "HEAD"], cwd=REPO_ROOT, text=True, capture_output=True)
+    if result.returncode != 0:
+        fail("--history-smoke requires a git checkout with a valid HEAD", errors)
+        return
+
+    commits = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    matches: list[str] = []
+    total_matches = 0
+    max_reported = 80
+    for commit in commits:
+        tree_result = subprocess.run(
+            ["git", "ls-tree", "-r", "--name-only", commit],
+            cwd=REPO_ROOT,
+            text=True,
+            capture_output=True,
+        )
+        if tree_result.returncode != 0:
+            fail(f"git history scan could not list files for {commit[:12]}: {tree_result.stderr.strip()}", errors)
+            return
+
+        for rel_path in tree_result.stdout.splitlines():
+            if not rel_path or Path(rel_path).suffix not in SCAN_SUFFIXES:
+                continue
+            if rel_path == "scripts/check_public_release.py":
+                continue
+            blob_result = subprocess.run(
+                ["git", "show", f"{commit}:{rel_path}"],
+                cwd=REPO_ROOT,
+                capture_output=True,
+            )
+            if blob_result.returncode != 0:
+                continue
+            text = blob_result.stdout.decode("utf-8", errors="ignore")
+            for line_number, line in enumerate(text.splitlines(), start=1):
+                for pattern in SENSITIVE_PATTERNS:
+                    if not pattern.search(line):
+                        continue
+                    total_matches += 1
+                    if len(matches) < max_reported:
+                        matches.append(f"{commit[:12]}:{rel_path}:{line_number}: {pattern.pattern}")
+                    break
+
+    if total_matches:
+        suffix = ""
+        if total_matches > len(matches):
+            suffix = f"\n... {total_matches - len(matches)} additional history matches omitted"
+        fail("sensitive/private patterns found in git history:\n" + "\n".join(matches) + suffix, errors)
+    else:
+        ok(f"git history reachable from HEAD is clean ({len(commits)} commit(s) scanned)", verbose=verbose)
+
+
+def check_install_smoke(errors: list[str], *, python_spec: str, verbose: bool) -> None:
+    uv = shutil.which("uv")
+    if uv is None:
+        fail("--install-smoke requires uv on PATH", errors)
+        return
+
+    with tempfile.TemporaryDirectory(prefix="skillnet-install-smoke-") as temp_dir:
+        venv_dir = Path(temp_dir) / ".venv"
+        python = venv_dir / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
+        commands = [
+            [uv, "venv", "--python", python_spec, str(venv_dir)],
+            [
+                uv,
+                "pip",
+                "install",
+                "--python",
+                str(python),
+                "--no-deps",
+                "-e",
+                str(REPO_ROOT / "skill_moe/skillnet"),
+            ],
+            [
+                uv,
+                "pip",
+                "install",
+                "--python",
+                str(python),
+                "--no-deps",
+                "-e",
+                str(REPO_ROOT / "skill_moe/skillnet/packages/openpi-client"),
+            ],
+        ]
+        for command in commands:
+            result = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True)
+            if result.returncode != 0:
+                fail(
+                    "install smoke command failed: "
+                    + " ".join(command)
+                    + "\n"
+                    + (result.stderr.strip() or result.stdout.strip()),
+                    errors,
+                )
+                return
+
+        smoke_code = """
+import importlib
+import importlib.metadata as metadata
+import importlib.util
+
+assert metadata.version("skillnet")
+assert metadata.version("openpi-client")
+assert importlib.util.find_spec("openpi.training.config_moe_skill")
+assert importlib.util.find_spec("openpi_client.websocket_client_policy")
+client = importlib.import_module("openpi_client")
+assert client.__version__ == "0.1.0"
+"""
+        result = subprocess.run([str(python), "-c", smoke_code], cwd=REPO_ROOT, text=True, capture_output=True)
+        if result.returncode != 0:
+            fail(f"install smoke import check failed:\n{result.stderr.strip() or result.stdout.strip()}", errors)
+            return
+
+    ok("temporary --no-deps editable install smoke passed", verbose=verbose)
+
+
+def hub_api_url(endpoint: str, repo_type: str, repo_id: str) -> str:
+    endpoint = endpoint.rstrip("/")
+    if repo_type == "model":
+        return f"{endpoint}/api/models/{repo_id}"
+    if repo_type == "dataset":
+        return f"{endpoint}/api/datasets/{repo_id}"
+    raise ValueError(f"unsupported Hugging Face repo type: {repo_type}")
+
+
+def fetch_hub_status(url: str, *, timeout: float, retries: int) -> tuple[int | None, str]:
+    headers = {"User-Agent": "skillnet-release-check/1.0"}
+    token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_HUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    attempts = max(1, retries)
+    last_error = ""
+    for attempt in range(1, attempts + 1):
+        request = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return response.status, ""
+        except urllib.error.HTTPError as exc:
+            if exc.code in {429, 500, 502, 503, 504} and attempt < attempts:
+                time.sleep(min(2**attempt, 5))
+                continue
+            return exc.code, exc.reason or str(exc)
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            last_error = str(exc)
+            if attempt < attempts:
+                time.sleep(min(2**attempt, 5))
+                continue
+    return None, last_error
+
+
+def check_hub_resources(
+    errors: list[str],
+    *,
+    endpoint: str,
+    include_derived_datasets: bool,
+    timeout: float,
+    retries: int,
+    verbose: bool,
+) -> None:
+    resources = list(PUBLIC_HUB_RESOURCES)
+    if include_derived_datasets:
+        resources.extend(DERIVED_LEROBOT_HUB_RESOURCES)
+
+    for repo_type, repo_id in resources:
+        url = hub_api_url(endpoint, repo_type, repo_id)
+        status, detail = fetch_hub_status(url, timeout=timeout, retries=retries)
+        label = f"{repo_type} {repo_id}"
+        if status == 200:
+            ok(f"Hugging Face resource reachable: {label}", verbose=verbose)
+            continue
+        if status in {401, 403}:
+            fail(f"Hugging Face resource is private or requires authentication: {label}", errors)
+        elif status == 404:
+            fail(f"Hugging Face resource not found: {label}", errors)
+        elif status is None:
+            fail(f"Hugging Face resource check failed for {label}: {detail}", errors)
+        else:
+            fail(f"Hugging Face resource check returned HTTP {status} for {label}: {detail}", errors)
+
+
+def main() -> None:
+    args = parse_args()
+    errors: list[str] = []
+
+    check_required_files(errors, verbose=args.verbose)
+    check_json_files(errors, verbose=args.verbose)
+    check_jsonl_files(errors, verbose=args.verbose)
+    check_config_and_script_contracts(errors, verbose=args.verbose)
+    check_libero_annotation_contract(errors, verbose=args.verbose)
+    check_libero_skill_contract(errors, verbose=args.verbose)
+    check_robotwin_contract(errors, verbose=args.verbose)
+    check_python_compile(errors, verbose=args.verbose)
+    if not args.skip_help:
+        check_help_commands(errors, verbose=args.verbose)
+    check_shell_syntax(errors, verbose=args.verbose)
+    check_sensitive_patterns(errors, verbose=args.verbose)
+    if args.history_smoke:
+        check_history_sensitive_patterns(errors, verbose=args.verbose)
+    if args.install_smoke:
+        check_install_smoke(errors, python_spec=args.install_python, verbose=args.verbose)
+    if args.hub_smoke:
+        check_hub_resources(
+            errors,
+            endpoint=args.hf_endpoint,
+            include_derived_datasets=args.include_derived_datasets,
+            timeout=args.hub_timeout,
+            retries=args.hub_retries,
+            verbose=args.verbose,
+        )
+
+    if errors:
+        raise SystemExit(1)
+    print("SkillNet public release checks passed.")
+
+
+if __name__ == "__main__":
+    main()

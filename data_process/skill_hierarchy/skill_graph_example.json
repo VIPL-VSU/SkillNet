@@ -1,0 +1,48 @@
+{
+  "cluster_0": {
+    "obtain-13.5.2": {
+      "pick": [
+        ["Pick the red block.", ["example_dataset", 0, 0]],
+        ["Pick the bowl.", ["example_dataset", 0, 1]]
+      ],
+      "retrieve": [
+        ["Retrieve the tomato from the shelf.", ["example_dataset", 0, 2]]
+      ]
+    }
+  },
+  "cluster_1": {
+    "turn-26.6.1": {
+      "open": [
+        ["Open the drawer.", ["example_dataset", 1, 0]]
+      ]
+    },
+    "put-9.1": {
+      "place": [
+        ["Place the bowl on the plate.", ["example_dataset", 1, 1]],
+        ["Place the block in the basket.", ["example_dataset", 1, 2]]
+      ]
+    }
+  },
+  "cluster_3": {
+    "turn-26.6.1": {
+      "open": [
+        ["Open the door.", ["example_dataset", 2, 0]],
+        ["Open the microwave door.", ["example_dataset", 2, 1]]
+      ]
+    }
+  },
+  "cluster_4": {
+    "push-12": {
+      "press": [
+        ["Press the button.", ["example_dataset", 3, 0]]
+      ]
+    }
+  },
+  "cluster_9": {
+    "carve-21.2": {
+      "cut": [
+        ["Cut the apple.", ["example_dataset", 4, 0]]
+      ]
+    }
+  }
+}

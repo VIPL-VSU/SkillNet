@@ -1,0 +1,371 @@
+{
+    "move_pillbottle_pad": {
+        "description": "Use one arm to pick the pillbottle and place it onto the pad.",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "stack_bowls_two": {
+        "description": "stack the two bowls on top of each other",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "move_can_pot": {
+        "description": "there is a can and a pot on the table, use one arm to <pick up the can> and <move it to beside the pot>",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "click_bell": {
+        "description": "click the <bell's top center> on the table",
+        "skills": [
+            2
+        ]
+    },
+    "lift_pot": {
+        "description": "use BOTH!!! arms to lift the pot",
+        "skills": [
+            3
+        ]
+    },
+    "stamp_seal": {
+        "description": "Grab the stamp and stamp onto the specific color mat",
+        "skills": [
+            0,
+            4
+        ]
+    },
+    "place_burger_fries": {
+        "description": "Use dual arm to pick the hamburg and frenchfries and put them onto the tray.",
+        "skills": [
+            3,
+            5
+        ]
+    },
+    "place_object_scale": {
+        "description": "use one arm to grab the object and put it on the scale",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "pick_dual_bottles": {
+        "description": "pick up one bottle with one arm, and pick up another bottle with the other arm",
+        "skills": [
+            3
+        ]
+    },
+    "open_microwave": {
+        "description": "Use one arm to open the microwave.",
+        "skills": [
+            6
+        ]
+    },
+    "turn_switch": {
+        "description": "use the robotic arm to click the switch",
+        "skills": [
+            2
+        ]
+    },
+    "blocks_ranking_rgb": {
+        "description": "<Place> the red block, green block, and blue block <in the order> of red, green, and blue from left to right, <placing in a row>.",
+        "skills": [
+            0,
+            1,
+            0,
+            1,
+            0,
+            1
+        ]
+    },
+    "move_stapler_pad": {
+        "description": "use appropriate arm to move the stapler to a colored mat",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "place_object_basket": {
+        "description": "use one arm to grab the target object and put it in the basket, then use the other arm to grab the basket, and finally move the basket slightly away",
+        "skills": [
+            0,
+            1,
+            0,
+            1
+        ]
+    },
+    "place_can_basket": {
+        "description": "use one arm to pick up the can, put it into the basket, and use another arm to lift the basket",
+        "skills": [
+            0,
+            1,
+            0
+        ]
+    },
+    "place_bread_skillet": {
+        "description": "if there is one bread on the table, use one arm to grab the bread and put it into the skillet",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "handover_block": {
+        "description": "use the left arm to grasp the red block on the table, handover it to the right arm and place it on the blue pad",
+        "skills": [
+            0,
+            7,
+            1
+        ]
+    },
+    "place_phone_stand": {
+        "description": "pick up the phone and put it on the phone stand",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "place_container_plate": {
+        "description": "place the container onto the plate",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "stack_blocks_three": {
+        "description": "there are three blocks on the table, the color of the blocks is <red, green and blue>, <move the blocks to the center of the table>, and <stack the blue block on the green block, and the green block on the red block>",
+        "skills": [
+            0,
+            1,
+            0,
+            1,
+            0,
+            1
+        ]
+    },
+    "move_playingcard_away": {
+        "description": "use the arm to <pick up the playing card> and <move it away from the table>.For example, if the playing card is on the outward side of the table, you should move it further outward side of the table.",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "stack_bowls_three": {
+        "description": "stack the three bowls on top of each other",
+        "skills": [
+            0,
+            1,
+            0,
+            1,
+            0,
+            1
+        ]
+    },
+    "blocks_ranking_size": {
+        "description": "there are three blocks on the table, the color of the blocks is random, move the blocks to the center of the table, and arrange them from largest to smallest, from left to right",
+        "skills": [
+            0,
+            1,
+            0,
+            1,
+            0,
+            1
+        ]
+    },
+    "place_a2b_right": {
+        "description": "use appropriate arm to place object A on the right of object B",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "stack_blocks_two": {
+        "description": "there are two blocks on the table, the color of the blocks is <red, green>, <move the blocks to the center of the table>, and <stack the geen block on the red block>",
+        "skills": [
+            0,
+            1,
+            0,
+            1
+        ]
+    },
+    "place_object_stand": {
+        "description": "use appropriate arm to place the object on the stand",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "put_bottles_dustbin": {
+        "description": "use arms to grab the bottles and put them into the dustbin to the left of the table",
+        "skills": [
+            0,
+            1,
+            0,
+            1,
+            0,
+            1
+        ]
+    },
+    "shake_bottle_horizontally": {
+        "description": "Shake the bottle horizontally with proper arm",
+        "skills": [
+            8
+        ]
+    },
+    "place_cans_plasticbox": {
+        "description": "Use dual arm to pick and place cans into plasticbox",
+        "skills": [
+            3,
+            5
+        ]
+    },
+    "scan_object": {
+        "description": "Use one arm to pick the scanner and use the other arm to pick the object, and use the scanner to scan the object",
+        "skills": [
+            0,
+            0,
+            9
+        ]
+    },
+    "dump_bin_bigbin": {
+        "description": "Grab the small bin and pour the balls into the big bin",
+        "skills": [
+            0,
+            10
+        ]
+    },
+    "beat_block_hammer": {
+        "description": "there is a hammer and a block on the table, use the arm to <grab the hammer> and <beat the block>",
+        "skills": [
+            0,
+            11
+        ]
+    },
+    "place_shoe": {
+        "description": "use one arm to grab the shoe from the table and place it on the mat",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "place_dual_shoes": {
+        "description": "use both arms to pick up the two shoes on the table and put them in the shoebox, with the shoe tip pointing to the left",
+        "skills": [
+            3,
+            5
+        ]
+    },
+    "open_laptop": {
+        "description": "use one arm to open the laptop",
+        "skills": [
+            6
+        ]
+    },
+    "place_bread_basket": {
+        "description": "if there is one bread on the table, use one arm to grab the bread and put it in the basket, if there are two breads on the table, use two arms to simultaneously!!! grab up two breads and put them in the basket",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "place_empty_cup": {
+        "description": "use an arm to place the empty cup on the coaster",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "pick_diverse_bottles": {
+        "description": "pick up one bottle with one arm, and pick up another bottle with the other arm",
+        "skills": [
+            0,
+            0
+        ]
+    },
+    "click_alarmclock": {
+        "description": "click the alarm clock's center of the top side button on the table",
+        "skills": [
+            2
+        ]
+    },
+    "put_object_cabinet": {
+        "description": "use {a} to open the cabinet's drawer, and use another arm to put the object on the table to the drawer.",
+        "skills": [
+            6,
+            0,
+            1
+        ]
+    },
+    "press_stapler": {
+        "description": "Use one arm to press the stapler.",
+        "skills": [
+            2
+        ]
+    },
+    "place_a2b_left": {
+        "description": "use appropriate arm to place object A on the left of object B",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "shake_bottle": {
+        "description": "Shake the bottle with proper arm",
+        "skills": [
+            8
+        ]
+    },
+    "hanging_mug": {
+        "description": "Use left arm to pick the mug on the table, rotate the mug and put the mug down in the middle of the table, use the right arm to pick the mug and hang it onto the rack.",
+        "skills": [
+            0,
+            1,
+            0,
+            12
+        ]
+    },
+    "handover_mic": {
+        "description": "Use one arm to grasp the microphone on the table and handover it to the other arm",
+        "skills": [
+            0,
+            7
+        ]
+    },
+    "grab_roller": {
+        "description": "use both arms to grab the roller on the table",
+        "skills": [
+            3
+        ]
+    },
+    "place_fan": {
+        "description": "grab the fan and place it on a colored mat, <make sure the fan is facing the robot!(THIS MUST BE REFERRED TO>",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "place_mouse_pad": {
+        "description": "grab the mouse and place it on a colored mat",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "adjust_bottle": {
+        "description": "Pick up the bottle on the table headup with the correct arm",
+        "skills": [
+            0,
+            1
+        ]
+    },
+    "rotate_qrcode": {
+        "description": "Use arm to catch the qrcode board on the table, pick it up and rotate to let the qrcode face towards you",
+        "skills": [
+            0,
+            1
+        ]
+    }
+}

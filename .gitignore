@@ -1,0 +1,35 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Experiment outputs.
+checkpoints/
+logs/
+wandb/
+outputs/
+data/
+videos/
+*.mp4
+*.npy
+*.npz
+*.parquet
+
+# Large model/data artifacts should be downloaded separately.
+*.ckpt
+*.safetensors
+*.pt
+*.pth
+*.tar
+*.tar.gz
+*.zip
+
+# Local editor and OS noise.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
