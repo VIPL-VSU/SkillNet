@@ -23,6 +23,8 @@ compositional out-of-domain evaluation, and RoboTwin few-shot transfer.
 - `docs/training_and_evaluation.md`: public launch instructions for LIBERO-40/90 Skill-MoE training and LIBERO-Skill evaluation.
 - `docs/robotwin_few_shot.md`: RoboTwin few-shot task lists, data setup, training, evaluation, and reported results.
 - `CITATION.cff`: machine-readable citation metadata for the SkillNet paper and software release.
+- `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`: public contribution,
+  support, and sensitive-information handling guidelines.
 
 The RoboTwin few-shot release includes paper-aligned task plans, public data
 helpers, LeRobot conversion, skill metadata, training configs, training

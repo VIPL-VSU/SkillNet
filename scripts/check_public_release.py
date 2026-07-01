@@ -26,9 +26,12 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_FILES = [
     "CITATION.cff",
+    "CONTRIBUTING.md",
     "LICENSE",
     "NOTICE.md",
     "README.md",
+    "SECURITY.md",
+    "SUPPORT.md",
     ".github/workflows/release-check.yml",
     "docs/quick_start.md",
     "docs/github_repository_setup.md",
@@ -527,6 +530,9 @@ DOC_EXPECTATIONS = [
             "Generate one per-task dataset locally",
             "public_task_manifest.json",
             "machine-readable citation metadata",
+            "CONTRIBUTING.md",
+            "SUPPORT.md",
+            "SECURITY.md",
         ],
     ),
     (
@@ -543,6 +549,46 @@ DOC_EXPECTATIONS = [
             "PMLR",
             "year: 2026",
             "https://github.com/VIPL-VSU/SkillNet",
+        ],
+    ),
+    (
+        "CONTRIBUTING.md",
+        [
+            "Contributing",
+            "docs/release_status.md",
+            "Do not add API keys",
+            "machine-local absolute paths",
+            "python scripts/check_public_release.py --verbose",
+            "--history-smoke",
+            "--hub-smoke",
+            "--require-bash",
+            "New public files are included in `scripts/check_public_release.py`",
+        ],
+    ),
+    (
+        "SUPPORT.md",
+        [
+            "Support",
+            "docs/quick_start.md",
+            "docs/release_status.md",
+            "docs/training_and_evaluation.md",
+            "GitHub issue",
+            "Do not include tokens",
+            "private dataset paths",
+            "check_public_release.py --verbose",
+        ],
+    ),
+    (
+        "SECURITY.md",
+        [
+            "Security Policy",
+            "Reporting a Vulnerability",
+            "GitHub private vulnerability reporting",
+            "Do not include exploit details",
+            "API keys",
+            "Private dataset locations",
+            "Machine-local absolute paths",
+            "--history-smoke",
         ],
     ),
     (
@@ -816,8 +862,11 @@ DOC_FORBIDDEN_SNIPPETS = [
 ]
 
 PUBLIC_DOC_FILES = [
+    "CONTRIBUTING.md",
     "NOTICE.md",
     "README.md",
+    "SECURITY.md",
+    "SUPPORT.md",
     "skill_moe/README.md",
     "docs/quick_start.md",
     "docs/github_repository_setup.md",
