@@ -25,6 +25,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_FILES = [
+    "CITATION.cff",
     "LICENSE",
     "NOTICE.md",
     "README.md",
@@ -172,7 +173,7 @@ HISTORY_SENSITIVE_PATTERNS = [
     pattern for pattern in SENSITIVE_PATTERNS if pattern.pattern not in {r"\b[A-Za-z]:\\", r"~[/\\]", r"\$HOME[/\\]"}
 ]
 
-SCAN_SUFFIXES = {".md", ".py", ".sh", ".json", ".jsonl", ".toml", ".yml", ".yaml"}
+SCAN_SUFFIXES = {".cff", ".md", ".py", ".sh", ".json", ".jsonl", ".toml", ".yml", ".yaml"}
 
 TOKENIZATION_STRATEGY_SHA256 = "13d025527a240738e20be3a5e2a208157d623250667db6fc8949830a1ffd8081"
 MOTION_CODE_CENTERS = {
@@ -510,6 +511,8 @@ DOC_EXPECTATIONS = [
             "## 5. Few-Shot Transfer",
             "docs/release_status.md",
             "docs/github_repository_setup.md",
+            "## Citation",
+            "CITATION.cff",
             "GitHub Actions release gate",
             ".github/workflows/release-check.yml",
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
@@ -523,6 +526,23 @@ DOC_EXPECTATIONS = [
             "--include-libero-derived-datasets",
             "Generate one per-task dataset locally",
             "public_task_manifest.json",
+            "machine-readable citation metadata",
+        ],
+    ),
+    (
+        "CITATION.cff",
+        [
+            "cff-version: 1.2.0",
+            "SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models",
+            "family-names: Xie",
+            "family-names: Zhang",
+            "family-names: Tan",
+            "family-names: Wang",
+            "family-names: Chen",
+            "Proceedings of the 43rd International Conference on Machine Learning",
+            "PMLR",
+            "year: 2026",
+            "https://github.com/VIPL-VSU/SkillNet",
         ],
     ),
     (

@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: "If you use SkillNet, please cite the SkillNet paper."
+title: "SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models"
+type: software
+authors:
+  - family-names: Xie
+    given-names: Senwei
+  - family-names: Zhang
+    given-names: Yuntian
+  - family-names: Tan
+    given-names: Zhenzhou
+  - family-names: Wang
+    given-names: Ruiping
+  - family-names: Wang
+    given-names: Pengwei
+  - family-names: Zhang
+    given-names: Shanghang
+  - family-names: Chen
+    given-names: Xilin
+repository-code: "https://github.com/VIPL-VSU/SkillNet"
+date-released: "2026-07-01"
+preferred-citation:
+  type: conference-paper
+  title: "SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models"
+  authors:
+    - family-names: Xie
+      given-names: Senwei
+    - family-names: Zhang
+      given-names: Yuntian
+    - family-names: Tan
+      given-names: Zhenzhou
+    - family-names: Wang
+      given-names: Ruiping
+    - family-names: Wang
+      given-names: Pengwei
+    - family-names: Zhang
+      given-names: Shanghang
+    - family-names: Chen
+      given-names: Xilin
+  collection-title: "Proceedings of the 43rd International Conference on Machine Learning"
+  publisher: "PMLR"
+  year: 2026
+  conference:
+    name: "International Conference on Machine Learning"
+    location: "Seoul, South Korea"

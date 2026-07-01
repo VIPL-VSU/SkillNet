@@ -2,10 +2,9 @@
 
 [![SkillNet release checks](https://github.com/VIPL-VSU/SkillNet/actions/workflows/release-check.yml/badge.svg?branch=skillnet-public-release)](https://github.com/VIPL-VSU/SkillNet/actions/workflows/release-check.yml?query=branch%3Askillnet-public-release)
 
-This repository contains the open-source release scaffold for SkillNet. The
-current drop focuses on the SkillNet code used for LIBERO in-domain training,
-LIBERO-Skill compositional out-of-domain evaluation, and RoboTwin few-shot
-transfer.
+This repository contains the open-source release for SkillNet. The release
+focuses on the SkillNet code used for LIBERO in-domain training, LIBERO-Skill
+compositional out-of-domain evaluation, and RoboTwin few-shot transfer.
 
 ## Release Contents
 
@@ -23,6 +22,7 @@ transfer.
 - `docs/libero_data_processing.md`: complete notes for reproducing the LIBERO LeRobot datasets used by the SkillNet training configs.
 - `docs/training_and_evaluation.md`: public launch instructions for LIBERO-40/90 Skill-MoE training and LIBERO-Skill evaluation.
 - `docs/robotwin_few_shot.md`: RoboTwin few-shot task lists, data setup, training, evaluation, and reported results.
+- `CITATION.cff`: machine-readable citation metadata for the SkillNet paper and software release.
 
 The RoboTwin few-shot release includes paper-aligned task plans, public data
 helpers, LeRobot conversion, skill metadata, training configs, training
@@ -31,8 +31,8 @@ checkout.
 
 ## Status
 
-This is a source-code release scaffold with a lightweight editable Python
-package. The runnable SkillNet source root is `skill_moe/skillnet`. A few
+This is a source-code release with a lightweight editable Python package. The
+runnable SkillNet source root is `skill_moe/skillnet`. A few
 low-level package names are retained only so pi0.5-compatible checkpoints and
 policy clients load without conversion; public commands, environment variables,
 checkpoints, and documentation are organized as SkillNet workflows. See
@@ -42,6 +42,14 @@ GitHub Actions release gate in `.github/workflows/release-check.yml` runs the
 same public checks on pushes and pull requests to the release branch. GitHub
 repository settings that live outside this git tree are tracked in
 `docs/github_repository_setup.md`.
+
+## Citation
+
+If you use SkillNet, please cite:
+
+> SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models. ICML 2026.
+
+Machine-readable citation metadata is provided in `CITATION.cff`.
 
 ## Experiments Covered
 
