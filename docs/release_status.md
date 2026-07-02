@@ -141,15 +141,15 @@ the anonymous `--include-libero-derived-datasets` gate:
 
 ```bash
 python -m pip install -U huggingface_hub
-read -rsp "HF_TOKEN: " HF_TOKEN
-export HF_TOKEN
-echo
-
 python scripts/set_hf_dataset_visibility.py \
   --public \
   --dry-run \
   jsw19/libero_40_v1 \
   jsw19/libero_90_v1
+
+read -rsp "HF_TOKEN: " HF_TOKEN
+export HF_TOKEN
+echo
 
 python scripts/set_hf_dataset_visibility.py \
   --public \
@@ -159,6 +159,12 @@ python scripts/set_hf_dataset_visibility.py \
 unset HF_TOKEN
 python scripts/check_public_release.py --hub-smoke --include-libero-derived-datasets
 ```
+
+The visibility helper allows `--dry-run` without a token, and even without
+`huggingface_hub` installed, so release maintainers can inspect the intended
+target repos before placing credentials in the shell. Real visibility changes
+still require `huggingface_hub` and a write-capable `HF_TOKEN` or
+`HUGGINGFACE_HUB_TOKEN`.
 
 ## Verification Checklist
 

@@ -59,6 +59,13 @@ def inspect_repo(api, repo_id: str):
         raise SystemExit(f"Could not inspect dataset repo {repo_id}: {exc}") from exc
 
 
+def try_inspect_repo(api, repo_id: str):
+    try:
+        return api.repo_info(repo_id=repo_id, repo_type="dataset"), None
+    except Exception as exc:  # pragma: no cover - exact exception class depends on huggingface_hub version
+        return None, exc
+
+
 def anonymous_public_check(repo_ids: Iterable[str], *, endpoint: str | None) -> None:
     anon_api = load_api(endpoint=endpoint, token=None)
     for repo_id in repo_ids:
@@ -76,16 +83,31 @@ def main() -> None:
     requested_private = args.private
     requested_visibility = "private" if requested_private else "public"
     token = token_from_env(args.token_env)
-    if not token:
+    if not token and not args.dry_run:
         raise SystemExit(
             f"Missing {args.token_env}. Set a write-capable Hub token in the environment; "
             "do not put tokens in command lines or docs."
         )
 
-    api = load_api(endpoint=args.endpoint, token=token)
+    try:
+        api = load_api(endpoint=args.endpoint, token=token)
+        api_error = None
+    except SystemExit as exc:
+        if not args.dry_run:
+            raise
+        api = None
+        api_error = exc
     for repo_id in args.repo_ids:
-        before = inspect_repo(api, repo_id)
-        print(f"{repo_id}: current={visibility(before)} target={requested_visibility}")
+        if args.dry_run:
+            before, inspect_error = (None, api_error) if api is None else try_inspect_repo(api, repo_id)
+            if before is None:
+                print(f"{repo_id}: current=unavailable target={requested_visibility}")
+                print(f"{repo_id}: inspect_error={inspect_error}")
+            else:
+                print(f"{repo_id}: current={visibility(before)} target={requested_visibility}")
+        else:
+            before = inspect_repo(api, repo_id)
+            print(f"{repo_id}: current={visibility(before)} target={requested_visibility}")
         if args.dry_run:
             continue
         try:
@@ -97,6 +119,12 @@ def main() -> None:
 
     if args.dry_run:
         print("Dry run only; no Hub writes were performed.")
+        if not token:
+            print(
+                f"Set {args.token_env}"
+                + (" or HUGGINGFACE_HUB_TOKEN" if args.token_env == "HF_TOKEN" else "")
+                + " before applying the visibility change."
+            )
         return
 
     if args.public and not args.skip_anonymous_check:

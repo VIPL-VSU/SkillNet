@@ -181,9 +181,25 @@ only the repo visibility with the token-safe helper:
 ```bash
 python scripts/set_hf_dataset_visibility.py \
   --public \
+  --dry-run \
+  jsw19/libero_40_v1 \
+  jsw19/libero_90_v1
+
+read -rsp "HF_TOKEN: " HF_TOKEN
+export HF_TOKEN
+echo
+
+python scripts/set_hf_dataset_visibility.py \
+  --public \
   jsw19/libero_40_v1 \
   jsw19/libero_90_v1
 ```
+
+The dry run is credential-free and dependency-light: if `huggingface_hub` is
+not installed, it still prints the intended target visibility and explains that
+repo inspection is unavailable. The real visibility change requires
+`huggingface_hub` and a write-capable `HF_TOKEN` or `HUGGINGFACE_HUB_TOKEN` in
+the environment.
 
 After publishing, run:
 
