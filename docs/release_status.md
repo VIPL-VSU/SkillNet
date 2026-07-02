@@ -9,8 +9,8 @@ fresh checkout.
 
 | Area | Status | Evidence |
 | --- | --- | --- |
-| Fresh clone gate | Ready | A short-path fresh clone of `skillnet-public-release` passes `python scripts/check_public_release.py --verbose`, `--history-smoke --skip-help --verbose`, and `--hub-smoke --skip-help --verbose`. |
-| GitHub Actions release gate | Ready | `.github/workflows/release-check.yml` runs the static release check, history privacy scan, Bash syntax check, public Hub reachability check, and no-deps editable install smoke on pushes and pull requests for `skillnet-public-release`. |
+| Fresh clone gate | Ready | A short-path fresh clone of `skillnet-public-release` passes `python scripts/check_public_release.py --verbose`, `--yaml-smoke --skip-help --verbose`, `--history-smoke --skip-help --verbose`, and `--hub-smoke --skip-help --verbose`. |
+| GitHub Actions release gate | Ready | `.github/workflows/release-check.yml` runs the static release check, YAML syntax check, history privacy scan, Bash syntax check, public Hub reachability check, and no-deps editable install smoke on pushes and pull requests for `skillnet-public-release`. |
 | Clean source history | Ready | `python scripts/check_public_release.py --history-smoke --skip-help` passes on the release branch. |
 | Quick start and package smoke | Ready | `python scripts/check_public_release.py` passes in a fresh checkout; the lightweight `--install-smoke` passes after the documented Python 3.10 and `uv` prerequisites are installed. Simulator/runtime dependency installs are checked separately on Linux. |
 | Skill hierarchy | Ready | Tokenization strategy, motion-code centers, annotation examples, and tokenizer CLI are included. |
@@ -30,7 +30,9 @@ rather than pinning a self-referential documentation commit.
 Passed gates:
 
 ```bash
+python -m pip install -U pyyaml
 python scripts/check_public_release.py --verbose
+python scripts/check_public_release.py --yaml-smoke --skip-help --verbose
 python scripts/check_public_release.py --history-smoke --skip-help --verbose  # scan depth follows the checkout history
 python scripts/check_public_release.py --hub-smoke --skip-help --verbose --hub-retries 3 --hub-timeout 30
 python scripts/check_public_release.py --require-bash --skip-help --verbose
@@ -149,6 +151,7 @@ Run these before tagging or announcing a release:
 ```bash
 # Run from a clean short-path clone of the release branch.
 python scripts/check_public_release.py --verbose
+python scripts/check_public_release.py --yaml-smoke --skip-help --verbose
 python scripts/check_public_release.py --history-smoke --skip-help --verbose
 python scripts/check_public_release.py --hub-smoke --skip-help --verbose
 ```
@@ -157,6 +160,8 @@ On Linux, also run:
 
 ```bash
 python -m pip install -U uv
+python -m pip install -U pyyaml
+python scripts/check_public_release.py --yaml-smoke --skip-help
 python scripts/check_public_release.py --require-bash --skip-help
 python scripts/check_public_release.py --install-smoke --skip-help
 # If `uv venv --python 3.10` cannot resolve Python 3.10, pass the interpreter:

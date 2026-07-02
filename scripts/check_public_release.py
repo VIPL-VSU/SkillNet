@@ -491,8 +491,9 @@ WORKFLOW_EXPECTATIONS = [
             "skillnet-public-release",
             "fetch-depth: 0",
             "python-version: \"3.10\"",
-            "python -m pip install --upgrade pip uv",
+            "python -m pip install --upgrade pip uv pyyaml",
             "python scripts/check_public_release.py --skip-help --verbose",
+            "python scripts/check_public_release.py --yaml-smoke --skip-help --verbose",
             "python scripts/check_public_release.py --history-smoke --skip-help --verbose",
             "python scripts/check_public_release.py --require-bash --skip-help --verbose",
             "python scripts/check_public_release.py --hub-smoke --skip-help --verbose --hub-retries 3 --hub-timeout 30",
@@ -567,6 +568,7 @@ DOC_EXPECTATIONS = [
             "machine-local absolute paths",
             "python scripts/check_public_release.py --verbose",
             "--history-smoke",
+            "--yaml-smoke",
             "--hub-smoke",
             "--require-bash",
             "New public files are included in `scripts/check_public_release.py`",
@@ -1032,6 +1034,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Create a temporary venv and run a --no-deps editable package metadata smoke.",
     )
+    parser.add_argument(
+        "--yaml-smoke",
+        action="store_true",
+        help="Parse tracked YAML files with PyYAML. This is optional so the default check stays dependency-light.",
+    )
     parser.add_argument("--install-python", default="3.10", help="Python version or executable for --install-smoke.")
     parser.add_argument(
         "--hub-smoke",
@@ -1143,6 +1150,35 @@ def check_jsonl_files(errors: list[str], *, verbose: bool) -> None:
         fail(f"empty JSONL file: {rel_path}", errors)
     else:
         ok(f"valid JSONL {rel_path} ({len(rows)} rows)", verbose=verbose)
+
+
+def check_yaml_files(errors: list[str], *, verbose: bool) -> None:
+    fallback = [
+        ".github/ISSUE_TEMPLATE/bug_report.yml",
+        ".github/ISSUE_TEMPLATE/config.yml",
+        ".github/ISSUE_TEMPLATE/data_asset.yml",
+        ".github/ISSUE_TEMPLATE/question.yml",
+        ".github/workflows/release-check.yml",
+    ]
+    yaml_paths = sorted(set(tracked_files(".yml", fallback) + tracked_files(".yaml", [])))
+    if not yaml_paths:
+        skip("no tracked YAML files found", verbose=verbose)
+        return
+
+    try:
+        import yaml  # type: ignore[import-not-found]
+    except ImportError:
+        fail("--yaml-smoke requires PyYAML. Install it with: python -m pip install pyyaml", errors)
+        return
+
+    for rel_path in yaml_paths:
+        path = REPO_ROOT / rel_path
+        try:
+            yaml.safe_load(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            fail(f"invalid YAML in {rel_path}: {exc}", errors)
+        else:
+            ok(f"valid YAML {rel_path}", verbose=verbose)
 
 
 def compact_text(text: str) -> str:
@@ -2088,6 +2124,8 @@ def main() -> None:
     check_required_files(errors, verbose=args.verbose)
     check_json_files(errors, verbose=args.verbose)
     check_jsonl_files(errors, verbose=args.verbose)
+    if args.yaml_smoke:
+        check_yaml_files(errors, verbose=args.verbose)
     check_documentation_contracts(errors, verbose=args.verbose)
     check_release_surface_paths(errors, verbose=args.verbose)
     check_config_and_script_contracts(errors, verbose=args.verbose)

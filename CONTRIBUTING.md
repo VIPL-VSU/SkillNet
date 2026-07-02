@@ -26,7 +26,9 @@ python scripts/check_public_release.py --verbose
 For release-facing changes, also run:
 
 ```bash
+python -m pip install -U pyyaml
 python scripts/check_public_release.py --history-smoke --skip-help --verbose
+python scripts/check_public_release.py --yaml-smoke --skip-help --verbose
 python scripts/check_public_release.py --hub-smoke --skip-help --verbose --hub-retries 3 --hub-timeout 30
 ```
 
