@@ -2,7 +2,8 @@
 
 This page tracks public GitHub settings that live outside the git tree. Keep
 tokens out of command lines, scripts, and documentation; the checks below use
-the public GitHub API and do not require credentials.
+the public GitHub API anonymously by default and can optionally read a token
+from `GITHUB_TOKEN` or `GH_TOKEN` when the public API rate limit is exhausted.
 
 ## Required Release Settings
 
@@ -26,6 +27,17 @@ Run this from the repository root:
 
 ```bash
 python scripts/check_github_repository_metadata.py --verbose
+```
+
+If the public API is rate-limited, set a read-only token in the environment and
+rerun the same command. Do not put the token value in shell history:
+
+```bash
+read -rsp "GITHUB_TOKEN: " GITHUB_TOKEN
+export GITHUB_TOKEN
+echo
+python scripts/check_github_repository_metadata.py --verbose
+unset GITHUB_TOKEN
 ```
 
 This check verifies the public repository metadata through GitHub's REST API.
