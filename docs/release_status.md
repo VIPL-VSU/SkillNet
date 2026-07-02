@@ -60,12 +60,27 @@ datasets are generated locally rather than published as release assets.
 | pi0.5 base checkpoint | External dependency | Training configs default to the public pi0.5 base checkpoint; mirror it locally and set `SKILLNET_PI05_BASE_PARAMS` if the default GCS asset is not reachable. |
 | LIBERO/RoboTwin simulators | External dependency | Evaluation requires working simulator installs outside this repository. `install_libero.sh` runs the repo-local LIBERO-Skill registration helper when possible; use `SKILLNET_REQUIRE_LIBERO=1` to make LIBERO registration failures fatal during setup. |
 
+Operator order for the remaining external gates: apply GitHub repository
+metadata from `docs/github_repository_setup.md`, switch the two LIBERO derived
+datasets public with `scripts/set_hf_dataset_visibility.py`, then rerun
+`python scripts/check_public_release.py --external-release-smoke --skip-help --verbose`.
+
 Before claiming that external users can train LIBERO directly from Hub datasets,
 run:
 
 ```bash
 python scripts/check_public_release.py --hub-smoke --include-libero-derived-datasets
 ```
+
+Before announcing the full external release state, run the combined final gate:
+
+```bash
+python scripts/check_public_release.py --external-release-smoke --skip-help --verbose
+```
+
+This is equivalent to the normal source-tree release check plus the GitHub
+repository metadata check and the anonymous LIBERO derived-dataset visibility
+check.
 
 Before claiming all common derived LeRobot dataset ids are public, run:
 
@@ -176,6 +191,7 @@ python scripts/check_public_release.py --verbose
 python scripts/check_public_release.py --yaml-smoke --skip-help --verbose
 python scripts/check_public_release.py --history-smoke --skip-help --verbose
 python scripts/check_public_release.py --hub-smoke --skip-help --verbose
+python scripts/check_public_release.py --external-release-smoke --skip-help --verbose
 ```
 
 On Linux, also run:

@@ -30,6 +30,12 @@ Run this from the repository root:
 python scripts/check_github_repository_metadata.py --verbose
 ```
 
+The same check is also available through the main release checker:
+
+```bash
+python scripts/check_public_release.py --github-metadata-smoke --skip-help --verbose
+```
+
 If the public API is rate-limited, set a read-only token in the environment and
 rerun the same command. Do not put the token value in shell history:
 
@@ -44,6 +50,9 @@ unset GITHUB_TOKEN
 This check verifies the public repository metadata through GitHub's REST API.
 It intentionally is not part of the default CI gate because repository settings
 may require owner or admin permissions outside the source tree.
+Before announcing the final external release state, use
+`python scripts/check_public_release.py --external-release-smoke --skip-help --verbose`
+to verify both GitHub metadata and public LIBERO derived-dataset visibility.
 
 ## Apply Settings
 

@@ -88,7 +88,7 @@ def main() -> None:
     args = parse_args()
     topics = list(args.topic or DEFAULT_TOPICS)
     token = github_token(args.github_token_env)
-    repo_state = fetch_repo(args.api_url, args.repo, args.timeout, token=None)
+    repo_state = fetch_repo(args.api_url, args.repo, args.timeout, token=token)
 
     repo_payload = {
         "description": args.description,

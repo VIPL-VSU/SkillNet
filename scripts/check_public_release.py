@@ -23,6 +23,22 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+GITHUB_REPO = "VIPL-VSU/SkillNet"
+GITHUB_API_URL = "https://api.github.com"
+GITHUB_DEFAULT_BRANCH = "skillnet-public-release"
+GITHUB_DESCRIPTION = (
+    "SkillNet: skill-hierarchy-conditioned MoE policies for LIBERO, "
+    "LIBERO-Skill, and RoboTwin few-shot transfer."
+)
+GITHUB_HOMEPAGE = "https://xsw1208.github.io/skillnet-website/"
+GITHUB_TOPICS = (
+    "skillnet",
+    "robot-learning",
+    "imitation-learning",
+    "libero",
+    "robotwin",
+    "mixture-of-experts",
+)
 
 REQUIRED_FILES = [
     "CITATION.cff",
@@ -1144,6 +1160,19 @@ def parse_args() -> argparse.Namespace:
         help="Check that public Hugging Face model/source-dataset resources are reachable.",
     )
     parser.add_argument(
+        "--github-metadata-smoke",
+        action="store_true",
+        help="Check GitHub repository metadata that lives outside the git tree.",
+    )
+    parser.add_argument(
+        "--external-release-smoke",
+        action="store_true",
+        help=(
+            "Run final external release gates: GitHub metadata plus public Hub reachability "
+            "for the derived LIBERO LeRobot datasets."
+        ),
+    )
+    parser.add_argument(
         "--history-smoke",
         action="store_true",
         help="Scan commits reachable from HEAD for private paths, tokens, and release-blocking names.",
@@ -1181,6 +1210,9 @@ def parse_args() -> argparse.Namespace:
         help="Use a Hub token for --hub-smoke. Public release checks are anonymous by default.",
     )
     parser.add_argument("--hub-token-env", default="HF_TOKEN", help="Token environment variable for --hub-authenticated.")
+    parser.add_argument("--github-api-url", default=GITHUB_API_URL, help="GitHub API base URL for metadata smoke checks.")
+    parser.add_argument("--github-repo", default=GITHUB_REPO, help="GitHub repository in owner/name form.")
+    parser.add_argument("--github-token-env", default="GITHUB_TOKEN", help="Optional token env var for GitHub API rate limits.")
     parser.add_argument("--verbose", action="store_true")
     return parser.parse_args()
 
@@ -2334,9 +2366,100 @@ def check_hub_resources(
             fail(f"Hugging Face resource check returned HTTP {status} for {label}: {detail}", errors)
 
 
+def github_token_from_env(token_env: str) -> str | None:
+    token = os.environ.get(token_env)
+    if token is None and token_env == "GITHUB_TOKEN":
+        token = os.environ.get("GH_TOKEN")
+    return token
+
+
+def fetch_github_repo_metadata(
+    *,
+    api_url: str,
+    repo: str,
+    timeout: float,
+    token: str | None,
+) -> dict:
+    url = f"{api_url.rstrip('/')}/repos/{repo}"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "skillnet-public-release-check/1.0",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    request = urllib.request.Request(url, headers=headers)
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        if exc.code in {403, 429} and token is None:
+            raise RuntimeError(
+                f"GitHub API returned HTTP {exc.code} for {url}: {detail}\n"
+                "If this is a rate-limit response, set GITHUB_TOKEN or GH_TOKEN in the environment "
+                "and rerun without putting the token on the command line."
+            ) from exc
+        raise RuntimeError(f"GitHub API returned HTTP {exc.code} for {url}: {detail}") from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"GitHub API request failed for {url}: {exc}") from exc
+
+
+def check_github_metadata(
+    errors: list[str],
+    *,
+    api_url: str,
+    repo: str,
+    token_env: str,
+    timeout: float,
+    verbose: bool,
+) -> None:
+    token = github_token_from_env(token_env)
+    try:
+        repo_state = fetch_github_repo_metadata(api_url=api_url, repo=repo, timeout=timeout, token=token)
+    except RuntimeError as exc:
+        fail(str(exc), errors)
+        return
+
+    if repo_state.get("private") is False:
+        ok(f"{repo} is public", verbose=verbose)
+    else:
+        fail(f"{repo} is not public", errors)
+
+    default_branch = repo_state.get("default_branch")
+    if default_branch == GITHUB_DEFAULT_BRANCH:
+        ok(f"GitHub default branch is {default_branch}", verbose=verbose)
+    else:
+        fail(f"GitHub default branch is {default_branch!r}; expected {GITHUB_DEFAULT_BRANCH!r}", errors)
+
+    description = repo_state.get("description") or ""
+    if description.strip().lower() in {"", "coming soon"}:
+        fail(f"GitHub repository description is still a placeholder: {description!r}", errors)
+    elif description != GITHUB_DESCRIPTION:
+        fail(f"GitHub repository description is {description!r}; expected {GITHUB_DESCRIPTION!r}", errors)
+    else:
+        ok("GitHub repository description matches the release contract", verbose=verbose)
+
+    homepage = repo_state.get("homepage") or ""
+    if homepage.rstrip("/") != GITHUB_HOMEPAGE.rstrip("/"):
+        fail(f"GitHub repository homepage is {homepage!r}; expected {GITHUB_HOMEPAGE!r}", errors)
+    else:
+        ok("GitHub repository homepage matches the release contract", verbose=verbose)
+
+    topics = set(repo_state.get("topics") or [])
+    missing_topics = sorted(set(GITHUB_TOPICS) - topics)
+    if missing_topics:
+        fail(f"GitHub repository is missing topics: {missing_topics}", errors)
+    else:
+        ok("GitHub repository topics include the release contract", verbose=verbose)
+
+
 def main() -> None:
     args = parse_args()
     errors: list[str] = []
+    hub_smoke = args.hub_smoke or args.external_release_smoke
+    github_metadata_smoke = args.github_metadata_smoke or args.external_release_smoke
+    include_libero_derived_datasets = args.include_libero_derived_datasets or args.external_release_smoke
 
     check_required_files(errors, verbose=args.verbose)
     check_contract_file_lists(errors, verbose=args.verbose)
@@ -2362,7 +2485,7 @@ def main() -> None:
         check_history_sensitive_patterns(errors, verbose=args.verbose)
     if args.install_smoke:
         check_install_smoke(errors, python_spec=args.install_python, verbose=args.verbose)
-    if args.hub_smoke:
+    if hub_smoke:
         hub_token = None
         if args.hub_authenticated:
             hub_token = os.environ.get(args.hub_token_env)
@@ -2374,11 +2497,20 @@ def main() -> None:
             errors,
             endpoint=args.hf_endpoint,
             include_derived_datasets=args.include_derived_datasets,
-            include_libero_derived_datasets=args.include_libero_derived_datasets,
+            include_libero_derived_datasets=include_libero_derived_datasets,
             include_robotwin_derived_datasets=args.include_robotwin_derived_datasets,
             timeout=args.hub_timeout,
             retries=args.hub_retries,
             token=hub_token,
+            verbose=args.verbose,
+        )
+    if github_metadata_smoke:
+        check_github_metadata(
+            errors,
+            api_url=args.github_api_url,
+            repo=args.github_repo,
+            token_env=args.github_token_env,
+            timeout=args.hub_timeout,
             verbose=args.verbose,
         )
 
