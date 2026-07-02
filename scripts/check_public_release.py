@@ -568,6 +568,7 @@ DOC_EXPECTATIONS = [
             "SECURITY.md",
             ".github/ISSUE_TEMPLATE/",
             ".github/pull_request_template.md",
+            "git@github.com:VIPL-VSU/SkillNet.git",
         ],
     ),
     (
@@ -704,6 +705,7 @@ DOC_EXPECTATIONS = [
         "docs/quick_start.md",
         [
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
+            "git@github.com:VIPL-VSU/SkillNet.git",
             "git config core.longpaths true",
             "Command blocks in this guide use Bash syntax",
             "On Windows, use WSL",
@@ -745,6 +747,8 @@ DOC_EXPECTATIONS = [
             "GitHub Actions release gate",
             ".github/workflows/release-check.yml",
             "short-path fresh clone",
+            "Use HTTPS or",
+            "SSH according to your network",
             "git config core.longpaths true",
             "exact git SHA and timestamp",
             "timestamp",
@@ -862,6 +866,7 @@ DOC_EXPECTATIONS = [
         "docs/training_and_evaluation.md",
         [
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
+            "git@github.com:VIPL-VSU/SkillNet.git",
             "git -C ../.. config core.longpaths true",
             "## LIBERO-40 Training",
             "## LIBERO-90 Training",

@@ -21,8 +21,9 @@ fresh checkout.
 
 ## Last Verified Source Snapshot
 
-The source tree is verified from short-path HTTPS shallow clones of
-`skillnet-public-release` and by the GitHub Actions release gate. Record the
+The source tree is verified from short-path shallow clones of
+`skillnet-public-release` and by the GitHub Actions release gate. Use HTTPS or
+SSH according to your network and GitHub credentials. Record the
 exact git SHA and timestamp in the release tag, GitHub release, or CI artifact
 when cutting a public release; this status page lists the reproducible gates
 rather than pinning a self-referential documentation commit.

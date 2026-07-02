@@ -96,6 +96,12 @@ cd SkillNet
 git config core.longpaths true
 ```
 
+If HTTPS cloning is blocked by your network, use the same branch over SSH:
+
+```bash
+git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 git@github.com:VIPL-VSU/SkillNet.git SkillNet
+```
+
 Follow `docs/quick_start.md` for installation, smoke checks, checkpoint
 download, normalization-stat computation, training launchers, and evaluation
 commands. The runnable SkillNet source root used by training commands is

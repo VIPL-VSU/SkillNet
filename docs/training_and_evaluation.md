@@ -13,6 +13,15 @@ cd SkillNet/skill_moe/skillnet
 git -C ../.. config core.longpaths true
 ```
 
+If HTTPS cloning is blocked by your network, use the same release branch over
+SSH:
+
+```bash
+git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 git@github.com:VIPL-VSU/SkillNet.git SkillNet
+cd SkillNet/skill_moe/skillnet
+git -C ../.. config core.longpaths true
+```
+
 For prerequisites such as Python 3.10, `uv`, and Hugging Face Hub CLI, see
 `docs/quick_start.md` from the repository root. From this runtime root, that
 file is `../../docs/quick_start.md`. GPU training also needs a CUDA/JAX

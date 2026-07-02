@@ -21,6 +21,16 @@ git config core.longpaths true
 export SKILLNET_REPO_ROOT="${PWD}"
 ```
 
+If HTTPS cloning is blocked by your network, use the same release branch over
+SSH:
+
+```bash
+git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 git@github.com:VIPL-VSU/SkillNet.git SkillNet
+cd SkillNet
+git config core.longpaths true
+export SKILLNET_REPO_ROOT="${PWD}"
+```
+
 The runnable SkillNet source root is:
 
 ```bash
