@@ -27,6 +27,7 @@ DEFAULT_TOPICS = (
     "robotwin",
     "mixture-of-experts",
 )
+DEFAULT_HOMEPAGE = "https://xsw1208.github.io/skillnet-website/"
 
 
 def parse_args() -> argparse.Namespace:
@@ -46,6 +47,11 @@ def parse_args() -> argparse.Namespace:
         "--expected-description",
         default=DEFAULT_DESCRIPTION,
         help="Exact expected public repository description.",
+    )
+    parser.add_argument(
+        "--expected-homepage",
+        default=DEFAULT_HOMEPAGE,
+        help="Exact expected public repository homepage URL.",
     )
     parser.add_argument(
         "--expected-topic",
@@ -153,6 +159,15 @@ def main() -> None:
         )
     else:
         ok("repository description matches the release metadata contract", verbose=args.verbose)
+
+    homepage = repo.get("homepage") or ""
+    if homepage.rstrip("/") != args.expected_homepage.rstrip("/"):
+        fail(
+            f"repository homepage is {homepage!r}; expected {args.expected_homepage!r}",
+            errors,
+        )
+    else:
+        ok("repository homepage matches the release metadata contract", verbose=args.verbose)
 
     topics = set(repo.get("topics") or [])
     missing_topics = sorted(expected_topics - topics)

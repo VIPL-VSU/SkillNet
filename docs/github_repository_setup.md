@@ -14,6 +14,7 @@ Before announcing the release, the GitHub repository should have:
   updated to the same release tree without reintroducing private or legacy
   history.
 - Description: `SkillNet: skill-hierarchy-conditioned MoE policies for LIBERO, LIBERO-Skill, and RoboTwin few-shot transfer.`
+- Homepage: `https://xsw1208.github.io/skillnet-website/`
 - Topics: `skillnet`, `robot-learning`, `imitation-learning`, `libero`,
   `robotwin`, `mixture-of-experts`.
 - The release-check badge visible at the top of `README.md`.
@@ -43,6 +44,33 @@ unset GITHUB_TOKEN
 This check verifies the public repository metadata through GitHub's REST API.
 It intentionally is not part of the default CI gate because repository settings
 may require owner or admin permissions outside the source tree.
+
+## Apply Settings
+
+If you have repository admin permission, inspect the planned changes first:
+
+```bash
+python scripts/set_github_repository_metadata.py --dry-run --verbose
+```
+
+Then set a write-capable token through the environment and apply the release
+metadata. Do not put the token value in command lines, scripts, docs, or git
+history:
+
+```bash
+read -rsp "GITHUB_TOKEN: " GITHUB_TOKEN
+export GITHUB_TOKEN
+echo
+
+python scripts/set_github_repository_metadata.py --verbose
+
+unset GITHUB_TOKEN
+python scripts/check_github_repository_metadata.py --verbose
+```
+
+The setter updates the repository description, homepage URL, default branch,
+and topics. It reads tokens from `GITHUB_TOKEN` or `GH_TOKEN`; it never needs a
+token value on the command line.
 
 ## Default Branch Note
 

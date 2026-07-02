@@ -55,7 +55,7 @@ datasets are generated locally rather than published as release assets.
 | `jsw19/libero_40_v1` | Pending public dataset visibility | Direct Hub loading needs this LeRobot dataset to be public; users can also rebuild the same `repo_id` locally from public RLDS sources plus the included slice-index metadata. |
 | `jsw19/libero_90_v1` | Pending public dataset visibility | Direct Hub loading needs this LeRobot dataset to be public; users can also rebuild the same `repo_id` locally from public RLDS sources plus the included slice-index metadata. |
 | Final organization Hub namespace | Pending optional mirror | Current published assets remain under `jsw19/*`; runtime configs and converters support `SKILLNET_RELEASE_HF_NAMESPACE` so the release can move to an organization namespace after mirroring. |
-| GitHub repository metadata | Pending repository setting | `docs/github_repository_setup.md` records the public default branch, description, and topic settings that must be updated outside the git tree; the current public API state still reports default branch `main`, description `coming soon`, and no release topics. Verify the final state with `scripts/check_github_repository_metadata.py`. |
+| GitHub repository metadata | Pending repository setting | `docs/github_repository_setup.md` records the public default branch, description, homepage, and topic settings that must be updated outside the git tree; the current public API state still reports default branch `main`, description `coming soon`, no homepage, and no release topics. Verify the final state with `scripts/check_github_repository_metadata.py`. |
 | RoboTwin LeRobot datasets | Local-generation path documented | The release provides download/conversion scripts; checkpoint weights and derived task datasets are not published in this release. |
 | pi0.5 base checkpoint | External dependency | Training configs default to the public pi0.5 base checkpoint; mirror it locally and set `SKILLNET_PI05_BASE_PARAMS` if the default GCS asset is not reachable. |
 | LIBERO/RoboTwin simulators | External dependency | Evaluation requires working simulator installs outside this repository. `install_libero.sh` runs the repo-local LIBERO-Skill registration helper when possible; use `SKILLNET_REQUIRE_LIBERO=1` to make LIBERO registration failures fatal during setup. |
@@ -77,6 +77,21 @@ Before announcing the GitHub repository landing page, verify repository-level
 metadata that cannot be stored in this source tree:
 
 ```bash
+python scripts/check_github_repository_metadata.py --verbose
+```
+
+If the check fails and you have repository admin permission, use the safe setter
+with a token from the environment:
+
+```bash
+python scripts/set_github_repository_metadata.py --dry-run --verbose
+
+read -rsp "GITHUB_TOKEN: " GITHUB_TOKEN
+export GITHUB_TOKEN
+echo
+python scripts/set_github_repository_metadata.py --verbose
+unset GITHUB_TOKEN
+
 python scripts/check_github_repository_metadata.py --verbose
 ```
 
@@ -180,3 +195,8 @@ For Windows users, clone under a short, non-user-specific directory and run
 `git -c core.longpaths=true clone ...` flag handles the initial checkout, while
 the local config keeps later `git status`, `git diff`, and release checks from
 hitting path-length limits on bundled LIBERO-Skill filenames.
+
+Use a clean clone or `git archive` when packaging source artifacts for external
+sharing, not a manually zipped working directory. Local ignored caches such as
+`__pycache__` and `*.pyc` can contain machine-specific paths even when they are
+not tracked by git.

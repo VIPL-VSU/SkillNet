@@ -183,7 +183,7 @@ benchmark task order is recorded in
 use compact `skill_obj_XX` aliases for portable checkout paths; the manifest
 and bddl `:language` fields preserve the original natural-language tasks.
 
-## 5. Few-Shot Transfer
+## 5. RoboTwin Few-Shot Transfer
 
 RoboTwin-2.0 few-shot data download, LeRobot conversion, task lists, training
 commands, evaluation adapter, and reported SkillNet results are documented in
