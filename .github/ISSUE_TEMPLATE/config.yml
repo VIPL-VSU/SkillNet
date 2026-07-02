@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: SkillNet support guide
+    url: https://github.com/VIPL-VSU/SkillNet/blob/skillnet-public-release/SUPPORT.md
+    about: Start here for documentation links and issue-reporting scope.
+  - name: Release status and external asset gates
+    url: https://github.com/VIPL-VSU/SkillNet/blob/skillnet-public-release/docs/release_status.md
+    about: Check known checkpoint, dataset, simulator, and repository-metadata gates.

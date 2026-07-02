@@ -25,6 +25,8 @@ compositional out-of-domain evaluation, and RoboTwin few-shot transfer.
 - `CITATION.cff`: machine-readable citation metadata for the SkillNet paper and software release.
 - `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`: public contribution,
   support, and sensitive-information handling guidelines.
+- `.github/ISSUE_TEMPLATE/` and `.github/pull_request_template.md`: public
+  issue and pull-request templates for reproducible reports.
 
 The RoboTwin few-shot release includes paper-aligned task plans, public data
 helpers, LeRobot conversion, skill metadata, training configs, training

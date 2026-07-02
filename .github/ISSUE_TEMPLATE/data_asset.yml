@@ -1,0 +1,49 @@
+name: Dataset or asset access
+description: Ask about public checkpoints, derived datasets, simulator assets, or release metadata gates.
+title: "[Asset]: "
+labels: ["data", "assets"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check `docs/release_status.md` before filing. Do not include tokens, credentials, private URLs, private dataset paths, or machine-local absolute paths.
+  - type: dropdown
+    id: asset_type
+    attributes:
+      label: Asset type
+      options:
+        - LIBERO derived LeRobot dataset
+        - LIBERO source RLDS dataset
+        - SkillNet LIBERO checkpoint
+        - pi0.5 base checkpoint
+        - LIBERO-Skill simulator asset
+        - RoboTwin source data
+        - RoboTwin generated LeRobot dataset
+        - GitHub repository metadata
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected public access path
+      description: Name the documented command, repo id, or file path you expected to work.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: Paste HTTP status, command output, or checker failure. Remove sensitive values.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification command
+      description: Paste the public verification command if applicable.
+      placeholder: "python scripts/check_public_release.py --hub-smoke --include-libero-derived-datasets"
+      render: bash
+    validations:
+      required: false

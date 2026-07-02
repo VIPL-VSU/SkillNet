@@ -1,0 +1,38 @@
+name: Question
+description: Ask a usage question after checking the public docs.
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check `README.md`, `docs/quick_start.md`, and `SUPPORT.md` first. Do not include tokens, private dataset paths, machine-local absolute paths, or unpublished checkpoint locations.
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      options:
+        - Installation
+        - Skill hierarchy
+        - LIBERO training
+        - LIBERO-Skill evaluation
+        - RoboTwin few-shot transfer
+        - Data processing
+        - Checkpoints or datasets
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Describe what you are trying to do and which doc section you followed.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Public context
+      description: Add public, non-sensitive details such as OS, command, or config name.
+    validations:
+      required: false

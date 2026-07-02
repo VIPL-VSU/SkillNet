@@ -1,0 +1,64 @@
+name: Bug report
+description: Report a reproducible issue in the public SkillNet release.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve SkillNet. Do not include API keys, tokens, private dataset paths, machine-local absolute paths, or unpublished checkpoint locations.
+  - type: dropdown
+    id: workflow
+    attributes:
+      label: Workflow
+      options:
+        - Quick start / install
+        - Skill hierarchy / tokenization
+        - LIBERO data processing
+        - LIBERO in-domain training or evaluation
+        - LIBERO-Skill zero-shot evaluation
+        - RoboTwin few-shot transfer
+        - Release checks / repository metadata
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: Paste the exact public command you ran. Replace user-specific paths with environment variables.
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error output
+      description: Paste the relevant error message or short log excerpt.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, Python version, GPU/runtime stack if relevant, and simulator versions.
+      placeholder: "OS: Ubuntu 22.04; Python: 3.10; CUDA: ...; simulator: ..."
+    validations:
+      required: true
+  - type: textarea
+    id: release_check
+    attributes:
+      label: Release check result
+      description: Paste the result of the lightweight checker when possible.
+      value: "python scripts/check_public_release.py --verbose"
+      render: bash
+    validations:
+      required: false
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Add any public, non-sensitive details that help reproduce the issue.
+    validations:
+      required: false

@@ -32,6 +32,11 @@ REQUIRED_FILES = [
     "README.md",
     "SECURITY.md",
     "SUPPORT.md",
+    ".github/ISSUE_TEMPLATE/bug_report.yml",
+    ".github/ISSUE_TEMPLATE/config.yml",
+    ".github/ISSUE_TEMPLATE/data_asset.yml",
+    ".github/ISSUE_TEMPLATE/question.yml",
+    ".github/pull_request_template.md",
     ".github/workflows/release-check.yml",
     "docs/quick_start.md",
     "docs/github_repository_setup.md",
@@ -533,6 +538,8 @@ DOC_EXPECTATIONS = [
             "CONTRIBUTING.md",
             "SUPPORT.md",
             "SECURITY.md",
+            ".github/ISSUE_TEMPLATE/",
+            ".github/pull_request_template.md",
         ],
     ),
     (
@@ -589,6 +596,68 @@ DOC_EXPECTATIONS = [
             "Private dataset locations",
             "Machine-local absolute paths",
             "--history-smoke",
+        ],
+    ),
+    (
+        ".github/pull_request_template.md",
+        [
+            "Summary",
+            "Scope",
+            "python scripts/check_public_release.py --verbose",
+            "--history-smoke",
+            "--hub-smoke",
+            "--require-bash",
+            "Sensitive Information",
+            "API keys",
+            "machine-local absolute paths",
+            "Large artifacts",
+        ],
+    ),
+    (
+        ".github/ISSUE_TEMPLATE/bug_report.yml",
+        [
+            "Bug report",
+            "Quick start / install",
+            "Skill hierarchy / tokenization",
+            "LIBERO-Skill zero-shot evaluation",
+            "RoboTwin few-shot transfer",
+            "Do not include API keys",
+            "machine-local absolute paths",
+            "check_public_release.py --verbose",
+        ],
+    ),
+    (
+        ".github/ISSUE_TEMPLATE/data_asset.yml",
+        [
+            "Dataset or asset access",
+            "docs/release_status.md",
+            "LIBERO derived LeRobot dataset",
+            "SkillNet LIBERO checkpoint",
+            "GitHub repository metadata",
+            "--include-libero-derived-datasets",
+            "private dataset paths",
+        ],
+    ),
+    (
+        ".github/ISSUE_TEMPLATE/question.yml",
+        [
+            "Question",
+            "docs/quick_start.md",
+            "SUPPORT.md",
+            "LIBERO training",
+            "LIBERO-Skill evaluation",
+            "RoboTwin few-shot transfer",
+            "machine-local absolute paths",
+        ],
+    ),
+    (
+        ".github/ISSUE_TEMPLATE/config.yml",
+        [
+            "blank_issues_enabled: false",
+            "SkillNet support guide",
+            "Release status and external asset gates",
+            "SUPPORT.md",
+            "docs/release_status.md",
         ],
     ),
     (
@@ -866,6 +935,7 @@ DOC_FORBIDDEN_SNIPPETS = [
 ]
 
 PUBLIC_DOC_FILES = [
+    ".github/pull_request_template.md",
     "CONTRIBUTING.md",
     "NOTICE.md",
     "README.md",
