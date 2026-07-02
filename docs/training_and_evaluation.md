@@ -196,6 +196,24 @@ repos should be visible to the current account.
 Both release configs use pi0.5 with `action_expert_variant="gemma_300m_moe_4"`,
 4 routed MoE experts, top-1 routing, router balance loss scale `0.01`,
 `skill_num=6`, `skill_embed_dim=64`, and action horizon 10.
+There is no separate `skill_moe` boolean flag. Selecting either LIBERO config
+loads `pi0_config_moe_skill.Pi0Config` and the `gemma_300m_moe_4` action
+expert, whose Gemma config sets `moe=True` with 4 routed experts.
+
+Default reproducibility settings shared by both LIBERO configs:
+
+- Random seed: `42`.
+- Optimizer: AdamW with gradient clipping `1.0`, `b1=0.9`, and `b2=0.95`.
+- LR schedule: cosine decay with `1,000` warmup steps.
+- Dataloader workers: `4`.
+- Training batch size is global and must be divisible by the visible JAX device
+  count.
+- The public launchers disable wandb logging by default with
+  `--no-wandb-enabled`.
+- Normalization statistics are written under
+  `assets/<config>/<repo_id>/norm_stats.json` and are computed automatically by
+  the launchers when missing. Set `COMPUTE_NORM_STATS=0` only when compatible
+  stats already exist at that path or when overriding `NORM_STATS_PATH`.
 
 ## LIBERO-40 Training
 
@@ -224,6 +242,11 @@ This launches `scripts/train_moe_skill.py` with config
 Fresh training runs use the script `EXP_NAME` in the checkpoint path. The
 released checkpoint download path shown above keeps the original experiment
 directory name used for the published weights.
+With the default launcher `EXP_NAME`, the fresh final checkpoint is written to
+`checkpoints/pi05_libero_moe_skill_4_40/libero40_moe_skill/29999`.
+Before reporting a fresh run, record the exact `EXP_NAME`, git SHA, dataset
+verification counts, final checkpoint step, and whether normalization stats
+were recomputed or reused.
 
 ## LIBERO-90 Training
 
@@ -251,6 +274,11 @@ This launches `scripts/train_moe_skill.py` with config
 Fresh training runs use the script `EXP_NAME` in the checkpoint path. The
 released checkpoint download path shown above keeps the original experiment
 directory name used for the published weights.
+With the default launcher `EXP_NAME`, the fresh final checkpoint is written to
+`checkpoints/pi05_libero_moe_skill_4_90/libero90_moe_skill/19999`.
+Before reporting a fresh run, record the exact `EXP_NAME`, git SHA, dataset
+verification counts, final checkpoint step, and whether normalization stats
+were recomputed or reused.
 
 ## LIBERO-40 Evaluation
 

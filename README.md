@@ -92,6 +92,10 @@ slice-index metadata under `data_process/libero/slice_indices/`. The plain
 `--hub-smoke` check verifies checkpoints and source datasets; add
 `--include-libero-derived-datasets` only when those derived LIBERO datasets
 should be publicly visible.
+Full reproduction settings, including global batch sizes, training steps,
+Skill-MoE expert/router settings, normalization-stat paths, checkpoint
+directory conventions, LIBERO-Skill task order, and zero-shot rollout budgets,
+are specified in `docs/training_and_evaluation.md`.
 
 ## 1. Quick Start
 

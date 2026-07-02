@@ -338,6 +338,21 @@ cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
 bash scripts/run_train_libero90_moe_skill.sh
 ```
 
+These launchers use `pi05_libero_moe_skill_4_40` with global batch size 128
+for 30,000 steps, and `pi05_libero_moe_skill_4_90` with global batch size 32
+for 20,000 steps. Both use pi0.5, `gemma_300m_moe_4`, 4 top-1 routed experts,
+router balance loss scale `0.01`, `skill_num=6`, `skill_embed_dim=64`, action
+horizon 10, and `--no-wandb-enabled`. Before training, each launcher checks
+`assets/<CONFIG_NAME>/<repo_id>/norm_stats.json`; if it is missing and
+`COMPUTE_NORM_STATS=1`, the launcher runs
+`scripts/compute_norm_stats_moe_skill.py <CONFIG_NAME>`.
+
+With the default launcher `EXP_NAME` values, fresh final checkpoints are written
+to `checkpoints/pi05_libero_moe_skill_4_40/libero40_moe_skill/29999` and
+`checkpoints/pi05_libero_moe_skill_4_90/libero90_moe_skill/19999`. The
+published checkpoints use the historical experiment directory names shown in
+`docs/training_and_evaluation.md`.
+
 LIBERO-Skill evaluation:
 
 ```bash

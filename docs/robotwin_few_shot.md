@@ -70,6 +70,9 @@ training and conversion code uses the flat integer skill ids in
 
 ## Data Preparation
 
+Run all `data_process/robotwin/...` commands from the repository root before
+changing into `skill_moe/skillnet` for training or evaluation launchers.
+
 Download RoboTwin-2.0 50-demo zips:
 
 ```bash
@@ -94,6 +97,12 @@ bash data_process/robotwin/collect_train_data.sh pretrain
 ROBOTWIN_ROOT="<path-to-robotwin-checkout>" GPU_ID=0 \
 bash data_process/robotwin/collect_train_data.sh transfer
 ```
+
+After local collection, pass `--source-dir` to the directory that contains one
+task folder per RoboTwin task. The converter accepts downloaded zips or
+extracted folders containing `data/episode*.hdf5`; if RoboTwin writes outputs
+elsewhere, copy or symlink those task folders under a common directory such as
+`./robotwin_datasets/<task>/`.
 
 Convert the downloaded or collected demonstrations to LeRobot format:
 
@@ -265,6 +274,20 @@ The released config names are:
 | Pretrain | `pi05_robotwin_moe_skill_pretrain` | `jsw19/robotwin_pretrain_v1` |
 | Transfer | `pi05_robotwin_moe_skill_transfer` | `jsw19/robotwin_transfer_v1` |
 
+Default training settings:
+
+| Phase | Batch | Steps | LR warmup | LR peak / final | Final checkpoint |
+| --- | --- | --- | --- | --- | --- |
+| Pretrain | 32 | 20,000 | 1,000 | `2.5e-5` / `2.5e-6` | `19999/params` |
+| Transfer | 32 | 1,000 | 100 | `2.5e-5` / `2.5e-6` | `999/params` |
+
+Both RoboTwin configs use pi0.5 with
+`action_expert_variant="gemma_300m_moe_4"`, 4 routed MoE experts, top-1
+routing, router balance loss scale `0.01`, `skill_num=14`,
+`skill_embed_dim=64`, action horizon 10, random seed `42`, AdamW gradient
+clipping `1.0`, `b1=0.9`, `b2=0.95`, EMA `0.99`, and 4 dataloader workers.
+The global batch size must be divisible by the visible JAX device count.
+
 `jsw19/robotwin_transfer_v1` is the aggregate transfer default for smoke runs
 or local experiments. The paper-style few-shot setup fine-tunes one checkpoint
 per held-out task; set `TRANSFER_TASK` so the launcher switches the dataset id
@@ -277,6 +300,10 @@ Transfer initialization is controlled by
 variable by default so the paper few-shot path cannot silently fall back to the
 pi0.5 base checkpoint. Set `ALLOW_PI05_TRANSFER_INIT=1` only for a debugging run
 that intentionally starts transfer from `SKILLNET_PI05_BASE_PARAMS`.
+Use a `params` path only for `SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS`, for
+example `.../19999/params`. For evaluation, `CKPT_DIR` must be the checkpoint
+step directory, such as `.../999`, because the policy server loads both
+`CKPT_DIR/params` and `CKPT_DIR/assets`.
 
 Fine-tune all 15 transfer tasks with one checkpoint per task:
 
@@ -340,6 +367,11 @@ API/tree contract:
 Use the official RoboTwin-2.0 codebase or a fork that preserves this API. The
 SkillNet repository does not vendor the simulator, assets, or SAPIEN/MuJoCo
 runtime dependencies.
+Compatibility is defined by the API/tree contract above; if you use a newer
+RoboTwin checkout, record its git SHA with the evaluation result. The default
+`--instruction-type unseen` uses RoboTwin episode-instruction generation when
+available and falls back to the environment or plan description. Use
+`--instruction-type task` for the canonical `robotwin_plan.json` prompt.
 
 Public RoboTwin-2.0 entrypoints:
 
@@ -426,6 +458,11 @@ Each run writes `episodes.jsonl` and `summary.json` under `RESULT_DIR`.
 Aggregate the paper-style average by averaging the `success_rate` values across
 the 15 transfer-task `summary.json` files.
 
+When reporting a new RoboTwin result, record the git SHA, source RoboTwin-2.0
+commit, converted dataset ids, normalization-stat paths, pretraining checkpoint
+path, per-task transfer checkpoint paths, `TASK_CONFIG`, `NUM_TRIALS`, seed
+range, and whether expert-seed filtering was enabled.
+
 The public adapter keeps the evaluation semantics used by the paper protocol:
 expert seed filtering, RoboTwin environment rollout, instruction selection,
 skill-plan injection, and success-rate reporting.
@@ -445,6 +482,15 @@ The paper reports success rate (%) on 15 RoboTwin transfer tasks:
 
 Per-task values are in Appendix D.1 of the paper. The main takeaway is that
 SkillNet improves over pi0.5 by 5.9 points in this RoboTwin few-shot setting.
+
+## Not Released for RoboTwin
+
+This source release does not publish RoboTwin checkpoint weights, generated
+LeRobot datasets, raw RoboTwin archives, locally collected demonstrations,
+simulator assets, SAPIEN/MuJoCo runtime dependencies, or evaluation videos and
+logs. Raw 50-demo archives are downloaded from the upstream RoboTwin-2.0
+dataset; derived LeRobot datasets and checkpoints are generated locally from
+the public scripts and configs.
 
 ## Release Contents
 

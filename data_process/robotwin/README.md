@@ -12,6 +12,9 @@ Files in this directory:
 - `skill_anno_robotwin.json`: hierarchical SkillNet annotations for RoboTwin tasks.
 - `build_robotwin_skill_metadata.py`: export task metadata as JSONL.
 
+Run all commands in this document from the repository root. Training and
+evaluation launchers are run later from `skill_moe/skillnet`.
+
 ## Task Sets
 
 The paper uses 15 pretraining tasks and 15 transfer tasks.
@@ -195,6 +198,12 @@ The script calls RoboTwin's `collect_data.sh` for each task:
 ```bash
 bash collect_data.sh "<task with spaces>" demo_clean "${GPU_ID}"
 ```
+
+After collection, pass `--source-dir` to the directory that contains one task
+folder per RoboTwin task. The converter accepts downloaded zip files or
+extracted folders containing `data/episode*.hdf5`; if RoboTwin writes outputs
+elsewhere, copy or symlink those task folders under a common directory such as
+`./robotwin_datasets/<task>/` before conversion.
 
 ## Build Skill Metadata
 
