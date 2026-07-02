@@ -21,24 +21,15 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from check_github_repository_metadata import DEFAULT_DESCRIPTION as GITHUB_DESCRIPTION
+from check_github_repository_metadata import DEFAULT_HOMEPAGE as GITHUB_HOMEPAGE
+from check_github_repository_metadata import DEFAULT_TOPICS as GITHUB_TOPICS
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 GITHUB_REPO = "VIPL-VSU/SkillNet"
 GITHUB_API_URL = "https://api.github.com"
 GITHUB_DEFAULT_BRANCH = "skillnet-public-release"
-GITHUB_DESCRIPTION = (
-    "SkillNet: skill-hierarchy-conditioned MoE policies for LIBERO, "
-    "LIBERO-Skill, and RoboTwin few-shot transfer."
-)
-GITHUB_HOMEPAGE = "https://xsw1208.github.io/skillnet-website/"
-GITHUB_TOPICS = (
-    "skillnet",
-    "robot-learning",
-    "imitation-learning",
-    "libero",
-    "robotwin",
-    "mixture-of-experts",
-)
 
 REQUIRED_FILES = [
     "CITATION.cff",
