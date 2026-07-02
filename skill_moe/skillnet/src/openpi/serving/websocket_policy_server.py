@@ -5,8 +5,8 @@ import traceback
 import time
 import numpy as np
 
-from openpi_client import base_policy as _base_policy
-from openpi_client import msgpack_numpy
+from skillnet_client import base_policy as _base_policy
+from skillnet_client import msgpack_numpy
 import websockets.asyncio.server
 import websockets.frames
 

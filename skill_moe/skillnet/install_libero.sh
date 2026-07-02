@@ -30,7 +30,7 @@ fi
 
 if [[ "${SKILLNET_SKIP_CORE_INSTALL:-0}" != "1" ]]; then
   uv pip install -e .
-  uv pip install -e packages/openpi-client
+  uv pip install -e packages/skillnet-client
 fi
 
 REQ_FILES=()
@@ -55,7 +55,7 @@ else
 fi
 
 cat > examples/libero/skillnet_env.sh <<EOF
-export PYTHONPATH="$PWD/src:$PWD/packages/openpi-client/src:$PWD/third_party/libero:\${PYTHONPATH:-}"
+export PYTHONPATH="$PWD/src:$PWD/packages/skillnet-client/src:$PWD/third_party/libero:\${PYTHONPATH:-}"
 EOF
 
 if python -c "import libero" >/dev/null 2>&1; then

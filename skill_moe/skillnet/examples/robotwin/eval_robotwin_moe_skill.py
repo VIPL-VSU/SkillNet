@@ -83,7 +83,7 @@ def parse_args() -> argparse.Namespace:
 
 def add_import_paths(robotwin_root: Path) -> None:
     for path in (
-        SKILLNET_ROOT / "packages" / "openpi-client" / "src",
+        SKILLNET_ROOT / "packages" / "skillnet-client" / "src",
         robotwin_root,
         robotwin_root / "policy",
         robotwin_root / "description" / "utils",
@@ -425,7 +425,7 @@ def main() -> None:
 
         Sapien_TEST()
 
-    from openpi_client import websocket_client_policy
+    from skillnet_client import websocket_client_policy
 
     plan = load_skill_plan(args.skill_plan)
     tasks = resolve_tasks(args.task_set, args.tasks, plan)

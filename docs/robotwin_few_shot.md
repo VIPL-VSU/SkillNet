@@ -251,6 +251,13 @@ scripts/compute_norm_stats_moe_skill.py
 scripts/train_moe_skill.py
 ```
 
+Checkpoint folders use zero-based step numbers from the training loop. With the
+default public settings, 20,000 pretraining steps write the final checkpoint at
+`19999/params`, and 1,000 transfer steps write the final checkpoint at
+`999/params`. If you override the step count or checkpoint interval, point
+`SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS` and `CKPT_DIR` to the latest checkpoint
+that actually exists in your run directory.
+
 The released config names are:
 
 | Phase | Config | Default dataset id |

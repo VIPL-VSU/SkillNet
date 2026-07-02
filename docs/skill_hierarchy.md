@@ -126,6 +126,37 @@ want to rebuild centers for a new annotation corpus, use the same 6-digit
 schema and report the resulting center set together with the released distance
 rule.
 
+### Motion-Code Cluster Construction
+
+For released LIBERO and RoboTwin reproduction, use the frozen centers above.
+They are the centers used to produce the public SkillNet metadata and are
+checked by `scripts/check_public_release.py`.
+
+For a new corpus, first create a JSONL file with one annotated subtask per row:
+
+```json
+{"task_id": "example_001", "subtask": "open the drawer", "motion_code": "200010"}
+```
+
+Then build deterministic weighted k-medoids centers with the same motion-code
+distance rule used by the released tokenizer:
+
+```bash
+python data_process/skill_hierarchy/skill_hierarchy_tokenizer.py \
+  --build-motion-clusters data_process/skill_hierarchy/motion_code_annotation_examples.jsonl \
+  --num-motion-clusters 4 \
+  --output-motion-clusters ./skillnet_motion_clusters_example.json
+```
+
+The output records the weights, distance rule, selected medoid centers,
+cluster ids, member codes, counts, and distances. For a paper-style release of
+a new corpus, keep this output together with the tokenization strategy so users
+can reproduce the cluster assignment for every subtask.
+
+The included `motion_code_clusters.json` remains the canonical released center
+file. The example command above demonstrates the clustering process on a small
+public JSONL file and is not intended to reproduce the frozen SkillNet centers.
+
 ## Tokenization Strategy
 
 The final token for a subtask is:

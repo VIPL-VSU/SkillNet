@@ -163,11 +163,15 @@ For object-aware LIBERO-90 variants, use the object map explicitly:
 ```bash
 python data_process/libero/convert_libero_90_to_lerobot.py \
   --data-dir "$LIBERO90_RLDS_DIR" \
-  --plan-root "$LIBERO90_PLAN_ROOT" \
+  --slice-index data_process/libero/slice_indices/libero90_slice_index.json \
   --output-repo-id jsw19/libero_90_v1 \
   --instruction-map data_process/libero/instruct2plan_obj_90.json \
   --include-objects
 ```
+
+If you are rebuilding a custom historical object-aware variant from
+`*_plan_sliced.json` files, replace `--slice-index ...` with
+`--plan-root "$LIBERO90_PLAN_ROOT"`.
 
 By default the converter refuses to overwrite an existing LeRobot dataset under
 `HF_LEROBOT_HOME`. Pass `--overwrite` only when intentionally rebuilding.

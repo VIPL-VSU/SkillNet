@@ -51,7 +51,7 @@ else
   PYTHON_CMD=(uv run python)
 fi
 
-export PYTHONPATH="${SKILLNET_ROOT}/src:${SKILLNET_ROOT}/packages/openpi-client/src:${ROBOTWIN_ROOT}:${ROBOTWIN_ROOT}/policy:${ROBOTWIN_ROOT}/description/utils:${PYTHONPATH:-}"
+export PYTHONPATH="${SKILLNET_ROOT}/src:${SKILLNET_ROOT}/packages/skillnet-client/src:${ROBOTWIN_ROOT}:${ROBOTWIN_ROOT}/policy:${ROBOTWIN_ROOT}/description/utils:${PYTHONPATH:-}"
 export XLA_PYTHON_CLIENT_MEM_FRACTION="${XLA_PYTHON_CLIENT_MEM_FRACTION:-0.90}"
 
 SERVER_PID=""

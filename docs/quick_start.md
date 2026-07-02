@@ -91,8 +91,8 @@ cd "${SKILLNET_REPO_ROOT}/skill_moe/skillnet"
 uv venv --python 3.10 .venv
 source .venv/bin/activate
 uv pip install -e .
-uv pip install -e packages/openpi-client
-export PYTHONPATH="${PWD}/src:${PWD}/packages/openpi-client/src:${PWD}/third_party/libero:${PYTHONPATH:-}"
+uv pip install -e packages/skillnet-client
+export PYTHONPATH="${PWD}/src:${PWD}/packages/skillnet-client/src:${PWD}/third_party/libero:${PYTHONPATH:-}"
 ```
 
 For a native Windows venv, activate with `.venv/Scripts/activate` instead of
@@ -117,7 +117,7 @@ bash install_libero.sh
 source examples/libero/skillnet_env.sh
 ```
 
-`install_libero.sh` installs the editable `skillnet` and `openpi-client`
+`install_libero.sh` installs the editable `skillnet` and `skillnet-client`
 packages unless `SKILLNET_SKIP_CORE_INSTALL=1` is set. It also installs bundled
 requirements when present, writes `examples/libero/skillnet_env.sh` for the
 repo-local source paths, and checks LIBERO-Skill benchmark registration.

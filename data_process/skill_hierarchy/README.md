@@ -50,6 +50,30 @@ The motion-code layer starts from a 6-digit action code:
 The released tokenizer assigns the motion code to the nearest cluster center
 with the weighted distance used in the SkillNet experiments.
 
+## Build Motion-Code Clusters
+
+For the released SkillNet experiments, `motion_code_clusters.json` is the
+canonical frozen center file. To build centers for a new annotated corpus,
+create a JSONL file with one row per subtask and a `motion_code` field:
+
+```json
+{"task_id": "example_001", "subtask": "open the drawer", "motion_code": "200010"}
+```
+
+Then run the deterministic weighted k-medoids builder:
+
+```bash
+python data_process/skill_hierarchy/skill_hierarchy_tokenizer.py \
+  --build-motion-clusters data_process/skill_hierarchy/motion_code_annotation_examples.jsonl \
+  --num-motion-clusters 4 \
+  --output-motion-clusters ./skillnet_motion_clusters_example.json
+```
+
+The output stores medoid centers, cluster ids, member motion codes, counts,
+distances, and the released weighted distance rule. Use the frozen
+`motion_code_clusters.json` for reproducing the public checkpoints; use the
+builder only when creating a new hierarchy for a new corpus.
+
 ## Tokenize a Phrase
 
 If the motion code is already known:

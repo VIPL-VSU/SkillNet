@@ -14,6 +14,7 @@ code annotation reads configuration from environment variables.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 import os
 import re
@@ -183,6 +184,92 @@ def record_phrase(record: dict[str, Any]) -> str:
         if value:
             return str(value)
     raise KeyError("Batch records must contain one of: subtask, phrase, plan_step.")
+
+
+def record_motion_code(record: dict[str, Any]) -> str:
+    for key in ("motion_code", "code"):
+        value = record.get(key)
+        if value:
+            return validate_motion_code(str(value))
+    raise KeyError("Cluster records must contain a motion_code field.")
+
+
+def choose_medoid(codes: list[str], counts: Counter[str]) -> str:
+    return min(
+        codes,
+        key=lambda candidate: (
+            sum(motion_code_distance(candidate, code) * counts[code] for code in codes),
+            -counts[candidate],
+            candidate,
+        ),
+    )
+
+
+def build_motion_code_clusters(records: list[dict[str, Any]], num_clusters: int) -> dict[str, Any]:
+    """Build deterministic weighted k-medoids centers from annotated motion codes."""
+    codes = [record_motion_code(record) for record in records]
+    counts: Counter[str] = Counter(codes)
+    unique_codes = sorted(counts)
+    if not unique_codes:
+        raise ValueError("No motion_code values found.")
+    if num_clusters < 1:
+        raise ValueError("--num-motion-clusters must be at least 1.")
+    if num_clusters > len(unique_codes):
+        raise ValueError(
+            f"Requested {num_clusters} clusters, but only {len(unique_codes)} unique motion codes are present."
+        )
+
+    centers = [min(unique_codes, key=lambda code: (-counts[code], code))]
+    while len(centers) < num_clusters:
+        remaining = [code for code in unique_codes if code not in centers]
+        next_center = max(
+            remaining,
+            key=lambda code: (min(motion_code_distance(code, center) for center in centers), counts[code], code),
+        )
+        centers.append(next_center)
+
+    assignments: dict[str, list[str]] = {}
+    for _ in range(100):
+        assignments = {center: [] for center in centers}
+        for code in unique_codes:
+            best_center = min(centers, key=lambda center: (motion_code_distance(code, center), center))
+            assignments[best_center].append(code)
+
+        new_centers = sorted(choose_medoid(cluster_codes, counts) for cluster_codes in assignments.values())
+        if new_centers == sorted(centers):
+            centers = new_centers
+            break
+        centers = new_centers
+
+    assignments = {center: [] for center in centers}
+    for code in unique_codes:
+        best_center = min(centers, key=lambda center: (motion_code_distance(code, center), center))
+        assignments[best_center].append(code)
+
+    ordered_centers = sorted(centers)
+    return {
+        "weights": list(MOTION_CODE_WEIGHTS),
+        "distance_rule": (
+            "Digits 1, 2, and 4 use full weight for zero/nonzero changes and half weight "
+            "for nonzero/nonzero changes; digits 3, 5, and 6 use full weight for any change."
+        ),
+        "centers": [
+            {
+                "center": center,
+                "cluster": f"cluster_{idx}",
+                "count": counts[center],
+                "members": [
+                    {
+                        "motion_code": code,
+                        "count": counts[code],
+                        "distance": motion_code_distance(code, center),
+                    }
+                    for code in sorted(assignments[center])
+                ],
+            }
+            for idx, center in enumerate(ordered_centers)
+        ],
+    }
 
 
 def tokenize_jsonl_records(
@@ -374,6 +461,14 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--build-strategy-from-graph", type=Path, default=None)
     parser.add_argument("--output-strategy", type=Path, default=None)
+    parser.add_argument(
+        "--build-motion-clusters",
+        type=Path,
+        default=None,
+        help="Build deterministic weighted k-medoids centers from a JSONL file containing motion_code fields.",
+    )
+    parser.add_argument("--num-motion-clusters", type=int, default=12)
+    parser.add_argument("--output-motion-clusters", type=Path, default=None)
     return parser.parse_args()
 
 
@@ -384,6 +479,16 @@ def main() -> None:
         output = args.output_strategy or args.strategy
         save_json(output, strategy)
         print(f"Wrote tokenization strategy to {output}")
+        return
+
+    if args.build_motion_clusters is not None:
+        records = load_jsonl(args.build_motion_clusters)
+        clusters = build_motion_code_clusters(records, args.num_motion_clusters)
+        if args.output_motion_clusters is not None:
+            save_json(args.output_motion_clusters, clusters)
+            print(f"Wrote motion-code clusters to {args.output_motion_clusters}")
+        else:
+            print(json.dumps(clusters, indent=2, ensure_ascii=False))
         return
 
     strategy = load_strategy(args.strategy)

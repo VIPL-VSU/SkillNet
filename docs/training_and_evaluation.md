@@ -33,8 +33,8 @@ Install the editable SkillNet runtime package and bundled client package:
 uv venv --python 3.10 .venv
 source .venv/bin/activate
 uv pip install -e .
-uv pip install -e packages/openpi-client
-export PYTHONPATH="${PWD}/src:${PWD}/packages/openpi-client/src:${PWD}/third_party/libero:${PYTHONPATH:-}"
+uv pip install -e packages/skillnet-client
+export PYTHONPATH="${PWD}/src:${PWD}/packages/skillnet-client/src:${PWD}/third_party/libero:${PYTHONPATH:-}"
 ```
 
 For a native Windows venv, use `.venv/Scripts/activate` instead of
@@ -58,7 +58,7 @@ bash install_libero.sh
 source examples/libero/skillnet_env.sh
 ```
 
-`install_libero.sh` installs the editable `skillnet` and `openpi-client`
+`install_libero.sh` installs the editable `skillnet` and `skillnet-client`
 packages, installs bundled LIBERO requirement files when they are available,
 writes `examples/libero/skillnet_env.sh` for the repo-local source paths, and
 checks LIBERO-Skill benchmark registration. It is not a full simulator
@@ -384,6 +384,44 @@ Expected outputs:
 - Per-task success rates are printed by the LIBERO evaluator.
 - The reported LIBERO-Skill number should be computed as the mean success rate
   over the 9 tasks above with the same `NUM_TRIALS` for every task.
+
+## Reported Results
+
+The SkillNet paper reports LIBERO in-domain success rates with 50 evaluation
+trials per task. The `LONG` column corresponds to the standard `libero_10`
+suite in the evaluation loop above.
+
+| Method | Spatial | Object | Goal | Long / LIBERO-10 | Avg. |
+| --- | --- | --- | --- | --- | --- |
+| OpenVLA | 84.7 | 88.4 | 79.2 | 53.7 | 76.5 |
+| pi0 | 96.4 | 98.8 | 95.8 | 85.2 | 94.2 |
+| OpenVLA-OFT | 97.7 | 98.0 | 96.1 | 95.3 | 96.8 |
+| GR00T-N1.6 | 97.7 | 97.5 | 98.5 | 94.4 | 97.0 |
+| AtomicVLA | 98.8 | 98.8 | 97.2 | 96.2 | 97.8 |
+| pi0.5 | 99.4 | 97.8 | 98.2 | 96.6 | 98.0 |
+| SkillNet | 99.6 | 99.2 | 99.0 | 98.4 | 99.1 |
+
+For LIBERO-Skill zero-shot evaluation, the paper reports 50 trials per task on
+the 9-task manifest listed above:
+
+| Method | Avg. |
+| --- | --- |
+| OpenVLA-OFT | 0.0 |
+| OpenVLA | 2.0 |
+| pi0 | 3.3 |
+| GR00T-N1.6 | 12.2 |
+| pi0.5 | 31.8 |
+| Vanilla MoE | 33.1 |
+| SkillNet | 47.8 |
+
+Use the released checkpoints
+`checkpoints/pi05_libero_moe_skill_4_40/moe_add_balance_4_128_30000/29999`
+and
+`checkpoints/pi05_libero_moe_skill_4_90/moe_balance_4_32_90_20000/19999`
+when comparing against these paper-reported numbers. Freshly trained
+checkpoints can vary with hardware, random seeds, simulator versions, and
+dataset rebuild details; report the exact git SHA, dataset verification counts,
+checkpoint path, `NUM_TRIALS`, and simulator environment with new results.
 
 ## Release Scope
 

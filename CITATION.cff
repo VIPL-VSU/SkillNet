@@ -2,6 +2,7 @@ cff-version: 1.2.0
 message: "If you use SkillNet, please cite the SkillNet paper."
 title: "SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models"
 type: software
+url: "https://xsw1208.github.io/skillnet-website/"
 authors:
   - family-names: Xie
     given-names: Senwei
@@ -40,6 +41,7 @@ preferred-citation:
   collection-title: "Proceedings of the 43rd International Conference on Machine Learning"
   publisher: "PMLR"
   year: 2026
+  url: "https://openreview.net/forum?id=CPuJWWgka2"
   conference:
     name: "International Conference on Machine Learning"
     location: "Seoul, South Korea"

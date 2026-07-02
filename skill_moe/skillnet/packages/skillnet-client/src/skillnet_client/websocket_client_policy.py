@@ -5,8 +5,8 @@ from typing import Dict, Tuple
 import websockets.sync.client
 from typing_extensions import override
 
-from openpi_client import base_policy as _base_policy
-from openpi_client import msgpack_numpy
+from skillnet_client import base_policy as _base_policy
+from skillnet_client import msgpack_numpy
 
 
 class WebsocketClientPolicy(_base_policy.BasePolicy):

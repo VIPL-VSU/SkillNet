@@ -1,4 +1,8 @@
-# SkillNet
+# SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models
+
+[Paper (OpenReview)](https://openreview.net/forum?id=CPuJWWgka2) |
+[Project Website](https://xsw1208.github.io/skillnet-website/) |
+[Code](https://github.com/VIPL-VSU/SkillNet)
 
 [![SkillNet release checks](https://github.com/VIPL-VSU/SkillNet/actions/workflows/release-check.yml/badge.svg?branch=skillnet-public-release)](https://github.com/VIPL-VSU/SkillNet/actions/workflows/release-check.yml?query=branch%3Askillnet-public-release)
 
@@ -51,7 +55,14 @@ repository settings that live outside this git tree are tracked in
 
 If you use SkillNet, please cite:
 
-> SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models. ICML 2026.
+```bibtex
+@inproceedings{xie2026skillnet,
+  title={SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models},
+  author={Xie, Senwei and Zhang, Yuntian and Tan, Zhenzhou and Wang, Ruiping and Wang, Pengwei and Zhang, Shanghang and Chen, Xilin},
+  booktitle={Proceedings of the 43rd International Conference on Machine Learning},
+  year={2026}
+}
+```
 
 Machine-readable citation metadata is provided in `CITATION.cff`.
 

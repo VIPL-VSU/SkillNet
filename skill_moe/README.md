@@ -7,9 +7,9 @@ Public instructions should refer to this directory as the SkillNet runtime root.
 
 ## What Is Included
 
-- `skillnet/src/openpi/models/*moe*.py`: core Skill-MoE model and config variants.
-- `skillnet/src/openpi/training/config_moe_skill.py`: public LIBERO, LIBERO-Skill, RoboTwin, and Skill-MoE training configs.
-- `skillnet/src/openpi/training/data_loader_skill.py` and `skillnet/src/openpi/transforms_skill.py`: skill/object annotation support.
+- Skill-MoE model and config variants under the runtime package source tree.
+- Public LIBERO, LIBERO-Skill, RoboTwin, and Skill-MoE training configs.
+- Skill/object annotation transforms and data-loader support used by the released datasets.
 - `skillnet/scripts/train_moe_skill.py`: Skill-MoE training launcher.
 - `skillnet/scripts/serve_policy_moe_skill.py`: Skill-MoE policy server.
 - `skillnet/examples/libero/`: LIBERO and LIBERO-Skill evaluation scripts.
@@ -32,8 +32,8 @@ Use this directory as the SkillNet source root:
 ```bash
 cd skill_moe/skillnet
 uv pip install -e .
-uv pip install -e packages/openpi-client
-export PYTHONPATH="${PWD}/src:${PWD}/packages/openpi-client/src:${PWD}/third_party/libero:${PYTHONPATH:-}"
+uv pip install -e packages/skillnet-client
+export PYTHONPATH="${PWD}/src:${PWD}/packages/skillnet-client/src:${PWD}/third_party/libero:${PYTHONPATH:-}"
 ```
 
 Then install any dataset-specific dependencies. For LIBERO evaluation, run
@@ -57,7 +57,7 @@ real-robot launch scripts are intentionally excluded from this release tree.
 ## Main Entry Points
 
 - Skill hierarchy tokenization: `../../data_process/skill_hierarchy/skill_hierarchy_tokenizer.py`.
-- LIBERO in-domain training: `scripts/train_moe_skill.py`, configs in `src/openpi/training/config_moe_skill.py`.
+- LIBERO in-domain training: `scripts/train_moe_skill.py`, configs in the SkillNet runtime source tree.
 - RoboTwin few-shot training: `scripts/run_train_robotwin_pretrain_moe_skill.sh` and `scripts/run_train_robotwin_transfer_moe_skill.sh`.
 - RoboTwin few-shot eval: `examples/robotwin/run_eval_robotwin_moe_skill.sh`.
 - LIBERO-Skill OOD eval: `examples/libero/main_skill_obj_test_moe_skill.py` plus `third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json` and the corresponding bddl/init folders.

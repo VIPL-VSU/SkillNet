@@ -79,9 +79,10 @@ REQUIRED_FILES = [
     "data_process/robotwin/README.md",
     "skill_moe/README.md",
     "skill_moe/skillnet/pyproject.toml",
-    "skill_moe/skillnet/packages/openpi-client/pyproject.toml",
-    "skill_moe/skillnet/packages/openpi-client/src/openpi_client/__init__.py",
-    "skill_moe/skillnet/packages/openpi-client/src/openpi_client/websocket_client_policy.py",
+    "skill_moe/skillnet/packages/skillnet-client/pyproject.toml",
+    "skill_moe/skillnet/packages/skillnet-client/src/skillnet_client/__init__.py",
+    "skill_moe/skillnet/packages/skillnet-client/src/skillnet_client/websocket_client_policy.py",
+    "skill_moe/skillnet/packages/skillnet-client/src/openpi_client/__init__.py",
     "skill_moe/skillnet/install_libero.sh",
     "skill_moe/skillnet/src/openpi/models/gemma_moe_skill.py",
     "skill_moe/skillnet/src/openpi/models/pi0_config_moe_skill.py",
@@ -399,7 +400,7 @@ SCRIPT_EXPECTATIONS = [
             'ACTIVATE_SCRIPT="${VENV_PATH}/bin/activate"',
             '${VENV_PATH}/Scripts/activate',
             "cat > examples/libero/skillnet_env.sh",
-            'export PYTHONPATH="$PWD/src:$PWD/packages/openpi-client/src:$PWD/third_party/libero:',
+            'export PYTHONPATH="$PWD/src:$PWD/packages/skillnet-client/src:$PWD/third_party/libero:',
             r"\${PYTHONPATH:-}",
             "Run: source examples/libero/skillnet_env.sh",
         ],
@@ -556,6 +557,10 @@ DOC_EXPECTATIONS = [
     (
         "README.md",
         [
+            "# SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models",
+            "https://openreview.net/forum?id=CPuJWWgka2",
+            "https://xsw1208.github.io/skillnet-website/",
+            "@inproceedings{xie2026skillnet",
             "## 1. Quick Start",
             "actions/workflows/release-check.yml/badge.svg?branch=skillnet-public-release",
             "## 2. Skill Hierarchy",
@@ -603,6 +608,8 @@ DOC_EXPECTATIONS = [
             "Proceedings of the 43rd International Conference on Machine Learning",
             "PMLR",
             "year: 2026",
+            "https://openreview.net/forum?id=CPuJWWgka2",
+            "https://xsw1208.github.io/skillnet-website/",
             "https://github.com/VIPL-VSU/SkillNet",
         ],
     ),
@@ -713,7 +720,7 @@ DOC_EXPECTATIONS = [
         "skill_moe/README.md",
         [
             "SkillNet runtime root",
-            "public LIBERO, LIBERO-Skill, RoboTwin",
+            "Public LIBERO, LIBERO-Skill, RoboTwin",
             "Skill hierarchy tokenization",
             "LIBERO in-domain training",
             "RoboTwin few-shot training",
@@ -1022,8 +1029,8 @@ RELEASE_STATUS_FORBIDDEN_PATTERNS = [
 ]
 
 OPENPI_PUBLIC_DOC_ALLOWED_FRAGMENTS = [
-    "packages/openpi-client",
-    "openpi-client",
+    "packages/skillnet-client",
+    "skillnet-client",
     "gs://openpi-assets",
     "gcloud storage cp -r gs://openpi-assets",
     "import openpi.training.config_moe_skill",
@@ -1039,7 +1046,7 @@ NON_RELEASE_PATH_PATTERNS = [
     re.compile(r"^skill_moe/skillnet/src/openpi/training/droid_rlds_dataset\.py$"),
     re.compile(r"^skill_moe/skillnet/src/openpi/policies/droid_policy\.py$"),
     re.compile(r"^skill_moe/skillnet/src/openpi/policies/robocasa_policy\.py$"),
-    re.compile(r"^skill_moe/skillnet/packages/openpi-client/src/openpi_client/websocket_client_policy_robocasa\.py$"),
+    re.compile(r"^skill_moe/skillnet/packages/skillnet-client/src/openpi_client/websocket_client_policy_robocasa\.py$"),
 ]
 
 PUBLIC_HUB_RESOURCES = [
@@ -2186,7 +2193,7 @@ def check_install_smoke(errors: list[str], *, python_spec: str, verbose: bool) -
                 str(python),
                 "--no-deps",
                 "-e",
-                str(REPO_ROOT / "skill_moe/skillnet/packages/openpi-client"),
+                str(REPO_ROOT / "skill_moe/skillnet/packages/skillnet-client"),
             ],
         ]
         for command in commands:
@@ -2207,11 +2214,14 @@ import importlib.metadata as metadata
 import importlib.util
 
 assert metadata.version("skillnet")
-assert metadata.version("openpi-client")
+assert metadata.version("skillnet-client")
 assert importlib.util.find_spec("openpi.training.config_moe_skill")
+assert importlib.util.find_spec("skillnet_client.websocket_client_policy")
 assert importlib.util.find_spec("openpi_client.websocket_client_policy")
-client = importlib.import_module("openpi_client")
+client = importlib.import_module("skillnet_client")
 assert client.__version__ == "0.1.0"
+compat_client = importlib.import_module("openpi_client")
+assert compat_client.__version__ == "0.1.0"
 """
         result = subprocess.run([str(python), "-c", smoke_code], cwd=REPO_ROOT, text=True, capture_output=True)
         if result.returncode != 0:
