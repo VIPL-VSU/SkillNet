@@ -40,7 +40,13 @@ LIBERO40_REPO_ID = os.environ.get("SKILLNET_LIBERO40_REPO_ID", release_repo_id("
 LIBERO90_REPO_ID = os.environ.get("SKILLNET_LIBERO90_REPO_ID", release_repo_id("libero_90_v1"))
 ROBOTWIN_PRETRAIN_REPO_ID = os.environ.get("SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID", release_repo_id("robotwin_pretrain_v1"))
 ROBOTWIN_TRANSFER_REPO_ID = os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_REPO_ID", release_repo_id("robotwin_transfer_v1"))
-ROBOTWIN_TRANSFER_INIT_PARAMS = os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS", PI05_BASE_PARAMS)
+_ROBOTWIN_TRANSFER_INIT_SENTINEL = "__SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS_REQUIRED__"
+ROBOTWIN_TRANSFER_INIT_PARAMS = os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS")
+if ROBOTWIN_TRANSFER_INIT_PARAMS is None:
+    if os.environ.get("ALLOW_PI05_TRANSFER_INIT") == "1":
+        ROBOTWIN_TRANSFER_INIT_PARAMS = PI05_BASE_PARAMS
+    else:
+        ROBOTWIN_TRANSFER_INIT_PARAMS = _ROBOTWIN_TRANSFER_INIT_SENTINEL
 
 
 @dataclasses.dataclass(frozen=True)
@@ -640,7 +646,7 @@ _CONFIGS_DICT = {config.name: config for config in _CONFIGS}
 
 
 def cli() -> TrainConfig:
-    return tyro.extras.overridable_config_cli({k: (k, v) for k, v in _CONFIGS_DICT.items()})
+    return validate_config(tyro.extras.overridable_config_cli({k: (k, v) for k, v in _CONFIGS_DICT.items()}))
 
 
 def get_config(config_name: str) -> TrainConfig:
@@ -650,4 +656,14 @@ def get_config(config_name: str) -> TrainConfig:
         closest_str = f" Did you mean '{closest[0]}'? " if closest else ""
         raise ValueError(f"Config '{config_name}' not found.{closest_str}")
 
-    return _CONFIGS_DICT[config_name]
+    return validate_config(_CONFIGS_DICT[config_name])
+
+
+def validate_config(config: TrainConfig) -> TrainConfig:
+    if config.name == "pi05_robotwin_moe_skill_transfer" and ROBOTWIN_TRANSFER_INIT_PARAMS == _ROBOTWIN_TRANSFER_INIT_SENTINEL:
+        raise ValueError(
+            "RoboTwin few-shot transfer must initialize from a RoboTwin pretraining checkpoint. "
+            "Set SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS to the pretraining checkpoint params path, "
+            "or set ALLOW_PI05_TRANSFER_INIT=1 only for a pi0.5-base debugging run."
+        )
+    return config

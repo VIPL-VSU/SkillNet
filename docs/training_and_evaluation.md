@@ -297,16 +297,21 @@ third_party/libero/libero/libero/init_files/libero_skill_obj
 
 The LIBERO-Skill tasks live under the `libero_skill_obj` bddl/init-state folder.
 The public benchmark contains 9 tasks: the first task from `libero_10` followed
-by 8 skill-composition tasks.
+by 8 skill-composition tasks. The checked-in bddl/init filenames use compact
+`skill_obj_XX` aliases so the repository checks out cleanly on platforms with
+conservative path-length limits. Each bddl file still stores the original
+natural-language task in its `:language` field.
 The authoritative machine-readable task order is:
 
 ```bash
 third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json
 ```
 
-The same folder also contains auxiliary candidate bddl files from benchmark
-construction. `tasks_info.txt` is an asset inventory for those bundled files;
-do not use it as the reported LIBERO-Skill evaluation list.
+The manifest also includes `task_details` entries with the original generated
+LIBERO task names and language strings. The same folder contains auxiliary
+candidate bddl files from benchmark construction. `tasks_info.txt` is an
+asset inventory for those bundled files; do not use it as the reported
+LIBERO-Skill evaluation list.
 The evaluation wrapper defaults to `libero_skill_obj` to avoid colliding with
 unrelated external benchmark names. The evaluator still accepts `libero_skill`
 when the installed LIBERO registers that key, but it validates that the
@@ -361,17 +366,17 @@ Set `FAIL_FAST=0` only when you intentionally want to keep evaluating after a
 rollout exception. Set `ZERO_SHOT=0` only for in-domain LIBERO evaluation or an
 ablation that intentionally uses the base rollout budget.
 
-The 9 registered LIBERO-Skill tasks are:
+The 9 registered LIBERO-Skill task ids and language strings are:
 
-1. `LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket`
-2. `KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate`
-3. `KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet`
-4. `KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate`
-5. `KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave`
-6. `KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet`
-7. `KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave`
-8. `KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove`
-9. `KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave`
+1. `skill_obj_01`: put both the alphabet soup and the tomato sauce in the basket
+2. `skill_obj_02`: open the top drawer of the cabinet and put the bowl on the plate
+3. `skill_obj_03`: put the black bowl in the bottom drawer of the cabinet and close the bottom drawer of the cabinet
+4. `skill_obj_04`: close the top drawer of the cabinet and put the black bowl on the plate
+5. `skill_obj_05`: close the top drawer of the cabinet and close the microwave
+6. `skill_obj_06`: stack the middle black bowl on the back black bowl and open the top drawer of the cabinet
+7. `skill_obj_07`: put the black bowl on the plate and close the microwave
+8. `skill_obj_08`: close the drawer of the cabinet and turn off the stove
+9. `skill_obj_09`: put the black bowl on the plate and open the microwave
 
 Expected outputs:
 

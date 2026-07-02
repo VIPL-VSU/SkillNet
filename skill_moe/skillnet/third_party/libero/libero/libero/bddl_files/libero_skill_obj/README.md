@@ -13,6 +13,12 @@ Authoritative public benchmark:
 - Skill/object annotations:
   `../../../../../../examples/libero/annotations/libero_skill_obj_annotations.json`
 
+The registered task ids are compact aliases (`skill_obj_01` through
+`skill_obj_09`) so the public checkout remains portable on path-length-limited
+platforms. `public_task_manifest.json` records the original generated
+`source_task` names and language strings, and each bddl file keeps the language
+inside its `:language` field.
+
 `tasks_info.txt` is an asset inventory for bundled bddl files and includes
 auxiliary candidate tasks. It should not be used as the reported LIBERO-Skill
 evaluation list. The evaluator validates that the installed benchmark exactly

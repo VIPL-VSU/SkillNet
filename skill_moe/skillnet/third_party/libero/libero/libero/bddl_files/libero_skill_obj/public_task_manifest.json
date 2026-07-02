@@ -1,16 +1,63 @@
 {
   "benchmark_key": "libero_skill_obj",
-  "description": "SkillNet public LIBERO-Skill zero-shot evaluation manifest. This is the reported 9-task benchmark.",
+  "description": "SkillNet public LIBERO-Skill zero-shot evaluation manifest. The task ids are compact aliases for portable checkout paths; task_details preserve the original LIBERO task names and languages.",
   "task_count": 9,
   "tasks": [
-    "LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket",
-    "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate",
-    "KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet",
-    "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate",
-    "KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave",
-    "KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet",
-    "KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave",
-    "KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove",
-    "KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave"
+    "skill_obj_01",
+    "skill_obj_02",
+    "skill_obj_03",
+    "skill_obj_04",
+    "skill_obj_05",
+    "skill_obj_06",
+    "skill_obj_07",
+    "skill_obj_08",
+    "skill_obj_09"
+  ],
+  "task_details": [
+    {
+      "task": "skill_obj_01",
+      "source_task": "LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket",
+      "language": "put both the alphabet soup and the tomato sauce in the basket"
+    },
+    {
+      "task": "skill_obj_02",
+      "source_task": "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate",
+      "language": "open the top drawer of the cabinet and put the bowl on the plate"
+    },
+    {
+      "task": "skill_obj_03",
+      "source_task": "KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet",
+      "language": "put the black bowl in the bottom drawer of the cabinet and close the bottom drawer of the cabinet"
+    },
+    {
+      "task": "skill_obj_04",
+      "source_task": "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate",
+      "language": "close the top drawer of the cabinet and put the black bowl on the plate"
+    },
+    {
+      "task": "skill_obj_05",
+      "source_task": "KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave",
+      "language": "close the top drawer of the cabinet and close the microwave"
+    },
+    {
+      "task": "skill_obj_06",
+      "source_task": "KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet",
+      "language": "stack the middle black bowl on the back black bowl and open the top drawer of the cabinet"
+    },
+    {
+      "task": "skill_obj_07",
+      "source_task": "KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave",
+      "language": "put the black bowl on the plate and close the microwave"
+    },
+    {
+      "task": "skill_obj_08",
+      "source_task": "KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove",
+      "language": "close the drawer of the cabinet and turn off the stove"
+    },
+    {
+      "task": "skill_obj_09",
+      "source_task": "KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave",
+      "language": "put the black bowl on the plate and open the microwave"
+    }
   ]
 }

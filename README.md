@@ -168,7 +168,9 @@ benchmark files are included under the `bddl_files/libero_skill_obj` and
 `init_files/libero_skill_obj` directories inside
 `skill_moe/skillnet/third_party/libero/libero/libero/`. The reported public
 benchmark task order is recorded in
-`bddl_files/libero_skill_obj/public_task_manifest.json`.
+`bddl_files/libero_skill_obj/public_task_manifest.json`. The runtime task ids
+use compact `skill_obj_XX` aliases for portable checkout paths; the manifest
+and bddl `:language` fields preserve the original natural-language tasks.
 
 ## 5. Few-Shot Transfer
 

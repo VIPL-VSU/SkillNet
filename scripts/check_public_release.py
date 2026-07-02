@@ -215,7 +215,6 @@ SCAN_SUFFIXES = {
     ".json",
     ".jsonl",
     ".md",
-    ".pruned_init",
     ".py",
     ".sh",
     ".toml",
@@ -224,6 +223,7 @@ SCAN_SUFFIXES = {
     ".yml",
 }
 SCAN_FILENAMES = {".gitattributes", ".gitignore", "LICENSE"}
+MAX_TRACKED_PATH_LENGTH = 180
 
 TOKENIZATION_STRATEGY_SHA256 = "13d025527a240738e20be3a5e2a208157d623250667db6fc8949830a1ffd8081"
 MOTION_CODE_CENTERS = {
@@ -244,39 +244,39 @@ MOTION_CODE_WEIGHTS = [3.056, 1.539, 1.35, 2.844, 1.039, 2.632]
 
 LIBERO_SKILL_TASKS = [
     (
-        "LIVING_ROOM_SCENE2_put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket",
+        "skill_obj_01",
         "put both the alphabet soup and the tomato sauce in the basket",
     ),
     (
-        "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet_and_put_the_bowl_on_the_plate",
+        "skill_obj_02",
         "open the top drawer of the cabinet and put the bowl on the plate",
     ),
     (
-        "KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_the_bottom_drawer_of_the_cabinet",
+        "skill_obj_03",
         "put the black bowl in the bottom drawer of the cabinet and close the bottom drawer of the cabinet",
     ),
     (
-        "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet_and_put_the_black_bowl_on_the_plate",
+        "skill_obj_04",
         "close the top drawer of the cabinet and put the black bowl on the plate",
     ),
     (
-        "KITCHEN_SCENE11_close_the_top_drawer_of_the_cabinet_and_close_the_microwave",
+        "skill_obj_05",
         "close the top drawer of the cabinet and close the microwave",
     ),
     (
-        "KITCHEN_SCENE2_stack_the_middle_black_bowl_on_the_back_black_bowl_and_open_the_top_drawer_of_the_cabinet",
+        "skill_obj_06",
         "stack the middle black bowl on the back black bowl and open the top drawer of the cabinet",
     ),
     (
-        "KITCHEN_SCENE12_put_the_black_bowl_on_the_plate_and_close_the_microwave",
+        "skill_obj_07",
         "put the black bowl on the plate and close the microwave",
     ),
     (
-        "KITCHEN_SCENE15_close_the_drawer_of_the_cabinet_and_turn_off_the_stove",
+        "skill_obj_08",
         "close the drawer of the cabinet and turn off the stove",
     ),
     (
-        "KITCHEN_SCENE13_put_the_black_bowl_on_the_plate_and_open_the_microwave",
+        "skill_obj_09",
         "put the black bowl on the plate and open the microwave",
     ),
 ]
@@ -1350,7 +1350,13 @@ def check_config_and_script_contracts(errors: list[str], *, verbose: bool) -> No
         'LIBERO90_REPO_ID=os.environ.get("SKILLNET_LIBERO90_REPO_ID",release_repo_id("libero_90_v1"))',
         'ROBOTWIN_PRETRAIN_REPO_ID=os.environ.get("SKILLNET_ROBOTWIN_PRETRAIN_REPO_ID",release_repo_id("robotwin_pretrain_v1"))',
         'ROBOTWIN_TRANSFER_REPO_ID=os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_REPO_ID",release_repo_id("robotwin_transfer_v1"))',
-        'ROBOTWIN_TRANSFER_INIT_PARAMS=os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS",PI05_BASE_PARAMS)',
+        '_ROBOTWIN_TRANSFER_INIT_SENTINEL="__SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS_REQUIRED__"',
+        'ROBOTWIN_TRANSFER_INIT_PARAMS=os.environ.get("SKILLNET_ROBOTWIN_TRANSFER_INIT_PARAMS")',
+        'os.environ.get("ALLOW_PI05_TRANSFER_INIT")=="1"',
+        "ROBOTWIN_TRANSFER_INIT_PARAMS=_ROBOTWIN_TRANSFER_INIT_SENTINEL",
+        "def validate_config(config:TrainConfig)->TrainConfig:",
+        'config.name=="pi05_robotwin_moe_skill_transfer"',
+        "RoboTwin few-shot transfer must initialize from a RoboTwin pretraining checkpoint",
     ]
     for snippet in global_expectations:
         if compact_text(snippet) not in compact_config:
@@ -1468,10 +1474,17 @@ def check_release_surface_paths(errors: list[str], *, verbose: bool) -> None:
         return
 
     matches: list[str] = []
+    long_paths: list[str] = []
+    cache_paths: list[str] = []
     for rel_path in result.stdout.splitlines():
         rel_path = rel_path.strip()
         if not rel_path:
             continue
+        if len(rel_path) > MAX_TRACKED_PATH_LENGTH:
+            long_paths.append(f"{len(rel_path)} {rel_path}")
+        parts = Path(rel_path).parts
+        if "__pycache__" in parts or rel_path.endswith(".pyc"):
+            cache_paths.append(rel_path)
         for pattern in NON_RELEASE_PATH_PATTERNS:
             if pattern.search(rel_path):
                 matches.append(rel_path)
@@ -1481,6 +1494,18 @@ def check_release_surface_paths(errors: list[str], *, verbose: bool) -> None:
         fail("non-release entrypoints are tracked:\n" + "\n".join(matches), errors)
     else:
         ok("tracked release surface excludes non-release entrypoints", verbose=verbose)
+    if long_paths:
+        fail(
+            f"tracked paths exceed the portable checkout limit of {MAX_TRACKED_PATH_LENGTH} characters:\n"
+            + "\n".join(long_paths),
+            errors,
+        )
+    else:
+        ok(f"tracked paths stay within {MAX_TRACKED_PATH_LENGTH} characters", verbose=verbose)
+    if cache_paths:
+        fail("Python cache files are tracked:\n" + "\n".join(cache_paths), errors)
+    else:
+        ok("no tracked Python cache files", verbose=verbose)
 
 
 def check_skill_hierarchy_contract(errors: list[str], *, verbose: bool) -> None:
@@ -1599,6 +1624,21 @@ def check_libero_skill_contract(errors: list[str], *, verbose: bool) -> None:
             fail("LIBERO-Skill public task manifest has the wrong task_count", errors)
         if manifest.get("tasks") != task_names:
             fail("LIBERO-Skill public task manifest does not match the release task order", errors)
+        details = manifest.get("task_details")
+        if not isinstance(details, list) or len(details) != len(LIBERO_SKILL_TASKS):
+            fail("LIBERO-Skill public task manifest must include one task_details entry per task", errors)
+        else:
+            detail_by_task = {detail.get("task"): detail for detail in details if isinstance(detail, dict)}
+            for task_name, annotation_key in LIBERO_SKILL_TASKS:
+                detail = detail_by_task.get(task_name)
+                if not isinstance(detail, dict):
+                    fail(f"LIBERO-Skill public manifest missing task_details entry: {task_name}", errors)
+                    continue
+                if detail.get("language") != annotation_key:
+                    fail(f"LIBERO-Skill public manifest language mismatch for {task_name}", errors)
+                source_task = detail.get("source_task")
+                if not isinstance(source_task, str) or not source_task:
+                    fail(f"LIBERO-Skill public manifest missing source_task for {task_name}", errors)
 
     suite_map = load_python_literal_assignment(
         "skill_moe/skillnet/third_party/libero/libero/libero/benchmark/libero_suite_task_map.py",
@@ -1625,10 +1665,18 @@ def check_libero_skill_contract(errors: list[str], *, verbose: bool) -> None:
     missing_init_for_bddl = sorted(set(bddl_names) - {path.stem for path in init_dir.glob("*.pruned_init")})
     if missing_init_for_bddl:
         fail("LIBERO-Skill bddl files missing pruned init files: " + ", ".join(missing_init_for_bddl), errors)
+    init_without_bddl = sorted({path.stem for path in init_dir.glob("*.pruned_init")} - set(bddl_names))
+    if init_without_bddl:
+        fail("LIBERO-Skill pruned init files missing bddl files: " + ", ".join(init_without_bddl), errors)
 
     for bddl_name, annotation_key in LIBERO_SKILL_TASKS:
-        if not (bddl_dir / f"{bddl_name}.bddl").exists():
+        bddl_path = bddl_dir / f"{bddl_name}.bddl"
+        if not bddl_path.exists():
             fail(f"missing LIBERO-Skill bddl file: {bddl_name}.bddl", errors)
+        else:
+            bddl_text = bddl_path.read_text(encoding="utf-8")
+            if f"(:language {annotation_key})" not in bddl_text:
+                fail(f"LIBERO-Skill bddl language mismatch: {bddl_name}.bddl", errors)
         if not (init_dir / f"{bddl_name}.pruned_init").exists():
             fail(f"missing LIBERO-Skill init file: {bddl_name}.pruned_init", errors)
         entry = annotations.get(annotation_key)
