@@ -19,13 +19,13 @@ fresh checkout.
 | LIBERO-Skill benchmark files | Ready | The 9-task manifest plus bddl/init/annotation contract are checked by `check_public_release.py`. |
 | RoboTwin few-shot source release | Ready | Data helpers, metadata, train launchers, evaluation adapter, and reported protocol are included. |
 
-## Last Verified Snapshot
+## Last Verified Source Snapshot
 
-As of 2026-07-01, the release branch was verified from a short-path HTTPS
-shallow clone of `skillnet-public-release`. Record the exact git SHA in the
-release tag or CI artifact when cutting a public release; this status page lists
-the reproducible gates rather than pinning a self-referential documentation
-commit.
+The source tree is verified from short-path HTTPS shallow clones of
+`skillnet-public-release` and by the GitHub Actions release gate. Record the
+exact git SHA and timestamp in the release tag, GitHub release, or CI artifact
+when cutting a public release; this status page lists the reproducible gates
+rather than pinning a self-referential documentation commit.
 
 Passed gates:
 
@@ -52,7 +52,7 @@ datasets are generated locally rather than published as release assets.
 | `jsw19/libero_40_v1` | Pending public dataset visibility | Direct Hub loading needs this LeRobot dataset to be public; users can also rebuild the same `repo_id` locally from public RLDS sources plus the included slice-index metadata. |
 | `jsw19/libero_90_v1` | Pending public dataset visibility | Direct Hub loading needs this LeRobot dataset to be public; users can also rebuild the same `repo_id` locally from public RLDS sources plus the included slice-index metadata. |
 | Final organization Hub namespace | Pending optional mirror | Current published assets remain under `jsw19/*`; runtime configs and converters support `SKILLNET_RELEASE_HF_NAMESPACE` so the release can move to an organization namespace after mirroring. |
-| GitHub repository metadata | Pending repository setting | `docs/github_repository_setup.md` records the public default branch, description, and topic settings that must be updated outside the git tree; verify them with `scripts/check_github_repository_metadata.py`. |
+| GitHub repository metadata | Pending repository setting | `docs/github_repository_setup.md` records the public default branch, description, and topic settings that must be updated outside the git tree; the current public API state still reports default branch `main`, description `coming soon`, and no release topics. Verify the final state with `scripts/check_github_repository_metadata.py`. |
 | RoboTwin LeRobot datasets | Local-generation path documented | The release provides download/conversion scripts; checkpoint weights and derived task datasets are not published in this release. |
 | pi0.5 base checkpoint | External dependency | Training configs default to the public pi0.5 base checkpoint; mirror it locally and set `SKILLNET_PI05_BASE_PARAMS` if the default GCS asset is not reachable. |
 | LIBERO/RoboTwin simulators | External dependency | Evaluation requires working simulator installs outside this repository. `install_libero.sh` runs the repo-local LIBERO-Skill registration helper when possible; use `SKILLNET_REQUIRE_LIBERO=1` to make LIBERO registration failures fatal during setup. |
