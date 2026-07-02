@@ -32,12 +32,14 @@ REQUIRED_FILES = [
     "README.md",
     "SECURITY.md",
     "SUPPORT.md",
+    ".gitattributes",
     ".github/ISSUE_TEMPLATE/bug_report.yml",
     ".github/ISSUE_TEMPLATE/config.yml",
     ".github/ISSUE_TEMPLATE/data_asset.yml",
     ".github/ISSUE_TEMPLATE/question.yml",
     ".github/pull_request_template.md",
     ".github/workflows/release-check.yml",
+    ".gitignore",
     "docs/quick_start.md",
     "docs/github_repository_setup.md",
     "docs/release_status.md",
@@ -74,6 +76,7 @@ REQUIRED_FILES = [
     "data_process/robotwin/robotwin_plan.json",
     "data_process/robotwin/skill_anno_robotwin.json",
     "data_process/robotwin/README.md",
+    "skill_moe/README.md",
     "skill_moe/skillnet/pyproject.toml",
     "skill_moe/skillnet/packages/openpi-client/pyproject.toml",
     "skill_moe/skillnet/packages/openpi-client/src/openpi_client/__init__.py",
@@ -97,6 +100,7 @@ REQUIRED_FILES = [
     "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/README.md",
     "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json",
     "skill_moe/skillnet/third_party/libero/scripts/README.md",
+    "skill_moe/skillnet/third_party/libero/scripts/create_libero_skill.py",
 ]
 
 PYTHON_FILES = [
@@ -1156,6 +1160,24 @@ def check_required_files(errors: list[str], *, verbose: bool) -> None:
             ok(f"found {rel_path}", verbose=verbose)
 
 
+def check_contract_file_lists(errors: list[str], *, verbose: bool) -> None:
+    required = set(REQUIRED_FILES)
+    contract_files = set(PUBLIC_DOC_FILES)
+    contract_files.update(rel_path for rel_path, _ in DOC_EXPECTATIONS)
+    contract_files.update(rel_path for rel_path, _ in DOC_FORBIDDEN_SNIPPETS)
+    contract_files.update(rel_path for rel_path, _ in WORKFLOW_EXPECTATIONS)
+
+    missing_from_required = sorted(contract_files - required)
+    if missing_from_required:
+        fail(
+            "release contract files must also be listed in REQUIRED_FILES:\n"
+            + "\n".join(missing_from_required),
+            errors,
+        )
+    else:
+        ok("release contract file lists are explicitly required", verbose=verbose)
+
+
 def check_json_files(errors: list[str], *, verbose: bool) -> None:
     json_paths = [
         "data_process/skill_hierarchy/tokenization_strategy.json",
@@ -2202,6 +2224,7 @@ def main() -> None:
     errors: list[str] = []
 
     check_required_files(errors, verbose=args.verbose)
+    check_contract_file_lists(errors, verbose=args.verbose)
     check_json_files(errors, verbose=args.verbose)
     check_jsonl_files(errors, verbose=args.verbose)
     if args.yaml_smoke:
