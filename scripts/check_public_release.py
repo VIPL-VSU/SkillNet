@@ -54,6 +54,11 @@ REQUIRED_FILES = [
     "data_process/skill_hierarchy/skill_graph_example.json",
     "data_process/skill_hierarchy/motion_code_clusters.json",
     "data_process/skill_hierarchy/motion_code_annotation_examples.jsonl",
+    "data_process/libero/README.md",
+    "data_process/libero/download_libero_sources.py",
+    "data_process/libero/convert_libero_to_lerobot.py",
+    "data_process/libero/convert_libero_40_to_lerobot.py",
+    "data_process/libero/convert_libero_90_to_lerobot.py",
     "data_process/libero/instruct2plan_40.json",
     "data_process/libero/instruct2plan_90.json",
     "data_process/libero/instruct2plan_obj_90.json",
@@ -62,6 +67,10 @@ REQUIRED_FILES = [
     "data_process/libero/slice_indices/libero90_slice_index.json",
     "data_process/libero/dataset_cards/README_libero_40_v1.md",
     "data_process/libero/dataset_cards/README_libero_90_v1.md",
+    "data_process/robotwin/download_robotwin_sources.py",
+    "data_process/robotwin/convert_robotwin_to_lerobot.py",
+    "data_process/robotwin/build_robotwin_skill_metadata.py",
+    "data_process/robotwin/collect_train_data.sh",
     "data_process/robotwin/robotwin_plan.json",
     "data_process/robotwin/skill_anno_robotwin.json",
     "data_process/robotwin/README.md",
@@ -75,11 +84,15 @@ REQUIRED_FILES = [
     "skill_moe/skillnet/scripts/serve_policy_moe_skill.py",
     "skill_moe/skillnet/scripts/run_train_libero40_moe_skill.sh",
     "skill_moe/skillnet/scripts/run_train_libero90_moe_skill.sh",
+    "skill_moe/skillnet/scripts/run_train_robotwin_pretrain_moe_skill.sh",
+    "skill_moe/skillnet/scripts/run_train_robotwin_transfer_moe_skill.sh",
     "skill_moe/skillnet/examples/libero/annotations/instruct2plan_40.json",
     "skill_moe/skillnet/examples/libero/annotations/instruct2plan_obj_90.json",
     "skill_moe/skillnet/examples/libero/annotations/libero_skill_obj_annotations.json",
     "skill_moe/skillnet/examples/libero/install_libero_skill_assets.py",
+    "skill_moe/skillnet/examples/libero/main_skill_obj_test_moe_skill.py",
     "skill_moe/skillnet/examples/libero/run_eval_libero_skill_moe.sh",
+    "skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py",
     "skill_moe/skillnet/examples/robotwin/run_eval_robotwin_moe_skill.sh",
     "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/README.md",
     "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json",
@@ -181,7 +194,21 @@ HISTORY_SENSITIVE_PATTERNS = [
     pattern for pattern in SENSITIVE_PATTERNS if pattern.pattern not in {r"\b[A-Za-z]:\\", r"~[/\\]", r"\$HOME[/\\]"}
 ]
 
-SCAN_SUFFIXES = {".cff", ".md", ".py", ".sh", ".json", ".jsonl", ".toml", ".yml", ".yaml"}
+SCAN_SUFFIXES = {
+    ".bddl",
+    ".cff",
+    ".json",
+    ".jsonl",
+    ".md",
+    ".pruned_init",
+    ".py",
+    ".sh",
+    ".toml",
+    ".txt",
+    ".yaml",
+    ".yml",
+}
+SCAN_FILENAMES = {".gitattributes", ".gitignore", "LICENSE"}
 
 TOKENIZATION_STRATEGY_SHA256 = "13d025527a240738e20be3a5e2a208157d623250667db6fc8949830a1ffd8081"
 MOTION_CODE_CENTERS = {
@@ -1024,6 +1051,11 @@ def tracked_files(suffix: str, fallback: list[str]) -> list[str]:
         return fallback
     files = [line.strip() for line in result.stdout.splitlines() if line.strip()]
     return files or fallback
+
+
+def is_scannable_text_path(path: Path | str) -> bool:
+    parsed_path = Path(path)
+    return parsed_path.suffix in SCAN_SUFFIXES or parsed_path.name in SCAN_FILENAMES
 
 
 def parse_args() -> argparse.Namespace:
@@ -1915,7 +1947,7 @@ def check_shell_syntax(errors: list[str], *, verbose: bool, require_bash: bool) 
 def check_sensitive_patterns(errors: list[str], *, verbose: bool) -> None:
     matches = []
     for path in REPO_ROOT.rglob("*"):
-        if ".git" in path.parts or not path.is_file() or path.suffix not in SCAN_SUFFIXES:
+        if ".git" in path.parts or not path.is_file() or not is_scannable_text_path(path):
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         for line_number, line in enumerate(text.splitlines(), start=1):
@@ -1936,31 +1968,63 @@ def check_history_sensitive_patterns(errors: list[str], *, verbose: bool) -> Non
         return
 
     commits = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    objects_result = subprocess.run(["git", "rev-list", "--objects", "HEAD"], cwd=REPO_ROOT, text=True, capture_output=True)
+    if objects_result.returncode != 0:
+        fail(f"git history scan could not list reachable objects: {objects_result.stderr.strip()}", errors)
+        return
+
+    blob_paths: dict[str, set[str]] = {}
+    for line in objects_result.stdout.splitlines():
+        object_id, _, rel_path = line.partition(" ")
+        if not object_id or not rel_path or not is_scannable_text_path(rel_path):
+            continue
+        blob_paths.setdefault(object_id, set()).add(rel_path)
+
+    if not blob_paths:
+        skip("no scannable git history blobs found", verbose=verbose)
+        return
+
+    batch_input = "\n".join(sorted(blob_paths)) + "\n"
+    batch_result = subprocess.run(
+        ["git", "cat-file", "--batch"],
+        cwd=REPO_ROOT,
+        input=batch_input.encode("utf-8"),
+        capture_output=True,
+    )
+    if batch_result.returncode != 0:
+        stderr = batch_result.stderr.decode("utf-8", errors="ignore")
+        fail(f"git history scan could not read reachable blobs: {stderr.strip()}", errors)
+        return
+
     matches: list[str] = []
     total_matches = 0
     max_reported = 80
-    for commit in commits:
-        tree_result = subprocess.run(
-            ["git", "ls-tree", "-r", "--name-only", commit],
-            cwd=REPO_ROOT,
-            text=True,
-            capture_output=True,
-        )
-        if tree_result.returncode != 0:
-            fail(f"git history scan could not list files for {commit[:12]}: {tree_result.stderr.strip()}", errors)
-            return
 
-        for rel_path in tree_result.stdout.splitlines():
-            if not rel_path or Path(rel_path).suffix not in SCAN_SUFFIXES:
-                continue
-            blob_result = subprocess.run(
-                ["git", "show", f"{commit}:{rel_path}"],
-                cwd=REPO_ROOT,
-                capture_output=True,
-            )
-            if blob_result.returncode != 0:
-                continue
-            text = blob_result.stdout.decode("utf-8", errors="ignore")
+    offset = 0
+    batch_output = batch_result.stdout
+    while offset < len(batch_output):
+        header_end = batch_output.find(b"\n", offset)
+        if header_end < 0:
+            break
+        header = batch_output[offset:header_end].decode("utf-8", errors="ignore")
+        offset = header_end + 1
+        header_parts = header.split()
+        if len(header_parts) < 3:
+            break
+        object_id, object_type, size_text = header_parts[:3]
+        try:
+            size = int(size_text)
+        except ValueError:
+            break
+        data = batch_output[offset : offset + size]
+        offset += size
+        if offset < len(batch_output) and batch_output[offset : offset + 1] == b"\n":
+            offset += 1
+        if object_type != "blob":
+            continue
+
+        text = data.decode("utf-8", errors="ignore")
+        for rel_path in sorted(blob_paths.get(object_id, ())):
             for line_number, line in enumerate(text.splitlines(), start=1):
                 if rel_path == "scripts/check_public_release.py" and "re.compile" in line:
                     continue
@@ -1969,7 +2033,7 @@ def check_history_sensitive_patterns(errors: list[str], *, verbose: bool) -> Non
                         continue
                     total_matches += 1
                     if len(matches) < max_reported:
-                        matches.append(f"{commit[:12]}:{rel_path}:{line_number}: {pattern.pattern}")
+                        matches.append(f"{object_id[:12]}:{rel_path}:{line_number}: {pattern.pattern}")
                     break
 
     if total_matches:
@@ -1978,7 +2042,10 @@ def check_history_sensitive_patterns(errors: list[str], *, verbose: bool) -> Non
             suffix = f"\n... {total_matches - len(matches)} additional history matches omitted"
         fail("sensitive/private patterns found in git history:\n" + "\n".join(matches) + suffix, errors)
     else:
-        ok(f"git history reachable from HEAD is clean ({len(commits)} commit(s) scanned)", verbose=verbose)
+        ok(
+            f"git history reachable from HEAD is clean ({len(commits)} commit(s), {len(blob_paths)} blob(s) scanned)",
+            verbose=verbose,
+        )
 
 
 def check_install_smoke(errors: list[str], *, python_spec: str, verbose: bool) -> None:
