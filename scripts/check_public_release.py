@@ -54,6 +54,7 @@ REQUIRED_FILES = [
     "data_process/skill_hierarchy/README.md",
     "data_process/skill_hierarchy/tokenization_strategy.json",
     "data_process/skill_hierarchy/skill_graph_example.json",
+    "data_process/skill_hierarchy/skill_hierarchy_tokenizer.py",
     "data_process/skill_hierarchy/motion_code_clusters.json",
     "data_process/skill_hierarchy/motion_code_annotation_examples.jsonl",
     "data_process/libero/README.md",
@@ -82,6 +83,13 @@ REQUIRED_FILES = [
     "skill_moe/skillnet/packages/openpi-client/src/openpi_client/__init__.py",
     "skill_moe/skillnet/packages/openpi-client/src/openpi_client/websocket_client_policy.py",
     "skill_moe/skillnet/install_libero.sh",
+    "skill_moe/skillnet/src/openpi/models/gemma_moe_skill.py",
+    "skill_moe/skillnet/src/openpi/models/pi0_config_moe_skill.py",
+    "skill_moe/skillnet/src/openpi/models/pi0_moe_skill.py",
+    "skill_moe/skillnet/src/openpi/policies/robotwin_policy.py",
+    "skill_moe/skillnet/src/openpi/training/config_moe_skill.py",
+    "skill_moe/skillnet/src/openpi/training/data_loader_skill.py",
+    "skill_moe/skillnet/src/openpi/transforms_skill.py",
     "skill_moe/skillnet/scripts/compute_norm_stats_moe_skill.py",
     "skill_moe/skillnet/scripts/train_moe_skill.py",
     "skill_moe/skillnet/scripts/serve_policy_moe_skill.py",
@@ -97,8 +105,11 @@ REQUIRED_FILES = [
     "skill_moe/skillnet/examples/libero/run_eval_libero_skill_moe.sh",
     "skill_moe/skillnet/examples/robotwin/eval_robotwin_moe_skill.py",
     "skill_moe/skillnet/examples/robotwin/run_eval_robotwin_moe_skill.sh",
+    "skill_moe/skillnet/third_party/libero/LICENSE",
+    "skill_moe/skillnet/third_party/libero/libero/libero/benchmark/libero_suite_task_map.py",
     "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/README.md",
     "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/public_task_manifest.json",
+    "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/tasks_info.txt",
     "skill_moe/skillnet/third_party/libero/scripts/README.md",
     "skill_moe/skillnet/third_party/libero/scripts/create_libero_skill.py",
 ]
@@ -1163,9 +1174,24 @@ def check_required_files(errors: list[str], *, verbose: bool) -> None:
 def check_contract_file_lists(errors: list[str], *, verbose: bool) -> None:
     required = set(REQUIRED_FILES)
     contract_files = set(PUBLIC_DOC_FILES)
+    contract_files.update(PYTHON_FILES)
+    contract_files.update(SHELL_FILES)
     contract_files.update(rel_path for rel_path, _ in DOC_EXPECTATIONS)
     contract_files.update(rel_path for rel_path, _ in DOC_FORBIDDEN_SNIPPETS)
     contract_files.update(rel_path for rel_path, _ in WORKFLOW_EXPECTATIONS)
+    contract_files.update(rel_path for rel_path, _ in SCRIPT_EXPECTATIONS)
+    contract_files.update(rel_path for rel_path, _ in MOE_EXPECTATIONS)
+    contract_files.update(rel_path for rel_path, _ in CONFIG_FORBIDDEN_SNIPPETS)
+    contract_files.update(command[0] for command in HELP_COMMANDS)
+    contract_files.update(
+        [
+            "skill_moe/skillnet/src/openpi/training/config_moe_skill.py",
+            "skill_moe/skillnet/src/openpi/training/data_loader_skill.py",
+            "skill_moe/skillnet/src/openpi/policies/robotwin_policy.py",
+            "skill_moe/skillnet/third_party/libero/libero/libero/benchmark/libero_suite_task_map.py",
+            "skill_moe/skillnet/third_party/libero/libero/libero/bddl_files/libero_skill_obj/tasks_info.txt",
+        ]
+    )
 
     missing_from_required = sorted(contract_files - required)
     if missing_from_required:
