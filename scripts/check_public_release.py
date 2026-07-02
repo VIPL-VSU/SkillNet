@@ -383,6 +383,10 @@ SCRIPT_EXPECTATIONS = [
             "SKILLNET_REQUIRE_LIBERO",
             'ACTIVATE_SCRIPT="${VENV_PATH}/bin/activate"',
             '${VENV_PATH}/Scripts/activate',
+            "cat > examples/libero/skillnet_env.sh",
+            'export PYTHONPATH="$PWD/src:$PWD/packages/openpi-client/src:$PWD/third_party/libero:',
+            r"\${PYTHONPATH:-}",
+            "Run: source examples/libero/skillnet_env.sh",
         ],
     ),
     (
