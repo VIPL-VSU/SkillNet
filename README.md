@@ -4,7 +4,12 @@
 [Project Website](https://xsw1208.github.io/skillnet-website/) |
 [Code](https://github.com/VIPL-VSU/SkillNet)
 
-[![SkillNet release checks](https://github.com/VIPL-VSU/SkillNet/actions/workflows/release-check.yml/badge.svg?branch=skillnet-public-release)](https://github.com/VIPL-VSU/SkillNet/actions/workflows/release-check.yml?query=branch%3Askillnet-public-release)
+[![ICML 2026](https://img.shields.io/badge/ICML-2026-2563eb)](https://openreview.net/forum?id=CPuJWWgka2)
+[![SkillNet release checks](https://github.com/VIPL-VSU/SkillNet/actions/workflows/release-check.yml/badge.svg?branch=main)](https://github.com/VIPL-VSU/SkillNet/actions/workflows/release-check.yml?query=branch%3Amain)
+
+<p align="center">
+  <img src="docs/assets/skillnet_overview.png" alt="SkillNet overview" width="100%">
+</p>
 
 This repository contains the open-source release for SkillNet. The release
 focuses on the SkillNet code used for LIBERO in-domain training, LIBERO-Skill

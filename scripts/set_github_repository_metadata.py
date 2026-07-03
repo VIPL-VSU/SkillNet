@@ -24,7 +24,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", default="VIPL-VSU/SkillNet", help="GitHub repository in owner/name form.")
     parser.add_argument("--api-url", default="https://api.github.com", help="GitHub API base URL.")
-    parser.add_argument("--default-branch", default="skillnet-public-release")
+    parser.add_argument("--default-branch", default="main")
     parser.add_argument("--description", default=DEFAULT_DESCRIPTION)
     parser.add_argument("--homepage", default=DEFAULT_HOMEPAGE)
     parser.add_argument("--topic", action="append", default=None, help="Topic to set. Repeat to override defaults.")

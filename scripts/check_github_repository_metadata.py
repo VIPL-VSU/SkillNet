@@ -16,8 +16,8 @@ import urllib.request
 
 
 DEFAULT_DESCRIPTION = (
-    "SkillNet: skill-hierarchy-conditioned MoE policies for LIBERO, "
-    "LIBERO-Skill, and RoboTwin few-shot transfer."
+    "hierarchical skill modeling for compositional generalization in "
+    "Vision-Language Action models"
 )
 DEFAULT_TOPICS = (
     "skillnet",
@@ -26,6 +26,7 @@ DEFAULT_TOPICS = (
     "libero",
     "robotwin",
     "mixture-of-experts",
+    "icml-2026",
 )
 DEFAULT_HOMEPAGE = "https://xsw1208.github.io/skillnet-website/"
 
@@ -40,7 +41,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--expected-default-branch",
-        default="skillnet-public-release",
+        default="main",
         help="Expected default branch for public release browsing.",
     )
     parser.add_argument(

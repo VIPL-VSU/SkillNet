@@ -10,13 +10,12 @@ from `GITHUB_TOKEN` or `GH_TOKEN` when the public API rate limit is exhausted.
 Before announcing the release, the GitHub repository should have:
 
 - Visibility: public.
-- Default branch: `skillnet-public-release`, unless `main` is intentionally
-  updated to the same release tree without reintroducing private or legacy
-  history.
-- Description: `SkillNet: skill-hierarchy-conditioned MoE policies for LIBERO, LIBERO-Skill, and RoboTwin few-shot transfer.`
+- Default branch: `main`, after `main` has been intentionally updated to the
+  same release tree without reintroducing private or legacy history.
+- Description: `hierarchical skill modeling for compositional generalization in Vision-Language Action models`
 - Homepage: `https://xsw1208.github.io/skillnet-website/`
 - Topics: `skillnet`, `robot-learning`, `imitation-learning`, `libero`,
-  `robotwin`, `mixture-of-experts`.
+  `robotwin`, `mixture-of-experts`, `icml-2026`.
 - The release-check badge visible at the top of `README.md`.
 
 The repository should not present placeholder metadata such as `coming soon`
@@ -87,6 +86,5 @@ The release branch keeps a clean public history checked by
 `scripts/check_public_release.py --history-smoke`. If `main` has legacy commits
 that are not ancestors of the release branch, do not merge them into the release
 branch just to change the default view; doing so can make the history privacy
-gate scan old, non-release content. Prefer switching the GitHub default branch
-to `skillnet-public-release`, or update `main` only through a deliberate clean
-release procedure.
+gate scan old, non-release content. Keep `main` as the default branch only after
+it has been updated through the deliberate clean release procedure.

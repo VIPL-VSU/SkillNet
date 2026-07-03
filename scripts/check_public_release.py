@@ -29,7 +29,7 @@ from check_github_repository_metadata import DEFAULT_TOPICS as GITHUB_TOPICS
 REPO_ROOT = Path(__file__).resolve().parents[1]
 GITHUB_REPO = "VIPL-VSU/SkillNet"
 GITHUB_API_URL = "https://api.github.com"
-GITHUB_DEFAULT_BRANCH = "skillnet-public-release"
+GITHUB_DEFAULT_BRANCH = "main"
 
 REQUIRED_FILES = [
     "CITATION.cff",
@@ -54,6 +54,7 @@ REQUIRED_FILES = [
     "docs/training_and_evaluation.md",
     "docs/libero_data_processing.md",
     "docs/robotwin_few_shot.md",
+    "docs/assets/skillnet_overview.png",
     "scripts/verify_lerobot_dataset.py",
     "scripts/publish_lerobot_dataset.py",
     "scripts/check_github_repository_metadata.py",
@@ -567,6 +568,7 @@ WORKFLOW_EXPECTATIONS = [
         ".github/workflows/release-check.yml",
         [
             "branches:",
+            "main",
             "skillnet-public-release",
             "fetch-depth: 0",
             "python-version: \"3.10\"",
@@ -594,7 +596,9 @@ DOC_EXPECTATIONS = [
             "https://xsw1208.github.io/skillnet-website/",
             "@inproceedings{xie2026skillnet",
             "## 1. Quick Start",
-            "actions/workflows/release-check.yml/badge.svg?branch=skillnet-public-release",
+            "img.shields.io/badge/ICML-2026",
+            "actions/workflows/release-check.yml/badge.svg?branch=main",
+            "docs/assets/skillnet_overview.png",
             "## 2. Skill Hierarchy",
             "## Experiments Covered",
             "Data processing and annotations",
@@ -823,9 +827,8 @@ DOC_EXPECTATIONS = [
             "docs/github_repository_setup.md",
             "scripts/check_github_repository_metadata.py",
             "scripts/set_github_repository_metadata.py",
-            "default branch `main`",
-            "description `coming soon`",
-            "no release topics",
+            "target default branch is `main`",
+            "hierarchical skill modeling for compositional generalization in Vision-Language Action models",
             "SKILLNET_RELEASE_HF_NAMESPACE",
             "--include-libero-derived-datasets",
             "--expected-episodes 3862",
@@ -849,8 +852,8 @@ DOC_EXPECTATIONS = [
         "docs/github_repository_setup.md",
         [
             "GitHub Repository Setup",
-            "Default branch: `skillnet-public-release`",
-            "SkillNet: skill-hierarchy-conditioned MoE policies for LIBERO, LIBERO-Skill, and RoboTwin few-shot transfer.",
+            "Default branch: `main`",
+            "hierarchical skill modeling for compositional generalization in Vision-Language Action models",
             "Homepage: `https://xsw1208.github.io/skillnet-website/`",
             "robot-learning",
             "mixture-of-experts",

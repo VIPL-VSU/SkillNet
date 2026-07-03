@@ -3,9 +3,11 @@ name: SkillNet release checks
 on:
   push:
     branches:
+      - main
       - skillnet-public-release
   pull_request:
     branches:
+      - main
       - skillnet-public-release
   workflow_dispatch:
 
