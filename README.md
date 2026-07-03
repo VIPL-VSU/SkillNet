@@ -37,65 +37,25 @@ helpers, LeRobot conversion, skill metadata, training configs, training
 launchers, and a simulator-side evaluation adapter for a local RoboTwin-2.0
 checkout.
 
-## Status
-
-This is a source-code release with a lightweight editable Python package. The
-runnable SkillNet source root is `skill_moe/skillnet`. A few
-low-level package names are retained only so pi0.5-compatible checkpoints and
-policy clients load without conversion; public commands, environment variables,
-checkpoints, and documentation are organized as SkillNet workflows. See
-`docs/release_status.md` for the current release-readiness checklist, including
-the derived LeRobot dataset visibility gate for direct LIBERO training. The
-GitHub Actions release gate in `.github/workflows/release-check.yml` runs the
-same public checks on pushes and pull requests to the release branch. GitHub
-repository settings that live outside this git tree are tracked in
-`docs/github_repository_setup.md`.
-
-## Citation
-
-If you use SkillNet, please cite:
-
-```bibtex
-@inproceedings{xie2026skillnet,
-  title={SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models},
-  author={Xie, Senwei and Zhang, Yuntian and Tan, Zhenzhou and Wang, Ruiping and Wang, Pengwei and Zhang, Shanghang and Chen, Xilin},
-  booktitle={Proceedings of the 43rd International Conference on Machine Learning},
-  year={2026}
-}
-```
-
-Machine-readable citation metadata is provided in `CITATION.cff`.
-
 ## Experiments Covered
 
 - LIBERO-40 in-domain Skill-MoE training and evaluation.
 - LIBERO-90 Skill-MoE training and LIBERO-Skill zero-shot evaluation.
 - RoboTwin-2.0 few-shot transfer protocol, data preparation, training launchers, and simulator-side evaluation adapter.
 
-| Track | Config | Dataset | Asset status | Checkpoint |
-| --- | --- | --- | --- | --- |
-| LIBERO-40 | `pi05_libero_moe_skill_4_40` | `jsw19/libero_40_v1` | Derived LeRobot dataset; direct Hub visibility is checked separately | [`jsw19/SkillNet-LIBERO-40`](https://huggingface.co/jsw19/SkillNet-LIBERO-40) |
-| LIBERO-90 to LIBERO-Skill | `pi05_libero_moe_skill_4_90` | `jsw19/libero_90_v1` | Derived LeRobot dataset; direct Hub visibility is checked separately | [`jsw19/SkillNet-LIBERO-90`](https://huggingface.co/jsw19/SkillNet-LIBERO-90) |
-| RoboTwin pretraining | `pi05_robotwin_moe_skill_pretrain` | `jsw19/robotwin_pretrain_v1` | Generate locally from RoboTwin-2.0 sources | Train locally |
-| RoboTwin per-task few-shot transfer | `pi05_robotwin_moe_skill_transfer` | `jsw19/robotwin_<task>_v1` | Generate one per-task dataset locally | Train locally from the RoboTwin pretraining checkpoint |
+| Track | Config | Data processing and annotations | Training and evaluation notes |
+| --- | --- | --- | --- |
+| LIBERO-40 | `pi05_libero_moe_skill_4_40` | `data_process/libero/convert_libero_40_to_lerobot.py`, `data_process/libero/instruct2plan_40.json`, and `docs/libero_data_processing.md` | `docs/training_and_evaluation.md` |
+| LIBERO-90 to LIBERO-Skill | `pi05_libero_moe_skill_4_90` | `data_process/libero/convert_libero_90_to_lerobot.py`, `data_process/libero/instruct2plan_90.json`, `data_process/libero/export_libero_skill_slices.py`, and the LIBERO-Skill manifest under `skill_moe/skillnet/third_party/libero/` | `docs/training_and_evaluation.md` |
+| RoboTwin pretraining | `pi05_robotwin_moe_skill_pretrain` | `data_process/robotwin/download_robotwin_sources.py`, `data_process/robotwin/convert_robotwin_to_lerobot.py`, `data_process/robotwin/build_robotwin_skill_metadata.py`, and `data_process/robotwin/robotwin_plan.json` | `docs/robotwin_few_shot.md` |
+| RoboTwin per-task few-shot transfer | `pi05_robotwin_moe_skill_transfer` | `data_process/robotwin/collect_train_data.sh`, `data_process/robotwin/convert_robotwin_to_lerobot.py`, `data_process/robotwin/build_robotwin_skill_metadata.py`, and `data_process/robotwin/skill_anno_robotwin.json` | `docs/robotwin_few_shot.md` |
 
-The dataset names are the canonical LeRobot `repo_id` values used by the
-released configs. The default release namespace is controlled by
-`SKILLNET_RELEASE_HF_NAMESPACE` and currently points at the published assets
-listed above; mirror the assets under another Hub namespace and set that
-variable to switch the training configs and public converters together. LIBERO
-checkpoint weights are published; RoboTwin checkpoint weights are not part of
-this release and should be trained from the included configs. Direct LIBERO
-training requires either public access to the derived LeRobot datasets above or
-a local rebuild from the public RLDS sources plus the included compact
-slice-index metadata under `data_process/libero/slice_indices/`. The plain
-`--hub-smoke` check verifies checkpoints and source datasets; add
-`--include-libero-derived-datasets` only when those derived LIBERO datasets
-should be publicly visible.
-Full reproduction settings, including global batch sizes, training steps,
-Skill-MoE expert/router settings, normalization-stat paths, checkpoint
-directory conventions, LIBERO-Skill task order, and zero-shot rollout budgets,
-are specified in `docs/training_and_evaluation.md`.
+Checkpoint download commands, exact Hub identifiers, global batch sizes,
+training steps, Skill-MoE expert/router settings, normalization-stat paths,
+checkpoint directory conventions, LIBERO-Skill task order, and zero-shot
+rollout budgets are specified in `docs/training_and_evaluation.md`. RoboTwin
+checkpoints are trained locally from the included configs and are not shipped as
+prebuilt weights in this release.
 
 ## 1. Quick Start
 
@@ -168,8 +128,9 @@ See `docs/skill_hierarchy.md` and `data_process/skill_hierarchy/`.
 ## 3. In-Domain Training and Evaluation
 
 LIBERO data processing is documented in `docs/libero_data_processing.md`. The
-released converters build `jsw19/libero_40_v1` and `jsw19/libero_90_v1` from the
-public RLDS sources plus the included compact slice-index metadata.
+released converters build the LIBERO-40 and LIBERO-90 LeRobot-format training
+data from the public RLDS sources plus the included compact slice-index
+metadata.
 
 LIBERO-40 in-domain training and evaluation launch commands are documented in
 `docs/training_and_evaluation.md`.
@@ -192,6 +153,21 @@ and bddl `:language` fields preserve the original natural-language tasks.
 RoboTwin-2.0 few-shot data download, LeRobot conversion, task lists, training
 commands, evaluation adapter, and reported SkillNet results are documented in
 `docs/robotwin_few_shot.md`.
+
+## Citation
+
+If you use SkillNet, please cite:
+
+```bibtex
+@inproceedings{xie2026skillnet,
+  title={SkillNet: Hierarchical Skill Modeling for Compositional Generalization in Vision-Language Action Models},
+  author={Xie, Senwei and Zhang, Yuntian and Tan, Zhenzhou and Wang, Ruiping and Wang, Pengwei and Zhang, Shanghang and Chen, Xilin},
+  booktitle={Proceedings of the 43rd International Conference on Machine Learning},
+  year={2026}
+}
+```
+
+Machine-readable citation metadata is provided in `CITATION.cff`.
 
 ## License
 

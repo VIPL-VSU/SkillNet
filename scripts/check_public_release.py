@@ -596,27 +596,29 @@ DOC_EXPECTATIONS = [
             "## 1. Quick Start",
             "actions/workflows/release-check.yml/badge.svg?branch=skillnet-public-release",
             "## 2. Skill Hierarchy",
+            "## Experiments Covered",
+            "Data processing and annotations",
             "## 3. In-Domain Training and Evaluation",
             "## 4. LIBERO-90 Training for LIBERO-Skill Zero-Shot Evaluation",
             "does not use",
             "LIBERO-Skill task trajectories for training",
             "## 5. RoboTwin Few-Shot Transfer",
             "docs/release_status.md",
-            "docs/github_repository_setup.md",
             "## Citation",
+            "## License",
             "CITATION.cff",
-            "GitHub Actions release gate",
-            ".github/workflows/release-check.yml",
             "git -c core.longpaths=true clone --branch skillnet-public-release --depth 1 https://github.com/VIPL-VSU/SkillNet.git SkillNet",
             "git config core.longpaths true",
-            "RoboTwin checkpoint",
-            "checkpoint weights are not part of",
+            "data_process/libero/convert_libero_40_to_lerobot.py",
+            "data_process/libero/convert_libero_90_to_lerobot.py",
+            "data_process/libero/export_libero_skill_slices.py",
+            "data_process/robotwin/download_robotwin_sources.py",
+            "data_process/robotwin/collect_train_data.sh",
+            "Checkpoint download commands",
+            "checkpoints are trained locally",
+            "prebuilt weights",
             "included configs",
-            "Direct LIBERO",
-            "training requires either public access",
-            "SKILLNET_RELEASE_HF_NAMESPACE",
-            "--include-libero-derived-datasets",
-            "Generate one per-task dataset locally",
+            "LIBERO-40 and LIBERO-90 LeRobot-format training",
             "public_task_manifest.json",
             "machine-readable citation metadata",
             "CONTRIBUTING.md",
@@ -1501,6 +1503,16 @@ def check_documentation_contracts(errors: list[str], *, verbose: bool) -> None:
     for pattern, label in RELEASE_STATUS_FORBIDDEN_PATTERNS:
         if pattern.search(release_status_text):
             fail(f"docs/release_status.md should not pin a {label}; record exact SHAs in tags or CI logs", errors)
+
+    readme_text = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    if "## Status" in readme_text:
+        fail("README.md should not include a standalone Status section", errors)
+    citation_index = readme_text.find("## Citation")
+    license_index = readme_text.find("## License")
+    if citation_index >= 0 and license_index >= 0 and citation_index > license_index:
+        fail("README.md should place Citation before License", errors)
+    if "jsw19" in readme_text:
+        fail("README.md should keep personal Hub namespace details in deeper reproduction docs", errors)
 
     allowed_openpi_fragments = [fragment.lower() for fragment in OPENPI_PUBLIC_DOC_ALLOWED_FRAGMENTS]
     for rel_path in PUBLIC_DOC_FILES:
